@@ -1,0 +1,38 @@
+# Teanga Bench model configuration.
+#
+# There is no candidate roster. The model under test is named on the command
+# line: teanga-bench run --model <openrouter-id>.
+#
+# Judges: one FIXED pair for every run, so explanation scores of different
+# models are comparable. The pair marks only the explanation of tutor items.
+# Both ids were checked against https://openrouter.ai/api/v1/models on
+# 2026-11-15. When the candidate is in the family of either judge, the
+# explanation is not scored for that run. Change the pair only with a new
+# comparison: results from a different pair are shown as not comparable.
+judges:
+  - deepseek/deepseek-v4.1-flash-1017
+  - qwen/qwen3.8-flash
+
+# OpenRouter provider prefix (the part before "/") to model family.
+# A prefix that is not listed is its own family. A leading "~" is ignored.
+families:
+  openai: openai
+  anthropic: anthropic
+  google: google
+  deepseek: deepseek
+  qwen: qwen
+  mistralai: mistral
+  meta: meta
+  meta-llama: meta
+  x-ai: xai
+  z-ai: zhipu
+  moonshotai: moonshot
+  nvidia: nvidia
+  amazon: amazon
+  cohere: cohere
+  minimax: minimax
+  perplexity: perplexity
+  tencent: tencent
+  xiaomi: xiaomi
+  baidu: baidu
+  bytedance-seed: bytedance

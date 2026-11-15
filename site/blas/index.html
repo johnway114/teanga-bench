@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teanga Bench: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish</title>
+<meta name="description" content="Teanga Bench measures how well large language models handle six Celtic languages: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish. Every model answers the same few hundred items per test, taken from the Blas course, dictionaries and parallel corpora: lesson exercises, word forms, translation, round-trip translation, and finding and fixing errors as a tutor would. Each item is asked several times. The score is the share of items answered correctly; translation tests give partial credit for closeness to reference translations.">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="suite-blas">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="wrap">
+<a class="brand" href="./">Teanga Bench <span class="brand-suite">Blas suite</span></a>
+<nav class="site-nav" aria-label="Site"><a href="./" aria-current="page">Leaderboard</a><a href="./methodology.html">Methodology</a><a href="https://github.com/johnway114/teanga-bench">GitHub</a></nav>
+</div></header>
+<main id="main" class="wrap">
+<h1>Teanga Bench: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish</h1>
+<p class="lede">Teanga Bench measures how well large language models handle six Celtic languages: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish. Every model answers the same few hundred items per test, taken from the Blas course, dictionaries and parallel corpora: lesson exercises, word forms, translation, round-trip translation, and finding and fixing errors as a tutor would. Each item is asked several times. The score is the share of items answered correctly; translation tests give partial credit for closeness to reference translations.</p>
+<p class="meta">No results yet · 5 tests</p>
+<div class="notice"><strong>First results will appear here after the first run.</strong> Each run asks one model every item in every test and publishes its scores, intervals and cost.</div>
+<h2 id="what">What is measured</h2>
+<p class="section-intro">Each test has a few hundred items. Answers are marked by fixed rules (an accepted-answer list, or chrF++ for translation), so no model grades another model's headline score. Every item is asked several times, and every score comes with a 95% interval.</p>
+<ul><li><strong>Lesson exercises.</strong> Multiple-choice, word-order and fill-the-gap questions from the Blas course, marked against the course&#x27;s accepted answers. 360 items.</li><li><strong>Word forms.</strong> Give one inflected form, such as a verb tense, a plural or a prepositional pronoun, marked against a list of accepted forms. 360 items.</li><li><strong>Translation.</strong> Translate a sentence into or out of the language, scored by chrF++ similarity to one or more reference translations. 360 items.</li><li><strong>Round trip.</strong> Translate a sentence into another language, then back again in a fresh conversation, scored by chrF++ similarity to the original. 240 items.</li><li><strong>Tutor accuracy.</strong> Find and fix the error in a sentence, or leave a correct sentence alone; an item counts only when the error is found and fixed and nothing else is changed. 180 items.</li></ul>
+<aside class="howto" aria-labelledby="howto-title">
+<h2 id="howto-title">How to read this</h2>
+<ul>
+<li><strong>Score.</strong> The share of items the model got right, averaged over repeats. Translation tests give partial credit by chrF++ similarity to reference translations. The overall score weights every test equally.</li>
+<li><strong>Interval.</strong> The bar is the score; the thin line across it is the 95% interval, found by resampling the test items 2,000 times. When two models' intervals overlap, the gap between them may be chance.</li>
+<li><strong>Sources, not reviewers.</strong> Items and answers are taken from the sources named in the methodology. No one has reviewed them by hand, so a few gold answers may be wrong. Tutor explanations are marked by two judge models, not by people.</li>
+<li><strong>Private items.</strong> The full item sets are private so that models cannot be trained on them. 20 items per test are public, and the failure examples on the model pages come only from those.</li>
+<li><strong>Cost.</strong> What one run of this suite cost on OpenRouter at the prices listed on the day it ran, judge models included.</li>
+</ul>
+<p><a href="./methodology.html">Read the methodology</a> · <a href="https://github.com/johnway114/teanga-bench">Code and public samples on GitHub</a></p>
+</aside>
+</main>
+<footer class="site-foot"><div class="wrap">
+<p>Teanga Bench is open source under Apache-2.0. Code, the public samples and every results file are on <a href="https://github.com/johnway114/teanga-bench">GitHub</a>.</p>
+<p>Gold answers come from the sources named in the <a href="./methodology.html">methodology</a>; they have not been reviewed by native speakers.</p>
+<p>Also see the <a href="https://research.tonadaapp.com/">Tonada suite: English tutoring for Portuguese, Spanish, Vietnamese and Japanese speakers</a>.</p>
+</div></footer>
+</body>
+</html>

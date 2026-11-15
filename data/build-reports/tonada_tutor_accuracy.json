@@ -1,0 +1,294 @@
+{
+  "suite": "tonada",
+  "test": "tutor_accuracy",
+  "seed": 20261115,
+  "n_items": 360,
+  "n_public_sample": 20,
+  "by_language": {
+    "english": 360
+  },
+  "by_l1": {
+    "japanese": 90,
+    "portuguese": 90,
+    "spanish": 90,
+    "vietnamese": 90
+  },
+  "by_phenomenon": {
+    "agreement": 36,
+    "agreement_or_plural": 22,
+    "article": 23,
+    "capitalisation": 1,
+    "comparison": 3,
+    "determiner_quantifier": 8,
+    "function_word": 3,
+    "no_error": 120,
+    "omitted_auxiliary": 8,
+    "preposition": 38,
+    "pronoun_form": 5,
+    "relative_pronoun": 13,
+    "spelling": 1,
+    "verb_form": 72,
+    "word_class": 2,
+    "word_order": 5
+  },
+  "by_cefr": {
+    "A1": 56,
+    "A2": 56,
+    "B1": 97,
+    "B2": 107,
+    "None": 44
+  },
+  "by_evidence": {
+    "tonada-app-answer-machine-reviewed": 106,
+    "tonada-app-distractor-machine-reviewed": 210,
+    "wikipedia-revision-silver-unreviewed": 44
+  },
+  "by_licence": {
+    "CC BY-SA 4.0 (Wikipedia text); MIT (WikiEdits-MultiGEC dataset, https://huggingface.co/datasets/lang-uk/WikiEdits-MultiGEC)": 44,
+    "private-tonada": 316
+  },
+  "human_checked": 0,
+  "per_l1_sources": {
+    "portuguese": {
+      "screen_distractor_candidates": 40,
+      "drill_distractor_candidates": 81,
+      "wiki_candidates": 8,
+      "distractors_used": 52,
+      "wiki_errors_used": 8,
+      "clean_wiki": 4,
+      "clean_screens": 26,
+      "clean_screen_candidates": 476
+    },
+    "spanish": {
+      "screen_distractor_candidates": 40,
+      "drill_distractor_candidates": 81,
+      "wiki_candidates": 8,
+      "distractors_used": 52,
+      "wiki_errors_used": 8,
+      "clean_wiki": 4,
+      "clean_screens": 26,
+      "clean_screen_candidates": 477
+    },
+    "vietnamese": {
+      "screen_distractor_candidates": 40,
+      "drill_distractor_candidates": 82,
+      "wiki_candidates": 7,
+      "distractors_used": 53,
+      "wiki_errors_used": 7,
+      "clean_wiki": 3,
+      "clean_screens": 27,
+      "clean_screen_candidates": 476
+    },
+    "japanese": {
+      "screen_distractor_candidates": 41,
+      "drill_distractor_candidates": 80,
+      "wiki_candidates": 7,
+      "distractors_used": 53,
+      "wiki_errors_used": 7,
+      "clean_wiki": 3,
+      "clean_screens": 27,
+      "clean_screen_candidates": 476
+    }
+  },
+  "shortfalls": {
+    "portuguese": {
+      "total": {
+        "target": 90,
+        "got": 90
+      },
+      "errors": {
+        "target": 60,
+        "got": 60
+      },
+      "clean": {
+        "target": 30,
+        "got": 30
+      },
+      "distractor_errors": {
+        "minimum": 40,
+        "got": 52
+      },
+      "real_revision_errors": {
+        "max": 20,
+        "got": 8
+      }
+    },
+    "spanish": {
+      "total": {
+        "target": 90,
+        "got": 90
+      },
+      "errors": {
+        "target": 60,
+        "got": 60
+      },
+      "clean": {
+        "target": 30,
+        "got": 30
+      },
+      "distractor_errors": {
+        "minimum": 40,
+        "got": 52
+      },
+      "real_revision_errors": {
+        "max": 20,
+        "got": 8
+      }
+    },
+    "vietnamese": {
+      "total": {
+        "target": 90,
+        "got": 90
+      },
+      "errors": {
+        "target": 60,
+        "got": 60
+      },
+      "clean": {
+        "target": 30,
+        "got": 30
+      },
+      "distractor_errors": {
+        "minimum": 40,
+        "got": 53
+      },
+      "real_revision_errors": {
+        "max": 20,
+        "got": 7
+      }
+    },
+    "japanese": {
+      "total": {
+        "target": 90,
+        "got": 90
+      },
+      "errors": {
+        "target": 60,
+        "got": 60
+      },
+      "clean": {
+        "target": 30,
+        "got": 30
+      },
+      "distractor_errors": {
+        "minimum": 40,
+        "got": 53
+      },
+      "real_revision_errors": {
+        "max": 20,
+        "got": 7
+      }
+    }
+  },
+  "by_l1_error_origin": {
+    "japanese": {
+      "None": 30,
+      "exercise-distractor": 53,
+      "real-revision-edit": 7
+    },
+    "portuguese": {
+      "None": 30,
+      "exercise-distractor": 52,
+      "real-revision-edit": 8
+    },
+    "spanish": {
+      "None": 30,
+      "exercise-distractor": 52,
+      "real-revision-edit": 8
+    },
+    "vietnamese": {
+      "None": 30,
+      "exercise-distractor": 53,
+      "real-revision-edit": 7
+    }
+  },
+  "by_l1_source_status": {
+    "japanese": {
+      "silver-unreviewed": 10,
+      "verified": 80
+    },
+    "portuguese": {
+      "silver-unreviewed": 12,
+      "verified": 78
+    },
+    "spanish": {
+      "silver-unreviewed": 12,
+      "verified": 78
+    },
+    "vietnamese": {
+      "silver-unreviewed": 10,
+      "verified": 80
+    }
+  },
+  "by_l1_has_error": {
+    "japanese": {
+      "False": 30,
+      "True": 60
+    },
+    "portuguese": {
+      "False": 30,
+      "True": 60
+    },
+    "spanish": {
+      "False": 30,
+      "True": 60
+    },
+    "vietnamese": {
+      "False": 30,
+      "True": 60
+    }
+  },
+  "skipped": {
+    "drill_answer_not_a_sentence": 496,
+    "drill_distractor_no_locale_text": 13,
+    "drill_distractor_no_unique_span": 1,
+    "drill_distractor_review_state_None": 310,
+    "drill_distractor_review_state_draft": 12,
+    "drill_distractor_review_state_rejected": 1,
+    "drill_edit_not_small_words": 367,
+    "drill_edit_too_long": 29,
+    "drill_excluded_like_exercises": 145,
+    "drill_insertion": 82,
+    "drill_length_out_of_range": 1,
+    "drill_multi_edit": 128,
+    "drill_not_a_grammatical_contrast": 754,
+    "drill_omission_not_auxiliary": 128,
+    "drill_wrong_choice_window_attested_in_tatoeba": 63,
+    "screen_answer_not_a_full_sentence": 3,
+    "screen_blank_not_unique": 8,
+    "screen_distractor_review_state_None": 132,
+    "screen_distractor_review_state_draft": 1,
+    "screen_distractor_review_state_rejected": 1,
+    "screen_length_out_of_range": 4,
+    "screen_not_a_grammatical_contrast": 874,
+    "screen_pronunciation_lesson": 21,
+    "screen_wrong_choice_window_attested_in_tatoeba": 50
+  },
+  "wiki_error_candidates_passing_filters": 30,
+  "wiki_error_filter_skipped": {
+    "correction_repeats_a_word": 2,
+    "edit_not_confined_to_one_sentence": 321,
+    "not_a_single_small_language_edit": 443,
+    "not_one_clean_sentence_6_30_words": 198,
+    "similar_word_not_a_typo_fix": 6
+  },
+  "tatoeba_reject_count": 1,
+  "wiki_manifest": {
+    "source": "WikiEdits-MultiGEC",
+    "sourceId": "wikiedits-multigec-en",
+    "license": "MIT",
+    "licenseUrl": "https://huggingface.co/datasets/lang-uk/WikiEdits-MultiGEC",
+    "reviewStatus": "silver-unreviewed",
+    "evidenceBasis": "revision-pair",
+    "promotionEligibility": "evaluation-only"
+  },
+  "sources": [
+    "Documents/blas-english/data/content/english/lesson-screens.json",
+    "Documents/blas-english/data/content/english/lesson-screens.review.json",
+    "Documents/blas/blas-gec-artifacts/sealed-candidates/english/english-error.jsonl",
+    "Documents/blas/blas-gec-artifacts/sealed-candidates/english/english-clean.jsonl",
+    "Documents/blas/blas-gec-artifacts/sealed-candidates/english/manifest.json",
+    "Documents/blas-english/data/sources/tatoeba/eng_sentences_detailed.tsv.bz2"
+  ],
+  "licence_note": "Wikipedia pair items carry the licence in WIKI_LICENCE: the text is Wikipedia revision text (CC BY-SA 4.0, attribution and share-alike apply) and the WikiEdits-MultiGEC dataset is MIT; the pairs are silver-unreviewed and evaluation-only. Tatoeba (CC BY 2.0 FR) is used for lookup counts only."
+}

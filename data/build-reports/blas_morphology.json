@@ -1,0 +1,442 @@
+{
+  "suite": "blas",
+  "test": "morphology",
+  "seed": 20261115,
+  "n_items": 360,
+  "n_public_sample": 20,
+  "by_language": {
+    "breton": 60,
+    "cornish": 60,
+    "irish": 60,
+    "manx": 60,
+    "scots-gaelic": 60,
+    "welsh": 60
+  },
+  "by_l1": {
+    "none": 360
+  },
+  "by_phenomenon": {
+    "article_gender_mutation": 31,
+    "copula": 31,
+    "noun_genitive": 9,
+    "noun_plural": 30,
+    "noun_vocative": 4,
+    "number_cardinal": 30,
+    "number_counting": 5,
+    "number_ordinal": 30,
+    "number_personal": 9,
+    "prepositional_pronoun": 28,
+    "verb_conditional": 23,
+    "verb_future": 23,
+    "verb_futureIndicative": 3,
+    "verb_imperative": 27,
+    "verb_imperfect": 14,
+    "verb_past": 22,
+    "verb_pastConditional": 4,
+    "verb_pastParticiple": 4,
+    "verb_pluperfect": 5,
+    "verb_present": 23,
+    "verb_preterite": 5
+  },
+  "by_cefr": {
+    "A1": 134,
+    "A2": 140,
+    "B1": 39,
+    "B2": 16,
+    "None": 31
+  },
+  "by_evidence": {
+    "blas-app+bunamo": 11,
+    "blas-app+kaikki": 176,
+    "blas-app-only": 173
+  },
+  "by_licence": {
+    "private-blas": 360
+  },
+  "human_checked": 0,
+  "per_language_target": 60,
+  "candidates_by_language_phenomenon": {
+    "irish": {
+      "article_gender_mutation": 6,
+      "copula": 82,
+      "noun_genitive": 8357,
+      "noun_plural": 6516,
+      "noun_vocative": 9334,
+      "number_cardinal": 27,
+      "number_counting": 28,
+      "number_ordinal": 19,
+      "number_personal": 19,
+      "prepositional_pronoun": 98,
+      "verb_conditional": 3109,
+      "verb_future": 5200,
+      "verb_imperative": 2080,
+      "verb_past": 5192,
+      "verb_present": 5215
+    },
+    "welsh": {
+      "article_gender_mutation": 16,
+      "copula": 26,
+      "noun_plural": 5232,
+      "number_cardinal": 35,
+      "number_ordinal": 10,
+      "prepositional_pronoun": 56,
+      "verb_conditional": 7680,
+      "verb_imperative": 3745,
+      "verb_imperfect": 8711,
+      "verb_pluperfect": 8716,
+      "verb_present": 8973,
+      "verb_preterite": 8065
+    },
+    "scots-gaelic": {
+      "article_gender_mutation": 5,
+      "copula": 19,
+      "noun_genitive": 1344,
+      "noun_plural": 1524,
+      "number_cardinal": 30,
+      "number_counting": 1,
+      "number_ordinal": 29,
+      "number_personal": 9,
+      "prepositional_pronoun": 86,
+      "verb_conditional": 101,
+      "verb_future": 394,
+      "verb_imperative": 780,
+      "verb_past": 393,
+      "verb_pastParticiple": 383
+    },
+    "manx": {
+      "article_gender_mutation": 11,
+      "copula": 10,
+      "noun_plural": 749,
+      "number_cardinal": 29,
+      "number_ordinal": 15,
+      "prepositional_pronoun": 50,
+      "verb_conditional": 83,
+      "verb_future": 64,
+      "verb_futureIndicative": 3,
+      "verb_imperative": 7,
+      "verb_past": 93,
+      "verb_present": 9
+    },
+    "breton": {
+      "article_gender_mutation": 12,
+      "copula": 8,
+      "noun_plural": 98,
+      "number_cardinal": 30,
+      "number_ordinal": 24,
+      "prepositional_pronoun": 87,
+      "verb_conditional": 161,
+      "verb_future": 161,
+      "verb_imperative": 57,
+      "verb_imperfect": 161,
+      "verb_past": 161,
+      "verb_pastConditional": 133,
+      "verb_present": 161
+    },
+    "cornish": {
+      "article_gender_mutation": 6,
+      "copula": 11,
+      "noun_plural": 4631,
+      "number_cardinal": 30,
+      "number_ordinal": 25,
+      "prepositional_pronoun": 56,
+      "verb_future": 7,
+      "verb_imperative": 3738,
+      "verb_imperfect": 13090,
+      "verb_past": 13010,
+      "verb_present": 13087
+    }
+  },
+  "selected_by_language_phenomenon": {
+    "irish": {
+      "article_gender_mutation": 4,
+      "copula": 4,
+      "noun_genitive": 4,
+      "noun_plural": 4,
+      "noun_vocative": 4,
+      "number_cardinal": 4,
+      "number_counting": 4,
+      "number_ordinal": 4,
+      "number_personal": 4,
+      "prepositional_pronoun": 4,
+      "verb_conditional": 4,
+      "verb_future": 4,
+      "verb_imperative": 4,
+      "verb_past": 4,
+      "verb_present": 4
+    },
+    "welsh": {
+      "article_gender_mutation": 5,
+      "copula": 5,
+      "noun_plural": 5,
+      "number_cardinal": 5,
+      "number_ordinal": 5,
+      "prepositional_pronoun": 5,
+      "verb_conditional": 5,
+      "verb_imperative": 5,
+      "verb_imperfect": 5,
+      "verb_pluperfect": 5,
+      "verb_present": 5,
+      "verb_preterite": 5
+    },
+    "scots-gaelic": {
+      "article_gender_mutation": 5,
+      "copula": 5,
+      "noun_genitive": 5,
+      "noun_plural": 5,
+      "number_cardinal": 5,
+      "number_counting": 1,
+      "number_ordinal": 5,
+      "number_personal": 5,
+      "prepositional_pronoun": 4,
+      "verb_conditional": 4,
+      "verb_future": 4,
+      "verb_imperative": 4,
+      "verb_past": 4,
+      "verb_pastParticiple": 4
+    },
+    "manx": {
+      "article_gender_mutation": 6,
+      "copula": 6,
+      "noun_plural": 5,
+      "number_cardinal": 5,
+      "number_ordinal": 5,
+      "prepositional_pronoun": 5,
+      "verb_conditional": 5,
+      "verb_future": 5,
+      "verb_futureIndicative": 3,
+      "verb_imperative": 5,
+      "verb_past": 5,
+      "verb_present": 5
+    },
+    "breton": {
+      "article_gender_mutation": 5,
+      "copula": 5,
+      "noun_plural": 5,
+      "number_cardinal": 5,
+      "number_ordinal": 5,
+      "prepositional_pronoun": 5,
+      "verb_conditional": 5,
+      "verb_future": 5,
+      "verb_imperative": 4,
+      "verb_imperfect": 4,
+      "verb_past": 4,
+      "verb_pastConditional": 4,
+      "verb_present": 4
+    },
+    "cornish": {
+      "article_gender_mutation": 6,
+      "copula": 6,
+      "noun_plural": 6,
+      "number_cardinal": 6,
+      "number_ordinal": 6,
+      "prepositional_pronoun": 5,
+      "verb_future": 5,
+      "verb_imperative": 5,
+      "verb_imperfect": 5,
+      "verb_past": 5,
+      "verb_present": 5
+    }
+  },
+  "skipped_records": {
+    "irish": {
+      "copula drill without a single clean blank": 37,
+      "invariant form": 1201,
+      "irish cardinal not the plain counting base": 1,
+      "noun blocked": 79,
+      "noun lemma/gloss unusable": 1308,
+      "preposition form unusable": 7,
+      "verb blocked": 24
+    },
+    "welsh": {
+      "collective or singulative noun": 9,
+      "copula drill without a single clean blank": 74,
+      "gender item blocked/ineligible": 1,
+      "noun blocked": 69,
+      "noun lemma/gloss unusable": 126,
+      "preposition blocked/no paradigm": 4,
+      "verb blocked": 134
+    },
+    "scots-gaelic": {
+      "copula blocked": 17,
+      "copula drill without a single clean blank": 14,
+      "gender item blocked/ineligible": 2,
+      "invariant form": 682,
+      "noun blocked": 83,
+      "noun lemma/gloss unusable": 3437,
+      "number excluded: audit verdict major": 2,
+      "number excluded: audit: second attested form 'sèisear' not stored": 1,
+      "number excluded: ordinal stored with article": 1,
+      "preposition form unusable": 8,
+      "verb audit verdict": 1,
+      "verb blocked": 5,
+      "verb lemma/gloss unusable": 2
+    },
+    "manx": {
+      "copula drill without a single clean blank": 14,
+      "gender item blocked/ineligible": 3,
+      "manx verb without audit": 93,
+      "noun blocked": 41,
+      "noun lemma/gloss unusable": 6904,
+      "preposition audit verdict": 1,
+      "preposition blocked/no paradigm": 3,
+      "preposition form unusable": 6,
+      "verb blocked": 7
+    },
+    "breton": {
+      "copula blocked": 29,
+      "copula drill without a single clean blank": 4,
+      "gender item blocked/ineligible": 1,
+      "number blocked": 2,
+      "number excluded: audit verdict wrong": 2,
+      "number excluded: disputed vigesimal ordinal": 3,
+      "verb blocked": 1
+    },
+    "cornish": {
+      "collective or singulative noun": 1,
+      "copula drill without a single clean blank": 13,
+      "gender item blocked/ineligible": 1,
+      "noun blocked": 25,
+      "noun lemma/gloss unusable": 204,
+      "number blocked": 3,
+      "number excluded: audit verdict wrong": 1,
+      "number excluded: audit: second attested ordinal 'eyl' not stored": 1,
+      "preposition blocked/no paradigm": 1,
+      "preposition confidence below MEDIUM-HIGH": 3,
+      "verb blocked": 42
+    }
+  },
+  "shortfalls": {
+    "irish": {
+      "items": 60,
+      "target": 60,
+      "phenomena_below_even_share": {}
+    },
+    "welsh": {
+      "items": 60,
+      "target": 60,
+      "phenomena_below_even_share": {}
+    },
+    "scots-gaelic": {
+      "items": 60,
+      "target": 60,
+      "phenomena_below_even_share": {
+        "number_counting": {
+          "wanted_even_share": 4,
+          "got": 1,
+          "candidates": 1
+        }
+      }
+    },
+    "manx": {
+      "items": 60,
+      "target": 60,
+      "phenomena_below_even_share": {
+        "verb_futureIndicative": {
+          "wanted_even_share": 5,
+          "got": 3,
+          "candidates": 3
+        }
+      }
+    },
+    "breton": {
+      "items": 60,
+      "target": 60,
+      "phenomena_below_even_share": {}
+    },
+    "cornish": {
+      "items": 60,
+      "target": 60,
+      "phenomena_below_even_share": {}
+    }
+  },
+  "cefr_by_language": {
+    "irish": {
+      "A1": 24,
+      "A2": 24,
+      "B1": 4,
+      "B2": 4,
+      "None": 4
+    },
+    "welsh": {
+      "A1": 21,
+      "A2": 19,
+      "B1": 10,
+      "B2": 5,
+      "None": 5
+    },
+    "scots-gaelic": {
+      "A1": 22,
+      "A2": 24,
+      "B1": 4,
+      "B2": 5,
+      "None": 5
+    },
+    "manx": {
+      "A1": 21,
+      "A2": 28,
+      "B1": 5,
+      "None": 6
+    },
+    "breton": {
+      "A1": 21,
+      "A2": 21,
+      "B1": 11,
+      "B2": 2,
+      "None": 5
+    },
+    "cornish": {
+      "A1": 25,
+      "A2": 24,
+      "B1": 5,
+      "None": 6
+    }
+  },
+  "evidence_by_language": {
+    "irish": {
+      "blas-app+bunamo": 11,
+      "blas-app+kaikki": 40,
+      "blas-app-only": 9
+    },
+    "welsh": {
+      "blas-app-only": 60
+    },
+    "scots-gaelic": {
+      "blas-app+kaikki": 50,
+      "blas-app-only": 10
+    },
+    "manx": {
+      "blas-app+kaikki": 38,
+      "blas-app-only": 22
+    },
+    "breton": {
+      "blas-app-only": 60
+    },
+    "cornish": {
+      "blas-app+kaikki": 48,
+      "blas-app-only": 12
+    }
+  },
+  "human_checked_rule": "metadata.human_checked is true only if the record has reviewStatus == 'approved' or humanReviewed == true; no source record carries either field, so all items are false.",
+  "fields_used": {
+    "declensions": "nouns[].{id,lemma,english|glosses.en,gender,declensionClass,forms.*,pluralForms,wordId,sources,_blocked}",
+    "conjugations": "verbs[].{id,lemma,english|glosses.en,irregular,tenses.<tense>.<person>.{analytic,independent,dependent,variant(s)},ai_voice.verdict,_blocked}",
+    "prepositional_pronouns": "prepositions[].{id,baseForm,english,forms.<person>.{standard,english},ai_voice,_blocked,doesNotInflect}",
+    "numbers": "numbers[].{id,value|numeral,english,cardinal(Masculine|Feminine),counting,personal,ordinal,ai_voice,_blocked}",
+    "gender_practice": "items[].{id,wordId,phrase,gender,glosses.en,alternatives[].text,eligible,supersededByItemId,_blocked}",
+    "copula_drills": "items[].{id,native,english,usesCopula,_blocked}",
+    "cefr": "item-difficulty.json items[<key>] mapped through bands; keys declension:<id>:<form>, conjugation:<id>:<tense>, prepPronoun:<id>, number:<id>, copula:<id>; null when no key"
+  },
+  "copula": "Copula drills are sentence translations, not closed forms. Used only as cloze of the leading copula particle (Irish Is/Ní/An/Ba/Níor/Níorbh, Welsh Nid/Ai, Scottish Gaelic An and 'S ann, Manx She) or the copula verb (Breton eo, Cornish yw) when the English translation fixes the polarity and tense. Affirmative Welsh ydw/ydy/yw drills are skipped (ydw/wyf and ydy/yw are all valid). Drills with English such as 'Is it true that:' or an sc-/sp- lenition error in the sentence are skipped.",
+  "welsh_future_skipped": "Welsh future cells are pronoun-bearing colloquial forms (cana i) and the synthetic future has no listing, so the future is not asked; subjunctive covers five verbs and is skipped.",
+  "sampling": "Per language: counts per phenomenon from stratified_sample(keys=('phenomenon',)); picks inside a phenomenon from stratified_sample(keys=('cefr',)). Candidates prefer evidence confirmed forms and vocabulary-linked nouns when at least 12 such candidates exist.",
+  "items_with_multiple_accepted_answers": {
+    "irish": 0,
+    "welsh": 2,
+    "scots-gaelic": 0,
+    "manx": 4,
+    "breton": 0,
+    "cornish": 1
+  },
+  "accept_sources": "Extra accepted answers come only from the app records: Welsh pluralForms, Welsh ordinals written a/b, Breton variants, Cornish _variants, Scottish Gaelic imperative variant, Manx gender-practice alternatives, and the spaced spelling of Cornish -ugens numerals (the record's AI audit says both spellings are attested). No external dialect list is used.",
+  "cefr_note": "item-difficulty.json scores for declension, conjugation, prepPronoun, number and copula keys only reach A1-B2 (Welsh conjugation has 5 C1 keys), so the sample cannot reach C1/C2; gender-practice items have no key and no cefrLevel, so their cefr is null."
+}

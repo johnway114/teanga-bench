@@ -1,0 +1,38 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": "site",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "research.blasapp.com" }],
+      "destination": "/blas/"
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "research.blasapp.com" }],
+      "destination": "/blas/:path*"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "research.tonadaapp.com" }],
+      "destination": "/tonada/"
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "research.tonadaapp.com" }],
+      "destination": "/tonada/:path*"
+    },
+    {
+      "source": "/",
+      "missing": [
+        { "type": "host", "value": "research.blasapp.com" },
+        { "type": "host", "value": "research.tonadaapp.com" }
+      ],
+      "destination": "/suites"
+    }
+  ]
+}

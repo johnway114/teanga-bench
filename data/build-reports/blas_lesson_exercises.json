@@ -1,0 +1,882 @@
+{
+  "suite": "blas",
+  "test": "lesson_exercises",
+  "seed": 20261115,
+  "n_items": 360,
+  "n_public_sample": 20,
+  "by_language": {
+    "breton": 60,
+    "cornish": 60,
+    "irish": 60,
+    "manx": 60,
+    "scots-gaelic": 60,
+    "welsh": 60
+  },
+  "by_l1": {
+    "none": 360
+  },
+  "by_phenomenon": {
+    "activity_and_hobby_recognition": 2,
+    "adjectives": 5,
+    "application": 4,
+    "articles": 1,
+    "case": 1,
+    "chapter_overview": 11,
+    "clothing": 1,
+    "communication": 3,
+    "comparison": 4,
+    "comprehension": 2,
+    "conditional_grammar": 1,
+    "conjugation": 4,
+    "conjunctions": 2,
+    "conversation": 6,
+    "conversations": 2,
+    "copula": 1,
+    "daily_life": 5,
+    "declension": 3,
+    "demonstratives": 1,
+    "descriptive_grammar": 1,
+    "dialogue_retrieval": 1,
+    "discourse": 3,
+    "discourse_grammar": 3,
+    "food": 5,
+    "general": 2,
+    "genitive": 3,
+    "grammar": 21,
+    "grammar_point": 10,
+    "guide": 32,
+    "health": 5,
+    "idiom": 1,
+    "idioms": 1,
+    "inquiry_grammar": 2,
+    "legal_register": 2,
+    "locations_and_services": 2,
+    "modal_expressions": 1,
+    "modals": 1,
+    "mutation": 1,
+    "mutations": 9,
+    "narrative_grammar": 5,
+    "negation": 4,
+    "nouns": 6,
+    "numbers": 6,
+    "numerals": 1,
+    "obligation_grammar": 3,
+    "other": 4,
+    "passive": 1,
+    "preposition_recognition": 4,
+    "prepositions": 4,
+    "pronouns": 5,
+    "pronouns_and_possessives": 2,
+    "quantity_vocabulary": 1,
+    "question_comprehension": 1,
+    "questions": 1,
+    "reading": 2,
+    "recall": 1,
+    "recap": 37,
+    "relative_clauses": 1,
+    "reported_speech": 1,
+    "review": 8,
+    "school_description_transfer": 2,
+    "sequence_transfer": 1,
+    "shopping": 2,
+    "stance_grammar": 3,
+    "subordinate_clauses": 1,
+    "syntax": 5,
+    "tense": 3,
+    "time": 3,
+    "unit_focus": 51,
+    "verbal_noun": 1,
+    "verbs": 12,
+    "vocabulary": 7,
+    "voice": 2,
+    "weather": 4
+  },
+  "by_cefr": {
+    "A1": 125,
+    "A2": 135,
+    "B1": 73,
+    "B2": 24,
+    "C1": 3
+  },
+  "by_evidence": {
+    "blas-app+bunamo": 7,
+    "blas-app+kaikki": 96,
+    "blas-app-only": 257
+  },
+  "by_licence": {
+    "private-blas": 360
+  },
+  "human_checked": 0,
+  "source_files": [
+    "grammar-lessons.json",
+    "lesson-screens.json",
+    "item-difficulty.json",
+    "sentences.json (inspected, not used)"
+  ],
+  "per_language_target": 60,
+  "shortfalls": {},
+  "census": {
+    "irish": {
+      "lessons": 1628,
+      "section_types": {
+        "drill": 2070,
+        "examples": 1926,
+        "explanation": 2045,
+        "rule": 258
+      },
+      "drill_items": 8700,
+      "drill_items_with_options": 6833,
+      "drill_items_with_expectedAnswer": 8700,
+      "drill_items_with_alternative_answers(acceptedAnswers|acceptedAnswerSets)": 5102,
+      "drill_practice_modes": {
+        "None": 5364,
+        "independent": 1262,
+        "reflection": 85,
+        "supported": 1989
+      },
+      "drill_answer_related_fields": {
+        "acceptedAnswerSets": 512,
+        "acceptedAnswers": 5102,
+        "hint": 381,
+        "nativeAudioText": 6079,
+        "optionSets": 3092,
+        "options": 6833
+      },
+      "screen_lesson_status": {
+        "draft": 248,
+        "reviewed": 732
+      },
+      "screen_kinds": {
+        "build": 259,
+        "choose": 24,
+        "compare": 342,
+        "contrast": 354,
+        "drills": 1907,
+        "explain": 1442,
+        "letter": 77,
+        "takeaway": 980
+      },
+      "screen_answer_fields_by_kind": {
+        "build": {
+          "answer": 259,
+          "decoys": 259,
+          "meaning": 259
+        },
+        "choose": {
+          "answer": 24,
+          "blank": 24,
+          "choices": 24,
+          "meaning": 24
+        },
+        "letter": {
+          "word": 77,
+          "base": 77,
+          "phrase": 77,
+          "meaning": 77
+        }
+      }
+    },
+    "welsh": {
+      "lessons": 2915,
+      "section_types": {
+        "drill": 3812,
+        "examples": 2635,
+        "explanation": 3292,
+        "rule": 192
+      },
+      "drill_items": 11501,
+      "drill_items_with_options": 6784,
+      "drill_items_with_expectedAnswer": 11501,
+      "drill_items_with_alternative_answers(acceptedAnswers|acceptedAnswerSets)": 622,
+      "drill_practice_modes": {
+        "independent": 7366,
+        "reflection": 937,
+        "supported": 3198
+      },
+      "drill_answer_related_fields": {
+        "acceptedAnswerSets": 575,
+        "acceptedAnswers": 596,
+        "hint": 6159,
+        "nativeAudioText": 230,
+        "optionSets": 6511,
+        "options": 6784
+      },
+      "screen_lesson_status": {
+        "draft": 179,
+        "reviewed": 1312
+      },
+      "screen_kinds": {
+        "build": 33,
+        "choose": 56,
+        "compare": 634,
+        "contrast": 151,
+        "drills": 2407,
+        "explain": 2479,
+        "letter": 9,
+        "takeaway": 1491
+      },
+      "screen_answer_fields_by_kind": {
+        "build": {
+          "answer": 33,
+          "decoys": 33,
+          "meaning": 33
+        },
+        "choose": {
+          "answer": 56,
+          "blank": 56,
+          "choices": 56,
+          "meaning": 56
+        },
+        "letter": {
+          "word": 9,
+          "base": 9,
+          "phrase": 9,
+          "meaning": 9
+        }
+      }
+    },
+    "scots-gaelic": {
+      "lessons": 582,
+      "section_types": {
+        "drill": 909,
+        "examples": 708,
+        "explanation": 906,
+        "rule": 269
+      },
+      "drill_items": 3410,
+      "drill_items_with_options": 3349,
+      "drill_items_with_expectedAnswer": 3410,
+      "drill_items_with_alternative_answers(acceptedAnswers|acceptedAnswerSets)": 3350,
+      "drill_practice_modes": {
+        "None": 2032,
+        "independent": 659,
+        "supported": 719
+      },
+      "drill_answer_related_fields": {
+        "acceptedAnswerSets": 36,
+        "acceptedAnswers": 3350,
+        "hint": 44,
+        "nativeAudioText": 26,
+        "optionSets": 62,
+        "options": 3349
+      },
+      "screen_lesson_status": {
+        "draft": 124,
+        "reviewed": 162
+      },
+      "screen_kinds": {
+        "build": 31,
+        "choose": 10,
+        "compare": 217,
+        "contrast": 78,
+        "drills": 499,
+        "explain": 337,
+        "letter": 35,
+        "takeaway": 286
+      },
+      "screen_answer_fields_by_kind": {
+        "build": {
+          "answer": 31,
+          "decoys": 31,
+          "meaning": 31
+        },
+        "choose": {
+          "answer": 10,
+          "blank": 10,
+          "choices": 10,
+          "meaning": 10
+        },
+        "letter": {
+          "word": 35,
+          "base": 35,
+          "phrase": 35,
+          "meaning": 35
+        }
+      }
+    },
+    "manx": {
+      "lessons": 552,
+      "section_types": {
+        "drill": 743,
+        "examples": 897,
+        "explanation": 896,
+        "recap": 25,
+        "rule": 411
+      },
+      "drill_items": 3581,
+      "drill_items_with_options": 3479,
+      "drill_items_with_expectedAnswer": 3581,
+      "drill_items_with_alternative_answers(acceptedAnswers|acceptedAnswerSets)": 3260,
+      "drill_practice_modes": {
+        "independent": 1789,
+        "supported": 1792
+      },
+      "drill_answer_related_fields": {
+        "acceptedAnswerSets": 3256,
+        "acceptedAnswers": 3260,
+        "hint": 232,
+        "optionSets": 3447,
+        "options": 3479
+      },
+      "screen_lesson_status": {
+        "draft": 116,
+        "reviewed": 21
+      },
+      "screen_kinds": {
+        "build": 15,
+        "choose": 5,
+        "compare": 30,
+        "contrast": 19,
+        "drills": 201,
+        "explain": 223,
+        "letter": 2,
+        "takeaway": 137
+      },
+      "screen_answer_fields_by_kind": {
+        "build": {
+          "answer": 15,
+          "decoys": 15,
+          "meaning": 15
+        },
+        "choose": {
+          "answer": 5,
+          "blank": 5,
+          "choices": 5,
+          "meaning": 5
+        },
+        "letter": {
+          "word": 2,
+          "base": 2,
+          "phrase": 2,
+          "meaning": 2
+        }
+      }
+    },
+    "breton": {
+      "lessons": 254,
+      "section_types": {
+        "drill": 375,
+        "examples": 242,
+        "explanation": 278,
+        "rule": 14
+      },
+      "drill_items": 1059,
+      "drill_items_with_options": 952,
+      "drill_items_with_expectedAnswer": 1059,
+      "drill_items_with_alternative_answers(acceptedAnswers|acceptedAnswerSets)": 816,
+      "drill_practice_modes": {
+        "independent": 421,
+        "supported": 638
+      },
+      "drill_answer_related_fields": {
+        "acceptedAnswerSets": 810,
+        "acceptedAnswers": 816,
+        "hint": 597,
+        "optionSets": 952,
+        "options": 952
+      },
+      "screen_lesson_status": {
+        "draft": 88,
+        "reviewed": 34
+      },
+      "screen_kinds": {
+        "build": 17,
+        "choose": 1,
+        "compare": 20,
+        "contrast": 35,
+        "drills": 160,
+        "explain": 182,
+        "takeaway": 122
+      },
+      "screen_answer_fields_by_kind": {
+        "build": {
+          "answer": 17,
+          "decoys": 17,
+          "meaning": 17
+        },
+        "choose": {
+          "answer": 1,
+          "blank": 1,
+          "choices": 1,
+          "meaning": 1
+        }
+      }
+    },
+    "cornish": {
+      "lessons": 761,
+      "section_types": {
+        "drill": 813,
+        "examples": 1118,
+        "explanation": 1224,
+        "rule": 664
+      },
+      "drill_items": 4636,
+      "drill_items_with_options": 4266,
+      "drill_items_with_expectedAnswer": 4636,
+      "drill_items_with_alternative_answers(acceptedAnswers|acceptedAnswerSets)": 4535,
+      "drill_practice_modes": {
+        "None": 3880,
+        "independent": 427,
+        "reflection": 1,
+        "supported": 328
+      },
+      "drill_answer_related_fields": {
+        "acceptedAnswers": 4535,
+        "hint": 9,
+        "optionSets": 101,
+        "options": 4266
+      },
+      "screen_lesson_status": {
+        "draft": 78,
+        "reviewed": 86
+      },
+      "screen_kinds": {
+        "build": 3,
+        "choose": 4,
+        "compare": 42,
+        "contrast": 48,
+        "drills": 229,
+        "explain": 263,
+        "takeaway": 164
+      },
+      "screen_answer_fields_by_kind": {
+        "build": {
+          "answer": 3,
+          "decoys": 3,
+          "meaning": 3
+        },
+        "choose": {
+          "answer": 4,
+          "blank": 4,
+          "choices": 4,
+          "meaning": 4
+        }
+      }
+    }
+  },
+  "lessons_skipped": {
+    "irish": {
+      "lesson_retired_or_superseded": 640,
+      "lesson_blocked": 2
+    },
+    "welsh": {
+      "lesson_blocked": 231,
+      "lesson_retired_or_superseded": 1
+    },
+    "scots-gaelic": {
+      "lesson_retired_or_superseded": 97,
+      "lesson_blocked": 9
+    },
+    "manx": {
+      "lesson_blocked": 369,
+      "lesson_retired_or_superseded": 1
+    },
+    "breton": {
+      "lesson_retired_or_superseded": 132
+    },
+    "cornish": {
+      "lesson_retired_or_superseded": 199,
+      "lesson_blocked": 1
+    }
+  },
+  "candidates_by_kind_before_sampling": {
+    "irish": {
+      "choice": 2491,
+      "cloze_free": 32,
+      "form": 20,
+      "screen_build": 225,
+      "screen_choose": 24,
+      "screen_letter": 77,
+      "transform": 41
+    },
+    "welsh": {
+      "choice": 5517,
+      "cloze_free": 161,
+      "form": 2,
+      "screen_build": 32,
+      "screen_choose": 55,
+      "screen_letter": 9,
+      "transform": 27
+    },
+    "scots-gaelic": {
+      "choice": 2422,
+      "screen_build": 31,
+      "screen_choose": 10,
+      "screen_letter": 35
+    },
+    "manx": {
+      "choice": 413,
+      "screen_build": 13,
+      "screen_choose": 5,
+      "screen_letter": 2
+    },
+    "breton": {
+      "choice": 168,
+      "screen_build": 17,
+      "screen_choose": 1
+    },
+    "cornish": {
+      "choice": 3335,
+      "screen_build": 3,
+      "screen_choose": 4
+    }
+  },
+  "rejected_by_language_kind_reason": {
+    "breton": {
+      "choice": {
+        "answer_appears_in_question": 7,
+        "audio_or_pronunciation": 2,
+        "expected_not_in_options": 1,
+        "multi_part_matching_task": 9,
+        "needs_unseen_lesson_context": 32
+      },
+      "free": {
+        "audio_or_pronunciation": 1,
+        "free_answer_has_alternatives_in_one_string": 1,
+        "free_answer_not_definite_or_too_long": 63,
+        "free_answer_shape_not_definite": 16,
+        "multi_part_matching_task": 8,
+        "needs_unseen_lesson_context": 12
+      }
+    },
+    "cornish": {
+      "choice": {
+        "answer_appears_in_question": 72,
+        "audio_or_pronunciation": 9,
+        "empty_or_placeholder_gold": 1,
+        "expected_not_in_options": 1,
+        "fewer_than_two_options": 3,
+        "image_dependent": 5,
+        "needs_unseen_lesson_context": 109
+      },
+      "free": {
+        "empty_or_placeholder_gold": 1,
+        "free_answer_not_definite_or_too_long": 4,
+        "free_answer_shape_not_definite": 91,
+        "image_dependent": 3,
+        "needs_unseen_lesson_context": 79,
+        "reflection_practice_mode": 1
+      }
+    },
+    "irish": {
+      "choice": {
+        "answer_appears_in_question": 120,
+        "audio_dependent": 26,
+        "audio_or_pronunciation": 24,
+        "empty_or_placeholder_gold": 1,
+        "image_dependent": 12,
+        "multi_part_matching_task": 2,
+        "needs_unseen_lesson_context": 229
+      },
+      "cloze_free": {
+        "answer_appears_in_question": 1,
+        "cloze_multiword_answer_variants_unlisted": 2,
+        "cloze_without_english_gloss": 30
+      },
+      "form": {
+        "answer_appears_in_question": 1
+      },
+      "free": {
+        "audio_dependent": 1,
+        "audio_or_pronunciation": 11,
+        "free_answer_not_definite_or_too_long": 18,
+        "free_answer_shape_not_definite": 542,
+        "image_dependent": 4,
+        "needs_unseen_lesson_context": 98,
+        "reflection_practice_mode": 61
+      },
+      "screen_build": {
+        "fewer_than_three_words": 34
+      }
+    },
+    "manx": {
+      "choice": {
+        "answer_appears_in_question": 24,
+        "audio_or_pronunciation": 2,
+        "image_dependent": 1,
+        "needs_unseen_lesson_context": 87
+      },
+      "free": {
+        "free_answer_not_definite_or_too_long": 15,
+        "free_answer_shape_not_definite": 45,
+        "multi_part_matching_task": 1,
+        "needs_unseen_lesson_context": 37
+      },
+      "screen_build": {
+        "fewer_than_three_words": 2
+      }
+    },
+    "scots-gaelic": {
+      "choice": {
+        "accepted_answer_is_another_option": 11,
+        "answer_appears_in_question": 75,
+        "audio_dependent": 14,
+        "audio_or_pronunciation": 25,
+        "empty_or_placeholder_gold": 12,
+        "fewer_than_two_options": 59,
+        "image_dependent": 9,
+        "multi_part_matching_task": 12,
+        "needs_unseen_lesson_context": 55
+      },
+      "cloze_free": {
+        "cloze_without_english_gloss": 2
+      },
+      "free": {
+        "free_answer_shape_not_definite": 53,
+        "image_dependent": 1,
+        "needs_unseen_lesson_context": 5
+      }
+    },
+    "welsh": {
+      "choice": {
+        "answer_appears_in_question": 268,
+        "audio_dependent": 11,
+        "audio_or_pronunciation": 57,
+        "autoGrade_false": 82,
+        "empty_or_placeholder_gold": 1,
+        "evaluation_policy_not_auto_graded": 25,
+        "expected_not_in_options": 2,
+        "fewer_than_two_options": 1,
+        "generic_prompt_no_target": 1,
+        "image_dependent": 35,
+        "multi_part_matching_task": 12,
+        "needs_unseen_lesson_context": 618
+      },
+      "cloze_free": {
+        "answer_appears_in_question": 2,
+        "cloze_multiword_answer_variants_unlisted": 53,
+        "cloze_without_english_gloss": 17
+      },
+      "free": {
+        "audio_or_pronunciation": 40,
+        "autoGrade_false": 739,
+        "evaluation_policy_not_auto_graded": 3,
+        "free_answer_has_alternatives_in_one_string": 11,
+        "free_answer_not_definite_or_too_long": 78,
+        "free_answer_shape_not_definite": 2035,
+        "generic_prompt_no_target": 1,
+        "image_dependent": 25,
+        "multi_part_matching_task": 5,
+        "needs_unseen_lesson_context": 348,
+        "reflection_practice_mode": 793
+      },
+      "screen_build": {
+        "fewer_than_three_words": 1
+      },
+      "screen_choose": {
+        "audio_or_pronunciation": 1
+      }
+    }
+  },
+  "exercise_kinds_used": [
+    "choice",
+    "cloze_free",
+    "transform",
+    "form",
+    "screen_choose",
+    "screen_build",
+    "screen_letter"
+  ],
+  "exercise_kinds_not_used": {
+    "grammar-lessons section types explanation/examples/rule/recap": "teaching text, no question",
+    "lesson-screens drills": "only a count; the questions are the grammar-lessons drills",
+    "lesson-screens explain/takeaway/contrast/compare": "teaching text, no question or answer",
+    "drills with practiceMode reflection or autoGrade false": "open-ended, not auto-gradable",
+    "free-answer drills other than blank, 'a + b = ?' and 'VN/tense of x'": "translation or recall prompts have synonyms and lesson-context dependence; gold not definite",
+    "sentences.json clozeTargets": "lists several candidate words per sentence with no designated blank and no per-slot answer; any blank would be an unlisted gold",
+    "sentences.json transformations": "empty in every language"
+  },
+  "by_exercise_kind": {
+    "breton:choice": 42,
+    "breton:screen_build": 17,
+    "breton:screen_choose": 1,
+    "cornish:choice": 53,
+    "cornish:screen_build": 3,
+    "cornish:screen_choose": 4,
+    "irish:choice": 36,
+    "irish:cloze_free": 6,
+    "irish:screen_build": 12,
+    "irish:screen_choose": 2,
+    "irish:screen_letter": 3,
+    "irish:transform": 1,
+    "manx:choice": 41,
+    "manx:screen_build": 12,
+    "manx:screen_choose": 5,
+    "manx:screen_letter": 2,
+    "scots-gaelic:choice": 36,
+    "scots-gaelic:screen_build": 11,
+    "scots-gaelic:screen_choose": 6,
+    "scots-gaelic:screen_letter": 7,
+    "welsh:choice": 36,
+    "welsh:cloze_free": 8,
+    "welsh:form": 2,
+    "welsh:screen_build": 6,
+    "welsh:screen_choose": 2,
+    "welsh:screen_letter": 1,
+    "welsh:transform": 5
+  },
+  "by_source_status": {
+    "breton:draft": 23,
+    "breton:reviewed": 37,
+    "cornish:None": 4,
+    "cornish:draft": 14,
+    "cornish:reviewed": 42,
+    "irish:draft": 4,
+    "irish:reviewed": 56,
+    "manx:None": 20,
+    "manx:draft": 33,
+    "manx:reviewed": 7,
+    "scots-gaelic:None": 26,
+    "scots-gaelic:draft": 4,
+    "scots-gaelic:reviewed": 30,
+    "welsh:None": 3,
+    "welsh:draft": 4,
+    "welsh:reviewed": 53
+  },
+  "by_language_phenomenon": {
+    "breton:adjectives": 2,
+    "breton:communication": 1,
+    "breton:conjunctions": 1,
+    "breton:conversation": 3,
+    "breton:daily_life": 3,
+    "breton:food": 3,
+    "breton:grammar": 13,
+    "breton:guide": 3,
+    "breton:health": 3,
+    "breton:mutations": 3,
+    "breton:negation": 3,
+    "breton:numbers": 2,
+    "breton:prepositions": 3,
+    "breton:pronouns": 3,
+    "breton:recap": 3,
+    "breton:tense": 2,
+    "breton:time": 3,
+    "breton:verbs": 3,
+    "breton:weather": 3,
+    "cornish:guide": 23,
+    "cornish:mutations": 3,
+    "cornish:recap": 12,
+    "cornish:unit_focus": 22,
+    "irish:adjectives": 2,
+    "irish:clothing": 1,
+    "irish:communication": 2,
+    "irish:comparison": 2,
+    "irish:comprehension": 2,
+    "irish:conjugation": 2,
+    "irish:conversation": 3,
+    "irish:conversations": 2,
+    "irish:daily_life": 2,
+    "irish:declension": 2,
+    "irish:discourse": 2,
+    "irish:food": 2,
+    "irish:general": 2,
+    "irish:genitive": 2,
+    "irish:grammar": 3,
+    "irish:guide": 2,
+    "irish:health": 2,
+    "irish:legal_register": 2,
+    "irish:mutations": 1,
+    "irish:nouns": 2,
+    "irish:numbers": 2,
+    "irish:reading": 2,
+    "irish:recap": 3,
+    "irish:review": 3,
+    "irish:shopping": 2,
+    "irish:syntax": 2,
+    "irish:verbs": 3,
+    "irish:vocabulary": 2,
+    "irish:weather": 1,
+    "manx:chapter_overview": 11,
+    "manx:conditional_grammar": 1,
+    "manx:descriptive_grammar": 1,
+    "manx:discourse_grammar": 3,
+    "manx:inquiry_grammar": 2,
+    "manx:narrative_grammar": 5,
+    "manx:obligation_grammar": 3,
+    "manx:recap": 15,
+    "manx:stance_grammar": 3,
+    "manx:unit_focus": 16,
+    "scots-gaelic:adjectives": 1,
+    "scots-gaelic:application": 4,
+    "scots-gaelic:articles": 1,
+    "scots-gaelic:case": 1,
+    "scots-gaelic:comparison": 2,
+    "scots-gaelic:conjunctions": 1,
+    "scots-gaelic:copula": 1,
+    "scots-gaelic:declension": 1,
+    "scots-gaelic:demonstratives": 1,
+    "scots-gaelic:discourse": 1,
+    "scots-gaelic:genitive": 1,
+    "scots-gaelic:grammar": 1,
+    "scots-gaelic:grammar_point": 10,
+    "scots-gaelic:idiom": 1,
+    "scots-gaelic:idioms": 1,
+    "scots-gaelic:modal_expressions": 1,
+    "scots-gaelic:modals": 1,
+    "scots-gaelic:mutation": 1,
+    "scots-gaelic:negation": 1,
+    "scots-gaelic:numerals": 1,
+    "scots-gaelic:passive": 1,
+    "scots-gaelic:prepositions": 1,
+    "scots-gaelic:pronouns": 1,
+    "scots-gaelic:questions": 1,
+    "scots-gaelic:recall": 1,
+    "scots-gaelic:relative_clauses": 1,
+    "scots-gaelic:reported_speech": 1,
+    "scots-gaelic:review": 1,
+    "scots-gaelic:subordinate_clauses": 1,
+    "scots-gaelic:syntax": 1,
+    "scots-gaelic:tense": 1,
+    "scots-gaelic:unit_focus": 10,
+    "scots-gaelic:verbal_noun": 1,
+    "scots-gaelic:verbs": 2,
+    "scots-gaelic:vocabulary": 1,
+    "scots-gaelic:voice": 2,
+    "welsh:activity_and_hobby_recognition": 2,
+    "welsh:conjugation": 2,
+    "welsh:dialogue_retrieval": 1,
+    "welsh:grammar": 4,
+    "welsh:guide": 4,
+    "welsh:locations_and_services": 2,
+    "welsh:mutations": 2,
+    "welsh:nouns": 4,
+    "welsh:numbers": 2,
+    "welsh:other": 4,
+    "welsh:preposition_recognition": 4,
+    "welsh:pronouns": 1,
+    "welsh:pronouns_and_possessives": 2,
+    "welsh:quantity_vocabulary": 1,
+    "welsh:question_comprehension": 1,
+    "welsh:recap": 4,
+    "welsh:review": 4,
+    "welsh:school_description_transfer": 2,
+    "welsh:sequence_transfer": 1,
+    "welsh:syntax": 2,
+    "welsh:unit_focus": 3,
+    "welsh:verbs": 4,
+    "welsh:vocabulary": 4
+  },
+  "by_language_evidence": {
+    "breton:blas-app-only": 60,
+    "cornish:blas-app+kaikki": 18,
+    "cornish:blas-app-only": 42,
+    "irish:blas-app+bunamo": 7,
+    "irish:blas-app+kaikki": 26,
+    "irish:blas-app-only": 27,
+    "manx:blas-app+kaikki": 21,
+    "manx:blas-app-only": 39,
+    "scots-gaelic:blas-app+kaikki": 31,
+    "scots-gaelic:blas-app-only": 29,
+    "welsh:blas-app-only": 60
+  },
+  "human_checked_field_used": "lesson _meta.humanReviewed == true, or reviewStatus/_meta.reviewStatus == 'approved', or drill humanReviewed == true; none present, so false everywhere",
+  "cefr_rule": "lesson cefrLevel when present; else item-difficulty.json grammarLesson:<id> score mapped to its band; else null (cefr_source in metadata)",
+  "skipped_lesson_rules": "_blocked, supersededByLessonId, retiredFromInstruction, non-empty qualityFlags",
+  "gold_quality_notes": [
+    "Lesson content is largely AI-authored and provisional (lesson _meta: humanReviewed false, candidateStatus provisional-unapproved, reviewStatus pending); gold is the app's own answer, not independently verified.",
+    "evidence blas-app+bunamo / blas-app+kaikki only confirms every word of the gold is a known word form; it does not confirm the grammatical slot.",
+    "Free-answer gold (cloze_free, transform, form) lists only the variants the app records; dialect or spelling variants the app omits would be marked wrong.",
+    "screen_build checks one tile order; free-word-order languages may allow other valid orders.",
+    "Multiple-choice vocabulary distractors can be near-synonyms of the gold in some lessons."
+  ]
+}

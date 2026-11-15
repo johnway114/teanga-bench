@@ -1,0 +1,645 @@
+{
+  "suite": "blas",
+  "test": "translation",
+  "seed": 20261115,
+  "n_items": 360,
+  "n_public_sample": 20,
+  "by_language": {
+    "breton": 60,
+    "cornish": 60,
+    "irish": 60,
+    "manx": 60,
+    "scots-gaelic": 60,
+    "welsh": 60
+  },
+  "by_l1": {
+    "none": 360
+  },
+  "by_phenomenon": {
+    "from_english": 150,
+    "legal_or_administrative": 60,
+    "to_english": 150
+  },
+  "by_cefr": {
+    "A1": 112,
+    "A2": 91,
+    "B1": 47,
+    "B2": 30,
+    "C1": 14,
+    "C2": 6,
+    "None": 60
+  },
+  "by_evidence": {
+    "blas-app+kaikki": 44,
+    "blas-app-only": 196,
+    "blas-app-unverified": 60,
+    "corpus-reference": 60
+  },
+  "by_licence": {
+    "CC BY 2.0 FR (Tatoeba)": 170,
+    "CC BY 4.0": 40,
+    "GPL-3.0 (Gaelg corpus)": 60,
+    "OGL-v3": 20,
+    "OGL-v3 (Senedd Cymru)": 30,
+    "private-blas": 40
+  },
+  "human_checked": 0,
+  "human_checked_field": "metadata.human_checked is true only when a sentence has reviewStatus == 'approved' or humanReviewed == true. No sentence in any of the six languages carries either field, so every item is human_checked=false. verificationStatus values such as 'approved-blind-artifact-audit' are NOT treated as human review; they are copied into metadata.verification_status.",
+  "fields_used": {
+    "sentences": [
+      "native",
+      "english",
+      "acceptedTranslations",
+      "cefrLevel",
+      "source",
+      "sources[].name",
+      "verificationStatus",
+      "usageRestrictions",
+      "qualityFlags",
+      "_blocked",
+      "meaningAmbiguity",
+      "reviewStatus",
+      "humanReviewed"
+    ],
+    "item-difficulty.json": "items['sentence:<id>'] score mapped through bands; cefrLevel when no key"
+  },
+  "filters": {
+    "app": [
+      "skip _blocked, non-empty qualityFlags, verificationStatus 'rejected', usageRestrictions containing 'do-not-display'",
+      "skip empty/placeholder text, native == english, unbalanced brackets",
+      "both sides must end in . ? or ! (optionally followed by a quote or bracket) and not on a single-letter initial, which removes truncated Hansard sentences and fragments",
+      "English side has 3+ words, English/native word ratio 0.5-2.0, and both sides have the same number of sentence-final marks (drops glosses such as 'Was it this morning you came? Yes.')",
+      "4-30 words for translation, 6-25 words for round_trip (whitespace split of the native text)",
+      "one sentence per normalized native text and per normalized English text"
+    ],
+    "corpus": [
+      "split == 'test' only, 6-40 source words, target/source word ratio 0.7-1.7",
+      "both sides start with a letter; Irish and Welsh rows must start with a capital and end in . ? or !",
+      "no side may end in a clause mark followed by a full stop (';.', '—.')",
+      "no garbled PDF extraction (glued words, lower-to-upper case jumps, 25+ character tokens, space before punctuation)",
+      "no all-caps acronyms (they differ by language), no trailing section numbers, no quoted material, no title-case heading runs, identical digit sets, equal sentence-mark counts, and for Irish no pre-1958 spelling or syntax (nách, fé, i gcóir, unaccented 'no', 'a bheas', dhin/dintar, 'do' + verbal noun, -adh lá)",
+      "balanced brackets, no URLs or e-mail addresses",
+      "drop rows whose source or target text repeats inside the test split or also occurs in the train or dev split (leakage guard)"
+    ]
+  },
+  "selection_order": "Candidates are ranked: private+approved, public+approved, private+deferred, public+deferred (verificationStatus starting 'approved' = approved; 'evidence-deferred' = deferred). Each tier is filled before the next, spread round-robin over CEFR levels. Private = the app's own bank (sentence-bank, hand-authored-earclip, blas-course-attested); all others (tatoeba, wikipedia, senedd-hansard, common-voice-cy, gaelg-parallel-usage, kaikki, ofis-publik, ...) are public-source.",
+  "corpus_attribution": {
+    "irish": "Irish-English pairs: Gaois (Fiontar & Scoil na Gaeilge, DCU), Irish legislation and Constitution translation memory, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Attribution required.",
+    "welsh": "Welsh-English pairs: Senedd Cymru / Welsh Parliament and Welsh legislation, 'Contains public sector information licensed under the Open Government Licence v3.0' (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+    "breton": "Breton-French pairs: Ofis Publik ar Brezhoneg parallel corpus, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Attribution to Ofis Publik ar Brezhoneg required; no endorsement claim."
+  },
+  "corpus_card_notes": [
+    "No DATASET_CARD.md exists inside gold/text/parallel/. Attribution text taken from derived/master-celtic-v1/sample_pack_10k/RIGHTS.md (provenance statement) and derived/productisation-v1/releases/run-20260919-v1/blas-bre-fra-translation-v1/RIGHTS.md.",
+    "Per-language gold/text/<ga|cy|br>/DATASET_CARD.md cover the monolingual shards, not these parallel files; the parallel test split is described only by the sample-pack card (gle_eng 31,092 / cym_eng 73,546 / bre_fra 61,628 master pairs, hash-partitioned 90/5/5)."
+  ],
+  "breton_pivot_note": "Breton corpus rows are Breton<->French pairs; their prompts use French as the other language and metadata.target_lang/source_lang say French.",
+  "per_language": {
+    "irish": {
+      "app": {
+        "raw": 6727,
+        "distinct_values": {
+          "source": {
+            "sentence-bank": 4286,
+            "tatoeba": 2406,
+            "gaois-legislation": 22,
+            "celt": 12,
+            "wikipedia": 1
+          },
+          "sources[].name": {
+            "sentence-bank": 4286,
+            "tatoeba": 2406,
+            "gaois-legislation": 22,
+            "celt": 12,
+            "wikipedia": 1
+          },
+          "verificationStatus": {
+            "approved-clean-corpus-observation": 2696,
+            "evidence-deferred": 2151,
+            "approved-blind-artifact-audit": 1544,
+            "rejected": 336
+          },
+          "usageRestrictions": {
+            "(none)": 4233,
+            "passive-only": 2151,
+            "do-not-display": 332,
+            "do-not-display+passive-only": 11
+          }
+        },
+        "dropped": {
+          "blocked": 1,
+          "duplicate_text": 147,
+          "misaligned_length_or_sentence_count": 363,
+          "not_sentence_like": 211,
+          "quality_flags": 342,
+          "unbalanced_brackets": 2,
+          "word_count_outside_4_30": 555
+        },
+        "candidates": 5106,
+        "candidates_by_tier": {
+          "private+approved": 2351,
+          "public+approved": 1074,
+          "private+deferred": 1295,
+          "public+deferred": 386
+        },
+        "candidates_by_origin": {
+          "celt": 10,
+          "gaois-legislation": 4,
+          "sentence-bank": 3646,
+          "tatoeba": 1445,
+          "wikipedia": 1
+        }
+      },
+      "corpus": {
+        "pair": "gle_eng",
+        "test_rows": 1543,
+        "candidates": 127,
+        "dropped": {
+          "acronym_or_all_caps": 46,
+          "also_in_train_or_dev": 2,
+          "clause_fragment_ending": 34,
+          "garbled_extraction": 32,
+          "length_ratio": 76,
+          "numbers_differ": 4,
+          "pre_standard_irish": 20,
+          "quoted_material": 7,
+          "sentence_count_differs": 5,
+          "starts_lowercase_clause": 61,
+          "starts_with_non_letter": 1029,
+          "title_case_heading": 8,
+          "trailing_section_number": 41,
+          "unbalanced_brackets": 13,
+          "word_count_outside_6_40": 38
+        },
+        "licence": [
+          "CC BY 4.0"
+        ],
+        "domain": [
+          "legal"
+        ]
+      },
+      "translation_app_selected": 40,
+      "translation_corpus_selected": 20,
+      "round_trip_selected": 40,
+      "translation_by_tier": {
+        "private+approved": 40,
+        "public+approved": 0,
+        "private+deferred": 0,
+        "public+deferred": 0
+      },
+      "round_trip_by_tier": {
+        "private+approved": 40,
+        "public+approved": 0,
+        "private+deferred": 0,
+        "public+deferred": 0
+      }
+    },
+    "welsh": {
+      "app": {
+        "raw": 8077,
+        "distinct_values": {
+          "source": {
+            "senedd-hansard": 6106,
+            "tatoeba": 1599,
+            "common-voice-cy": 372
+          },
+          "sources[].name": {},
+          "verificationStatus": {
+            "approved-clean-corpus-observation": 6102,
+            "approved-blind-artifact-audit": 1042,
+            "evidence-deferred": 803,
+            "rejected": 130
+          },
+          "usageRestrictions": {
+            "(none)": 7144,
+            "passive-only": 803,
+            "do-not-display": 123,
+            "do-not-display+passive-only": 7
+          }
+        },
+        "dropped": {
+          "duplicate_text": 81,
+          "misaligned_length_or_sentence_count": 211,
+          "not_sentence_like": 203,
+          "quality_flags": 130,
+          "unbalanced_brackets": 1,
+          "untranslated": 10,
+          "word_count_outside_4_30": 945
+        },
+        "candidates": 6496,
+        "candidates_by_tier": {
+          "private+approved": 0,
+          "public+approved": 5939,
+          "private+deferred": 0,
+          "public+deferred": 557
+        },
+        "candidates_by_origin": {
+          "common-voice-cy": 337,
+          "senedd-hansard": 5081,
+          "tatoeba": 1078
+        }
+      },
+      "corpus": {
+        "pair": "cym_eng",
+        "test_rows": 3685,
+        "candidates": 177,
+        "dropped": {
+          "acronym_or_all_caps": 20,
+          "also_in_train_or_dev": 7,
+          "empty_or_untranslated": 190,
+          "garbled_extraction": 1,
+          "length_ratio": 105,
+          "no_sentence_end": 746,
+          "numbers_differ": 2,
+          "quoted_material": 36,
+          "repeated_inside_test": 3,
+          "starts_lowercase_clause": 220,
+          "starts_with_non_letter": 1397,
+          "title_case_heading": 3,
+          "trailing_section_number": 31,
+          "unbalanced_brackets": 9,
+          "word_count_outside_6_40": 738
+        },
+        "licence": [
+          "OGL-v3"
+        ],
+        "domain": [
+          "parliamentary_legal"
+        ]
+      },
+      "translation_app_selected": 40,
+      "translation_corpus_selected": 20,
+      "round_trip_selected": 40,
+      "translation_by_tier": {
+        "private+approved": 0,
+        "public+approved": 40,
+        "private+deferred": 0,
+        "public+deferred": 0
+      },
+      "round_trip_by_tier": {
+        "private+approved": 0,
+        "public+approved": 40,
+        "private+deferred": 0,
+        "public+deferred": 0
+      }
+    },
+    "scots-gaelic": {
+      "app": {
+        "raw": 6588,
+        "distinct_values": {
+          "source": {
+            "null": 6588
+          },
+          "sources[].name": {
+            "wikipedia-gd": 4977,
+            "tatoeba": 1464,
+            "vocabulary-cross-attest": 183,
+            "ud-arcosg": 139,
+            "wave7-sg-diacritic-disambig-2026-05-12": 28,
+            "hand-authored-earclip": 7,
+            "blas-course-attested": 1
+          },
+          "verificationStatus": {
+            "evidence-deferred": 5738,
+            "approved-blind-artifact-audit": 719,
+            "rejected": 131
+          },
+          "usageRestrictions": {
+            "do-not-display+passive-only": 5076,
+            "(none)": 719,
+            "passive-only": 668,
+            "do-not-display": 125
+          }
+        },
+        "dropped": {
+          "duplicate_text": 32,
+          "misaligned_length_or_sentence_count": 55,
+          "not_sentence_like": 18,
+          "quality_flags": 5831,
+          "word_count_outside_4_30": 41
+        },
+        "candidates": 611,
+        "candidates_by_tier": {
+          "private+approved": 0,
+          "public+approved": 395,
+          "private+deferred": 6,
+          "public+deferred": 210
+        },
+        "candidates_by_origin": {
+          "hand-authored-earclip": 6,
+          "tatoeba": 605
+        }
+      },
+      "corpus": null,
+      "translation_app_selected": 60,
+      "translation_corpus_selected": 0,
+      "round_trip_selected": 40,
+      "translation_by_tier": {
+        "private+approved": 0,
+        "public+approved": 60,
+        "private+deferred": 0,
+        "public+deferred": 0
+      },
+      "round_trip_by_tier": {
+        "private+approved": 0,
+        "public+approved": 40,
+        "private+deferred": 0,
+        "public+deferred": 0
+      }
+    },
+    "manx": {
+      "app": {
+        "raw": 16787,
+        "distinct_values": {
+          "source": {
+            "null": 16787
+          },
+          "sources[].name": {
+            "gaelg-parallel-usage": 15737,
+            "kaikki-gv": 1036,
+            "tatoeba-glv-eng": 14,
+            "vocabulary-cross-attest": 4
+          },
+          "verificationStatus": {
+            "approved-clean-corpus-observation": 15287,
+            "evidence-deferred": 1500
+          },
+          "usageRestrictions": {
+            "(none)": 15287,
+            "passive-only": 990,
+            "do-not-display+passive-only": 510
+          }
+        },
+        "dropped": {
+          "blocked": 5,
+          "do_not_display": 11,
+          "duplicate_text": 379,
+          "misaligned_length_or_sentence_count": 1233,
+          "multi_line": 2,
+          "not_sentence_like": 223,
+          "quality_flags": 1090,
+          "word_count_outside_4_30": 3234
+        },
+        "candidates": 10610,
+        "candidates_by_tier": {
+          "private+approved": 0,
+          "public+approved": 9913,
+          "private+deferred": 0,
+          "public+deferred": 697
+        },
+        "candidates_by_origin": {
+          "gaelg-parallel-usage": 9913,
+          "kaikki-gv": 689,
+          "tatoeba-glv-eng": 8
+        }
+      },
+      "corpus": null,
+      "translation_app_selected": 60,
+      "translation_corpus_selected": 0,
+      "round_trip_selected": 40,
+      "translation_by_tier": {
+        "private+approved": 0,
+        "public+approved": 60,
+        "private+deferred": 0,
+        "public+deferred": 0
+      },
+      "round_trip_by_tier": {
+        "private+approved": 0,
+        "public+approved": 40,
+        "private+deferred": 0,
+        "public+deferred": 0
+      }
+    },
+    "breton": {
+      "app": {
+        "raw": 7964,
+        "distinct_values": {
+          "source": {
+            "null": 5464,
+            "ofis-publik": 2500
+          },
+          "sources[].name": {
+            "tatoeba": 5078,
+            "ofis-publik": 2500,
+            "apertium-bre/grammar": 386,
+            "vocabulary-cross-attest": 50
+          },
+          "verificationStatus": {
+            "evidence-deferred": 5202,
+            "approved-clean-corpus-observation": 2500,
+            "approved-blind-artifact-audit": 238,
+            "rejected": 24
+          },
+          "usageRestrictions": {
+            "passive-only": 3703,
+            "(none)": 2738,
+            "do-not-display+passive-only": 1500,
+            "do-not-display": 23
+          }
+        },
+        "dropped": {
+          "duplicate_text": 142,
+          "empty_or_placeholder": 2500,
+          "misaligned_length_or_sentence_count": 48,
+          "not_sentence_like": 18,
+          "quality_flags": 4653,
+          "word_count_outside_4_30": 106
+        },
+        "candidates": 497,
+        "candidates_by_tier": {
+          "private+approved": 0,
+          "public+approved": 145,
+          "private+deferred": 0,
+          "public+deferred": 352
+        },
+        "candidates_by_origin": {
+          "apertium-bre/grammar": 232,
+          "tatoeba": 265
+        }
+      },
+      "corpus": {
+        "pair": "bre_fra",
+        "test_rows": 3101,
+        "candidates": 1465,
+        "dropped": {
+          "acronym_or_all_caps": 97,
+          "also_in_train_or_dev": 28,
+          "empty_or_untranslated": 2,
+          "garbled_extraction": 206,
+          "length_ratio": 190,
+          "numbers_differ": 23,
+          "quoted_material": 94,
+          "repeated_inside_test": 17,
+          "sentence_count_differs": 82,
+          "starts_with_non_letter": 97,
+          "title_case_heading": 26,
+          "trailing_section_number": 94,
+          "unbalanced_brackets": 5,
+          "url_or_email": 3,
+          "word_count_outside_6_40": 672
+        },
+        "licence": [
+          "CC BY 4.0"
+        ],
+        "domain": [
+          "administrative"
+        ]
+      },
+      "translation_app_selected": 40,
+      "translation_corpus_selected": 20,
+      "round_trip_selected": 40,
+      "translation_by_tier": {
+        "private+approved": 0,
+        "public+approved": 40,
+        "private+deferred": 0,
+        "public+deferred": 0
+      },
+      "round_trip_by_tier": {
+        "private+approved": 0,
+        "public+approved": 40,
+        "private+deferred": 0,
+        "public+deferred": 0
+      }
+    },
+    "cornish": {
+      "app": {
+        "raw": 3657,
+        "distinct_values": {
+          "source": {
+            "null": 3657
+          },
+          "sources[].name": {
+            "tatoeba-cor-eng": 3578,
+            "vocabulary-cross-attest": 510,
+            "kaikki-kw": 79
+          },
+          "verificationStatus": {
+            "evidence-deferred": 3657
+          },
+          "usageRestrictions": {
+            "passive-only": 3657
+          }
+        },
+        "dropped": {
+          "duplicate_text": 528,
+          "misaligned_length_or_sentence_count": 186,
+          "not_sentence_like": 32,
+          "quality_flags": 8,
+          "word_count_outside_4_30": 421
+        },
+        "candidates": 2482,
+        "candidates_by_tier": {
+          "private+approved": 0,
+          "public+approved": 0,
+          "private+deferred": 0,
+          "public+deferred": 2482
+        },
+        "candidates_by_origin": {
+          "kaikki-kw": 21,
+          "tatoeba-cor-eng": 2461
+        }
+      },
+      "corpus": null,
+      "translation_app_selected": 60,
+      "translation_corpus_selected": 0,
+      "round_trip_selected": 40,
+      "translation_by_tier": {
+        "private+approved": 0,
+        "public+approved": 0,
+        "private+deferred": 0,
+        "public+deferred": 60
+      },
+      "round_trip_by_tier": {
+        "private+approved": 0,
+        "public+approved": 0,
+        "private+deferred": 0,
+        "public+deferred": 40
+      }
+    }
+  },
+  "shortfalls": {
+    "translation": {},
+    "round_trip": {}
+  },
+  "by_contamination_risk": {
+    "breton": {
+      "public-source": 60
+    },
+    "cornish": {
+      "public-source": 60
+    },
+    "irish": {
+      "private": 40,
+      "public-source": 20
+    },
+    "manx": {
+      "public-source": 60
+    },
+    "scots-gaelic": {
+      "public-source": 60
+    },
+    "welsh": {
+      "public-source": 60
+    }
+  },
+  "by_direction": {
+    "breton": {
+      "from_english": 20,
+      "from_french": 10,
+      "to_english": 20,
+      "to_french": 10
+    },
+    "cornish": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "irish": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "manx": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "scots-gaelic": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "welsh": {
+      "from_english": 30,
+      "to_english": 30
+    }
+  },
+  "by_language_phenomenon": {
+    "breton": {
+      "from_english": 20,
+      "legal_or_administrative": 20,
+      "to_english": 20
+    },
+    "cornish": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "irish": {
+      "from_english": 20,
+      "legal_or_administrative": 20,
+      "to_english": 20
+    },
+    "manx": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "scots-gaelic": {
+      "from_english": 30,
+      "to_english": 30
+    },
+    "welsh": {
+      "from_english": 20,
+      "legal_or_administrative": 20,
+      "to_english": 20
+    }
+  },
+  "target": {
+    "per_language": 60,
+    "total": 360
+  }
+}

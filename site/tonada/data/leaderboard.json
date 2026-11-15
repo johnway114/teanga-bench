@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0.0",
+  "benchmark": "teanga-bench",
+  "benchmark_name": "Teanga Bench",
+  "benchmark_version": "0.2.0",
+  "suite": "tonada",
+  "generated_at": null,
+  "note": "Only live runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval; the suite score weights every test equally. cost_usd is the spend on this suite's tests. by_l1 gives the mean of per-test scores.",
+  "models": []
+}

@@ -1,0 +1,22 @@
+# Full benchmark item sets stay private and out of git. Only samples are published.
+data/private/
+data/build/
+results/raw/
+logs/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.venv/
+.DS_Store
+dist/
+build/
+*.eval
+.inspect/
+data/cache/
+*.tgz
+results/mock/
+.vercel

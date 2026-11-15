@@ -1,0 +1,272 @@
+{
+  "suite": "blas",
+  "test": "tutor_accuracy",
+  "seed": 20261115,
+  "n_items": 180,
+  "n_public_sample": 20,
+  "by_language": {
+    "irish": 60,
+    "scots-gaelic": 60,
+    "welsh": 60
+  },
+  "by_l1": {
+    "none": 180
+  },
+  "by_phenomenon": {
+    "application": 11,
+    "clean": 30,
+    "clothing": 1,
+    "communication": 2,
+    "comparison": 1,
+    "comprehension": 1,
+    "conjugation": 1,
+    "conjunctions": 1,
+    "conversation": 1,
+    "copula": 2,
+    "daily_life": 1,
+    "declension": 3,
+    "discourse": 2,
+    "grammar": 42,
+    "grammar_point": 12,
+    "guide": 20,
+    "health": 1,
+    "mutation": 1,
+    "orthography_doubled_letter": 7,
+    "passive": 1,
+    "prepositions": 2,
+    "questions": 2,
+    "recall": 4,
+    "relative_clauses": 2,
+    "subordinate_clauses": 3,
+    "unit_focus": 10,
+    "verbal_noun": 1,
+    "vocabulary": 15
+  },
+  "by_cefr": {
+    "A1": 22,
+    "A2": 27,
+    "B1": 42,
+    "B2": 23,
+    "C1": 10,
+    "C2": 2,
+    "None": 54
+  },
+  "by_evidence": {
+    "blas-app-only": 60,
+    "distractor-derived-unverified": 113,
+    "planted-typo": 7
+  },
+  "by_licence": {
+    "CC BY-SA 4.0": 7,
+    "private-blas": 173
+  },
+  "human_checked": 0,
+  "target_per_language": 60,
+  "errors_per_language_target": 40,
+  "clean_per_language_target": 20,
+  "caps": {
+    "app-error-variant": 15,
+    "mechanical-typo": 8
+  },
+  "excluded_languages": {
+    "manx": {
+      "reason": "Too few rule-governed exercise distractors to build a usable error sample: the 40-item target could only be approached with mechanical doubled-letter typos, capped at 8, which is not a usable sample. Removed from the test.",
+      "usable_cloze_exercises": 13,
+      "candidates": {
+        "exercise-distractor": 0,
+        "app-error-variant": 0,
+        "mechanical-typo": 236
+      },
+      "typo_candidates_total": 236,
+      "typo_cap": 8,
+      "errors_that_would_have_been_built": 8,
+      "errors_target": 40
+    },
+    "breton": {
+      "reason": "Too few rule-governed exercise distractors to build a usable error sample: the 40-item target could only be approached with mechanical doubled-letter typos, capped at 8, which is not a usable sample. Removed from the test.",
+      "usable_cloze_exercises": 7,
+      "candidates": {
+        "exercise-distractor": 1,
+        "app-error-variant": 0,
+        "mechanical-typo": 219
+      },
+      "typo_candidates_total": 219,
+      "typo_cap": 8,
+      "errors_that_would_have_been_built": 9,
+      "errors_target": 40
+    },
+    "cornish": {
+      "reason": "Too few rule-governed exercise distractors to build a usable error sample: the 40-item target could only be approached with mechanical doubled-letter typos, capped at 8, which is not a usable sample. Removed from the test.",
+      "usable_cloze_exercises": 3,
+      "candidates": {
+        "exercise-distractor": 0,
+        "app-error-variant": 0,
+        "mechanical-typo": 240
+      },
+      "typo_candidates_total": 240,
+      "typo_cap": 8,
+      "errors_that_would_have_been_built": 8,
+      "errors_target": 40
+    }
+  },
+  "by_error_origin": {
+    "exercise-distractor": 113,
+    "mechanical-typo": 7,
+    "none": 60
+  },
+  "by_language_and_error_origin": {
+    "irish": {
+      "exercise-distractor": 40,
+      "none": 20
+    },
+    "welsh": {
+      "exercise-distractor": 33,
+      "mechanical-typo": 7,
+      "none": 20
+    },
+    "scots-gaelic": {
+      "exercise-distractor": 40,
+      "none": 20
+    }
+  },
+  "by_has_error": {
+    "True": 120,
+    "False": 60
+  },
+  "shortfalls": {},
+  "per_language": {
+    "irish": {
+      "errors_built": 40,
+      "errors_target": 40,
+      "error_shortfall": 0,
+      "clean_built": 20,
+      "clean_from_exercises": 10,
+      "clean_from_app_sentences": 10,
+      "clean_target": 20,
+      "clean_shortfall": 0,
+      "usable_cloze_exercises": 341,
+      "error_candidates": {
+        "exercise-distractor": 89,
+        "app-error-variant": 3317,
+        "mechanical-typo": 222
+      },
+      "errors_by_source_used": {
+        "exercise-distractor": 40,
+        "app-error-variant": 0,
+        "mechanical-typo": 0
+      },
+      "typo_available_beyond_cap_not_used": 222,
+      "filter_stats": {
+        "app-clean-duplicate-or-used": 39,
+        "app-clean-pool": 3688,
+        "app-clean-rejected": 3000,
+        "app-variant-candidates": 3317,
+        "app-variant-source-skipped": 22,
+        "exercise-duplicate-gold": 24,
+        "exercise-error-candidates": 89,
+        "exercises_with_blank": 341,
+        "filtered:meaning-dependent": 192,
+        "filtered:no-governing-rule": 49,
+        "filtered:no-rule-in-explanation": 115,
+        "filtered:tense-or-register-cue": 77,
+        "filtered:unrelated-word": 36,
+        "kept:closed-class-swap": 6,
+        "kept:mutation-only": 82,
+        "kept:same-stem-inflection": 66,
+        "typo-candidates": 222,
+        "typo-length": 28
+      }
+    },
+    "welsh": {
+      "errors_built": 40,
+      "errors_target": 40,
+      "error_shortfall": 0,
+      "clean_built": 20,
+      "clean_from_exercises": 10,
+      "clean_from_app_sentences": 10,
+      "clean_target": 20,
+      "clean_shortfall": 0,
+      "usable_cloze_exercises": 350,
+      "error_candidates": {
+        "exercise-distractor": 33,
+        "app-error-variant": 0,
+        "mechanical-typo": 233
+      },
+      "errors_by_source_used": {
+        "exercise-distractor": 33,
+        "app-error-variant": 0,
+        "mechanical-typo": 7
+      },
+      "typo_available_beyond_cap_not_used": 226,
+      "filter_stats": {
+        "app-clean-duplicate-or-used": 27,
+        "app-clean-pool": 6170,
+        "app-clean-rejected": 1880,
+        "exercise-duplicate-gold": 66,
+        "exercise-error-candidates": 33,
+        "exercise-unusable-gold": 1,
+        "exercises_with_blank": 350,
+        "filtered:meaning-dependent": 136,
+        "filtered:no-governing-rule": 21,
+        "filtered:no-rule-in-explanation": 288,
+        "filtered:tense-or-register-cue": 32,
+        "filtered:unrelated-word": 42,
+        "kept:closed-class-swap": 12,
+        "kept:mutation-only": 18,
+        "kept:same-stem-inflection": 6,
+        "typo-candidates": 233,
+        "typo-length": 17
+      }
+    },
+    "scots-gaelic": {
+      "errors_built": 40,
+      "errors_target": 40,
+      "error_shortfall": 0,
+      "clean_built": 20,
+      "clean_from_exercises": 10,
+      "clean_from_app_sentences": 10,
+      "clean_target": 20,
+      "clean_shortfall": 0,
+      "usable_cloze_exercises": 962,
+      "error_candidates": {
+        "exercise-distractor": 58,
+        "app-error-variant": 0,
+        "mechanical-typo": 241
+      },
+      "errors_by_source_used": {
+        "exercise-distractor": 40,
+        "app-error-variant": 0,
+        "mechanical-typo": 0
+      },
+      "typo_available_beyond_cap_not_used": 241,
+      "filter_stats": {
+        "app-clean-duplicate-or-used": 14,
+        "app-clean-pool": 429,
+        "app-clean-rejected": 6145,
+        "distractor-too-long": 1,
+        "exercise-duplicate-gold": 430,
+        "exercise-error-candidates": 58,
+        "exercises_with_blank": 962,
+        "filtered:meaning-dependent": 408,
+        "filtered:no-governing-rule": 59,
+        "filtered:no-rule-in-explanation": 253,
+        "filtered:tense-or-register-cue": 150,
+        "filtered:unrelated-word": 106,
+        "kept:closed-class-swap": 40,
+        "kept:mutation-only": 20,
+        "kept:same-stem-inflection": 24,
+        "typo-candidates": 241,
+        "typo-length": 9
+      }
+    }
+  },
+  "typo_source_licence": {
+    "provenance_license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "provenance_file": "Documents/blas/blas-gec-artifacts/sealed-celtic-clean-600-v3/provenance.json",
+    "note": "provenance.json rowCount/sha256 do not match the files on disk (it lists 600 clean and 0 error rows per language; disk has about 300 clean and 250 error rows). Each typo row carries its own license field 'CC BY-SA 4.0', which the build checks."
+  },
+  "residual_risk_note": "The rate of exercise-distractor items whose distractor is also grammatical in the sentence is not known. A machine reading of 30 random items, not a reading by a speaker, found 2 (a genitive plural equal to the nominative plural, and a superlative where a comparative was gold). For 2 of 30 the 95 percent interval is about 1 to 22 percent.",
+  "clean_sources": "Half from correct fills of exercises not used for error items; half from sentences.json records with verificationStatus starting 'approved', no _blocked, empty qualityFlags, 4-30 words, not used elsewhere in this test. No Wikipedia clean sentences.",
+  "filter": "Exercise distractors kept only when the explanation states a rule, does not rest on word meaning, tense or a person, and the distractor is a mutation-only or same-stem variant of the answer or both are closed-class words."
+}
