@@ -258,7 +258,8 @@ def run_benchmark(
         "pricing_source": MODELS_URL,
     }
     document = build_document(
-        run_kind="mock" if mock else "live",
+        # A run with --limit covers only part of each test. It is never ranked or published.
+        run_kind="mock" if mock else ("smoke" if options.limit is not None else "live"),
         status=status,
         model=model_block,
         config=config,

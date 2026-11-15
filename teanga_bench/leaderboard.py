@@ -42,6 +42,9 @@ def load_runs(runs_dir: Path, include_mock: bool = False) -> tuple[list[dict[str
         if document.get("run_kind") == "mock" and not include_mock:
             skipped.append(f"{path.name}: mock run")
             continue
+        if document.get("run_kind") == "smoke":
+            skipped.append(f"{path.name}: smoke run with --limit")
+            continue
         document["_file"] = path.name
         runs.append(document)
     return runs, skipped

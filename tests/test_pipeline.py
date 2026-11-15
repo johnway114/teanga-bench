@@ -214,7 +214,7 @@ def test_live_path_records_prices_and_the_fixed_judge_pair(fixture_root, tmp_pat
     monkeypatch.setattr(scorers_module, "get_model", lambda model=None, **kw: real_get_model(model, **kw) if model is None else judge)
     catalog = _catalog("openai/gpt-6-luna", *JUDGES)
     document = _live(fixture_root, tmp_path, monkeypatch, "openai/gpt-6-luna", catalog, [TUTOR_OK]).document
-    assert document["run_kind"] == "live"
+    assert document["run_kind"] == "smoke"  # the helper runs with a limit, so the run is never ranked
     assert document["model"]["family"] == "openai"
     assert document["model"]["pricing"]["completion_usd_per_token"] == pytest.approx(2e-6)
     assert document["model"]["pricing"]["cache_read_usd_per_token"] == pytest.approx(1e-7)

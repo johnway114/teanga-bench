@@ -21,7 +21,7 @@ when `status` is not `"complete"`.
 | `schema_version` | string | `"2.0.0"` |
 | `benchmark`, `benchmark_name`, `benchmark_version` | string | Name and the package version that wrote the file |
 | `started_at`, `generated_at` | string | UTC ISO-8601 |
-| `run_kind` | string | `"live"` or `"mock"` |
+| `run_kind` | string | `"live"`, `"mock"`, or `"smoke"` (a run with `--limit`, never ranked or published) |
 | `status` | string | `"complete"`, `"cost_cap_reached"`, or `"incomplete"` (some test hit errors) |
 | `model` | object | The candidate. See below |
 | `config` | object | Run settings. See below |
@@ -153,7 +153,7 @@ the run used), `explanation_status`, and `explanation`.
 `"judge_pair_differs_from_current_config"`, `"not_scored_same_family_as_judge"`,
 `"not_scored_judge_unavailable"`, or `"no_judged_items"`.
 
-Only runs with status `complete` are ranked. Mock runs are skipped. The Markdown and
+Only runs with status `complete` are ranked. Mock runs and smoke runs are skipped. The Markdown and
 the `explanation.svg` chart show explanation scores only for comparable runs.
 
 ## What the sites should show
