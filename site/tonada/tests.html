@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Tests: Teanga Bench, Tonada suite</title>
+<meta name="description" content="Every test in the Teanga Bench Tonada suite, with each model&#x27;s score.">
+<link rel="stylesheet" href="../assets/site.css">
+<script>document.documentElement.className += " js";</script>
+</head>
+<body class="suite-tonada">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="wrap head-row">
+<a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span>Teanga Bench</a>
+<nav class="site-nav" aria-label="Main"><ul><li><a href="./">Leaderboard</a></li><li><a href="./tests.html" aria-current="page">Tests</a></li><li><a href="./learners.html">Learners</a></li><li><a href="./models.html">Models</a></li><li><a href="./methodology.html">Methodology</a></li><li><a class="ext" href="https://github.com/johnway114/teanga-bench">GitHub<span class="sr-only"> (code and data)</span></a></li></ul></nav>
+<nav class="switcher" aria-label="Suite"><a class="sw sw-blas" title="Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish" href="https://research.blasapp.com/" data-local="../blas/">Blas</a><a class="sw sw-tonada" title="Tonada suite: English tutoring for Portuguese, Spanish, Vietnamese and Japanese speakers" href="./" aria-current="true">Tonada</a></nav>
+</div></header>
+<main id="main" class="wrap">
+<div class="page-head"><h1>Tests</h1><p class="lede">2 tests, each a few hundred items. Pick a test to compare every model.</p></div>
+<p class="honesty"><span class="honesty-mark" aria-hidden="true">i</span><span>Items and answers come from the named sources and have not been reviewed by people, so a few gold answers may be wrong. <a href="./methodology.html#no-human-review">How the items are built</a></span></p>
+<details class="drill" id="about"><summary><span class="drill-title"><h2>What the tests measure</h2></span></summary><div class="drill-body"><p class="section-intro">Teanga Bench measures how well large language models tutor English for people whose first language is Portuguese, Spanish, Vietnamese or Japanese. Every model answers the same few hundred items per test, taken from the Tonada course and a public corpus of sentence edits: closed exercises with the instruction in the learner&#x27;s language, and finding and fixing errors in English sentences as a tutor would. Each item is asked several times. The score is the share of items answered correctly.</p><ul class="test-list"><li><strong>Lesson exercises.</strong> Closed English exercises from the Tonada course, with the instruction in the learner&#x27;s first language, marked against the accepted answers. 400 items.</li><li><strong>Tutor accuracy.</strong> Find and fix the error in an English sentence, or leave a correct sentence alone; an item counts only when the error is found and fixed and nothing else is changed. 360 items.</li></ul></div></details>
+<div class="tabs" data-tabs><nav class="tab-list" aria-label="Tests" data-tablist><a href="#test-exercises">Lesson exercises</a><a href="#test-tutor-accuracy">Tutor accuracy</a></nav><section class="panel" id="test-exercises" aria-labelledby="test-exercises-title"><div class="h-row"><h2 id="test-exercises-title">Lesson exercises</h2><a class="copy-link" href="#test-exercises-title" aria-label="Link to this section">#</a></div><p class="panel-desc">Closed English exercises from the Tonada course, with the instruction in the learner&#x27;s first language, marked against the accepted answers.</p><p class="meta">400 items · each asked 3 times · 1 model with a complete result</p><figure class="chart"><figcaption>Score with 95% range.</figcaption><ol class="bars"><li><span class="bar-label"><a class="m-name" href="models/openai-gpt-6-luna.html">GPT-6 Luna</a><span class="m-sub">OpenAI</span></span><span class="bar-track"><svg class="ibar" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="GPT-6 Luna: 98.0%, 95% range 96.5% to 99.2%" focusable="false"><rect class="ibar-track" x="0" y="2" width="100" height="8"/><line class="ibar-grid" x1="25" y1="2" x2="25" y2="10" vector-effect="non-scaling-stroke"/><line class="ibar-grid" x1="50" y1="2" x2="50" y2="10" vector-effect="non-scaling-stroke"/><line class="ibar-grid" x1="75" y1="2" x2="75" y2="10" vector-effect="non-scaling-stroke"/><rect class="ibar-fill" x="0" y="2" width="98.00" height="8"/><line class="ibar-whisker" x1="96.50" y1="6" x2="99.25" y2="6" vector-effect="non-scaling-stroke"/><line class="ibar-whisker" x1="96.50" y1="3.5" x2="96.50" y2="8.5" vector-effect="non-scaling-stroke"/><line class="ibar-whisker" x1="99.25" y1="3.5" x2="99.25" y2="8.5" vector-effect="non-scaling-stroke"/></svg></span><span class="bar-value" aria-hidden="true"><strong>98.0%</strong> <span class="ci">96.5–99.2%</span></span></li><li class="bars-axis" aria-hidden="true"><span></span><span class="axis-ticks"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></span><span></span></li></ol></figure><p class="more-link"><a href="methodology.html#set-exercises">How this test set is built</a></p></section><section class="panel" id="test-tutor-accuracy" aria-labelledby="test-tutor-accuracy-title"><div class="h-row"><h2 id="test-tutor-accuracy-title">Tutor accuracy</h2><a class="copy-link" href="#test-tutor-accuracy-title" aria-label="Link to this section">#</a></div><p class="panel-desc">Find and fix the error in an English sentence, or leave a correct sentence alone; an item counts only when the error is found and fixed and nothing else is changed.</p><p class="meta">360 items · each asked 3 times · 1 model with a complete result</p><figure class="chart"><figcaption>Score with 95% range. Marked by rule only; the judge-marked explanation score is separate, below.</figcaption><ol class="bars"><li><span class="bar-label"><a class="m-name" href="models/openai-gpt-6-luna.html">GPT-6 Luna</a><span class="m-sub">OpenAI</span></span><span class="bar-track"><svg class="ibar" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="GPT-6 Luna: 70.0%, 95% range 65.3% to 74.4%" focusable="false"><rect class="ibar-track" x="0" y="2" width="100" height="8"/><line class="ibar-grid" x1="25" y1="2" x2="25" y2="10" vector-effect="non-scaling-stroke"/><line class="ibar-grid" x1="50" y1="2" x2="50" y2="10" vector-effect="non-scaling-stroke"/><line class="ibar-grid" x1="75" y1="2" x2="75" y2="10" vector-effect="non-scaling-stroke"/><rect class="ibar-fill" x="0" y="2" width="70.00" height="8"/><line class="ibar-whisker" x1="65.28" y1="6" x2="74.35" y2="6" vector-effect="non-scaling-stroke"/><line class="ibar-whisker" x1="65.28" y1="3.5" x2="65.28" y2="8.5" vector-effect="non-scaling-stroke"/><line class="ibar-whisker" x1="74.35" y1="3.5" x2="74.35" y2="8.5" vector-effect="non-scaling-stroke"/></svg></span><span class="bar-value" aria-hidden="true"><strong>70.0%</strong> <span class="ci">65.3–74.4%</span></span></li><li class="bars-axis" aria-hidden="true"><span></span><span class="axis-ticks"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></span><span></span></li></ol></figure><details class="drill" id="test-tutor-accuracy-explanations"><summary><span class="drill-title"><h2>Tutor explanations</h2><span class="drill-note">judge-marked, secondary</span></span></summary><div class="drill-body"><p class="section-intro">Tutor items also ask for a short explanation. Two judge models from other model families mark it. This is a secondary number: judge-marked, not human-validated, and not part of the score above.</p><div class="table-block"><div class="table-scroll" role="region" aria-label="Tutor explanation scores, Tutor accuracy" tabindex="0"><table class="board"><thead><tr><th scope="col">Model</th><th scope="col" class="r">Explanation</th><th scope="col" class="r">95% range</th><th scope="col" class="r">Judges agree</th></tr></thead><tbody><tr><th scope="row"><a href="models/openai-gpt-6-luna.html">GPT-6 Luna</a></th><td class="r num">58.6%</td><td class="r num">53.7–63.4%</td><td class="r num">91.9%</td></tr></tbody></table></div></div></div></details><p class="more-link"><a href="methodology.html#set-tutor-accuracy">How this test set is built</a></p></section></div>
+</main>
+<footer class="site-foot"><div class="wrap">
+<p>Teanga Bench is open source under Apache-2.0. Code, the public samples and every results file are on <a href="https://github.com/johnway114/teanga-bench">GitHub</a>.</p>
+<p>Gold answers come from the sources named in the <a href="./methodology.html">methodology</a>; they have not been reviewed by native speakers.</p>
+<p>Results as of 15 November 2026. Also see the <a href="https://research.blasapp.com/" data-local="../blas/">Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish</a>.</p>
+</div></footer>
+<script>
+(function () {
+  var d = document;
+  function each(sel, fn, root) { Array.prototype.forEach.call((root || d).querySelectorAll(sel), fn); }
+  if (!/^research\.(blasapp|tonadaapp)\.com$/.test(location.hostname)) {
+    each("a[data-local]", function (a) { a.setAttribute("href", a.getAttribute("data-local")); });
+  }
+  var nav = d.querySelector(".site-nav"), here = nav && nav.querySelector("[aria-current]");
+  if (here && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = here.offsetLeft - 16;
+  function target() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id ? d.getElementById(id) : null;
+    for (var p = el; p; p = p.parentElement) { if (p.tagName === "DETAILS") p.open = true; }
+    return el;
+  }
+  each("[data-collapsible]", function (box) {
+    var btn = box.querySelector("[data-show-all]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var open = box.classList.toggle("expanded");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = btn.getAttribute(open ? "data-less" : "data-more");
+    });
+  });
+  each("table[data-sortable]", function (table) {
+    var body = table.tBodies[0], top = parseInt(table.getAttribute("data-top") || "0", 10);
+    each("th[data-sort]", function (th) {
+      var col = th.cellIndex, first = th.getAttribute("data-sort");
+      var b = d.createElement("button");
+      b.type = "button";
+      b.className = "sort";
+      while (th.firstChild) b.appendChild(th.firstChild);
+      th.appendChild(b);
+      b.addEventListener("click", function () {
+        var now = th.getAttribute("aria-sort");
+        var asc = now ? now !== "ascending" : first === "asc";
+        var rows = Array.prototype.slice.call(body.rows);
+        rows.sort(function (x, y) {
+          var a = x.cells[col].getAttribute("data-v"), c = y.cells[col].getAttribute("data-v");
+          var na = parseFloat(a), nc = parseFloat(c);
+          var r = isNaN(na) || isNaN(nc) ? a.localeCompare(c) : na - nc;
+          return asc ? r : -r;
+        });
+        rows.forEach(function (r, i) { body.appendChild(r); if (top) r.classList.toggle("more", i >= top); });
+        each("th[aria-sort]", function (h) { h.removeAttribute("aria-sort"); }, table);
+        th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+      });
+    }, table);
+  });
+  var tabSets = [];
+  each("[data-tabs]", function (box) {
+    var links = box.querySelectorAll("[data-tablist] a"), panels = [];
+    box.querySelector("[data-tablist]").setAttribute("role", "tablist");
+    function show(i) {
+      panels.forEach(function (p, j) {
+        p.hidden = j !== i;
+        links[j].setAttribute("aria-selected", j === i ? "true" : "false");
+        links[j].tabIndex = j === i ? 0 : -1;
+      });
+    }
+    Array.prototype.forEach.call(links, function (a, i) {
+      var panel = d.getElementById(a.getAttribute("href").slice(1));
+      panels.push(panel);
+      a.id = "tab-" + panel.id;
+      a.setAttribute("role", "tab");
+      a.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", a.id);
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        show(i);
+        history.replaceState(null, "", "#" + panel.id);
+      });
+      a.addEventListener("keydown", function (ev) {
+        var k = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+        if (!k) return;
+        ev.preventDefault();
+        var j = (i + k + links.length) % links.length;
+        show(j);
+        links[j].focus();
+        history.replaceState(null, "", "#" + panels[j].id);
+      });
+    });
+    function sync() {
+      var el = target(), at = 0;
+      panels.forEach(function (p, j) { if (el && p.contains(el)) at = j; });
+      show(at);
+    }
+    sync();
+    box.classList.add("tabs-ready");
+    tabSets.push(sync);
+  });
+  target();
+  window.addEventListener("hashchange", function () { target(); tabSets.forEach(function (f) { f(); }); });
+  each("a.copy-link", function (a) {
+    a.addEventListener("click", function (ev) {
+      if (!navigator.clipboard) return;
+      ev.preventDefault();
+      navigator.clipboard.writeText(location.href.split("#")[0] + a.getAttribute("href")).then(function () {
+        a.classList.add("copied");
+        a.setAttribute("aria-label", "Link copied");
+        setTimeout(function () { a.classList.remove("copied"); a.setAttribute("aria-label", "Link to this section"); }, 1600);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

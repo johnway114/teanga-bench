@@ -3,73 +3,188 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Methodology: Teanga Bench, Tonada suite</title>
 <meta name="description" content="How Teanga Bench builds and scores the Tonada suite.">
 <link rel="stylesheet" href="../assets/site.css">
+<script>document.documentElement.className += " js";</script>
 </head>
 <body class="suite-tonada">
 <a class="skip" href="#main">Skip to content</a>
-<header class="site-head"><div class="wrap">
-<a class="brand" href="./">Teanga Bench <span class="brand-suite">Tonada suite</span></a>
-<nav class="site-nav" aria-label="Site"><a href="./">Leaderboard</a><a href="./methodology.html" aria-current="page">Methodology</a><a href="https://github.com/johnway114/teanga-bench">GitHub</a></nav>
+<header class="site-head"><div class="wrap head-row">
+<a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span>Teanga Bench</a>
+<nav class="site-nav" aria-label="Main"><ul><li><a href="./">Leaderboard</a></li><li><a href="./tests.html">Tests</a></li><li><a href="./learners.html">Learners</a></li><li><a href="./models.html">Models</a></li><li><a href="./methodology.html" aria-current="page">Methodology</a></li><li><a class="ext" href="https://github.com/johnway114/teanga-bench">GitHub<span class="sr-only"> (code and data)</span></a></li></ul></nav>
+<nav class="switcher" aria-label="Suite"><a class="sw sw-blas" title="Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish" href="https://research.blasapp.com/" data-local="../blas/">Blas</a><a class="sw sw-tonada" title="Tonada suite: English tutoring for Portuguese, Spanish, Vietnamese and Japanese speakers" href="./" aria-current="true">Tonada</a></nav>
 </div></header>
 <main id="main" class="wrap">
-<h1>Methodology</h1>
+<div class="page-head"><h1>Methodology</h1><p class="lede">How Teanga Bench builds and scores the Tonada suite, and what the scores can and cannot tell you.</p></div>
+<section class="summary-box" aria-labelledby="in-one-minute"><h2 id="in-one-minute">In one minute</h2><ul><li><strong>What is measured.</strong> How well language models tutor English for speakers of Portuguese, Spanish, Vietnamese and Japanese: lesson exercises with the instruction in the learner&#x27;s language, and finding and fixing errors in English sentences.</li><li><strong>Where items come from.</strong> Every item and answer is copied from a named source, or derived from one by a documented rule: the Blas and Tonada app content, parallel corpora, Wikipedia edits and reference dictionaries. No language model wrote an answer for the benchmark.</li><li><strong>No human review.</strong> No person has reviewed the items. A score measures agreement with the sources, and a few gold answers will be wrong.</li><li><strong>Private sets, public samples.</strong> The full item sets stay private so that they do not end up in training data. 20 items per test are public, and only those appear as failure examples.</li><li><strong>Marking.</strong> Answers are marked by fixed rules: a list of accepted answers, or chrF++ overlap for translation. Two judge models mark only tutor explanations, which are a separate, secondary score.</li><li><strong>Reading the 95% range.</strong> Each item is asked three times, and every score has a 95% range from resampling the items. When two models' ranges overlap, treat the gap as possibly chance.</li><li><strong>Known limits.</strong> Error sentences are built from exercise options, planted typos and Wikipedia edits, not real learner errors. Valid variant forms missing from the sources are marked wrong. Small groups have wide ranges.</li></ul></section>
+<div class="doc">
+<nav class="toc" aria-label="On this page"><p class="toc-title">On this page</p><ol><li><a href="#in-one-minute">In one minute</a></li><li><a href="#what-we-publish-and-what-we-keep-private">What we publish and what we keep private</a></li><li><a href="#where-the-items-come-from">Where the items come from</a></li><li><a href="#the-tests">The tests</a></li><li><a href="#runs-intervals-and-cost">Runs, intervals and cost</a></li><li><a href="#contamination">Contamination</a></li><li><a href="#known-limits">Known limits</a></li><li><a href="#test-sets">Test sets in the Tonada suite</a></li></ol></nav>
+<div class="doc-body">
 <div class="prose"><p>Teanga Bench measures how well a large language model does the work of a language tutor. It has two suites.</p>
 <ul><li>The <strong>Blas suite</strong> covers Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish.</li><li>The <strong>Tonada suite</strong> covers English tutoring for learners whose first language is Portuguese, Spanish, Vietnamese or Japanese.</li></ul>
 <p>This page says where the test items come from, how answers are marked, and what the scores can and cannot tell you.</p>
-<h3 id="what-we-publish-and-what-we-keep-private">What we publish and what we keep private</h3>
+<div class="h-row"><h2 id="what-we-publish-and-what-we-keep-private">What we publish and what we keep private</h2><a class="copy-link" href="#what-we-publish-and-what-we-keep-private" aria-label="Link to this section">#</a></div>
 <p>The code, the scoring rules, the build scripts and this page are public. For each test, 20 sample items are public. The full item sets are private. They stay on the machine that runs the benchmark and are never put in the repository. We do this so that the test items do not enter model training data.</p>
 <p>Failure examples on the model pages come only from the public sample items.</p>
-<h3 id="where-the-items-come-from">Where the items come from</h3>
+<div class="h-row"><h2 id="where-the-items-come-from">Where the items come from</h2><a class="copy-link" href="#where-the-items-come-from" aria-label="Link to this section">#</a></div>
 <p>No answer in the benchmark was written by a language model for the benchmark. A build script copies each answer from a source file, or derives it from a source file by a rule that the script documents. Each item records its source, the licence of the source, and how strong the evidence for its answer is.</p>
 <p>The sources are:</p>
 <ul><li><strong>Blas app content.</strong> Lesson exercises, noun and verb tables, number tables, prepositional pronouns, gender practice, copula drills and sentences from the Blas language-learning app.</li><li><strong>Tonada app content.</strong> English lesson exercises from the Tonada app, with instructions in the learner's first language.</li><li><strong>Parallel corpora.</strong> Irish and English legislation from Gaois, Welsh and English text from the Senedd and Welsh legislation, and Breton and French text from Ofis Publik ar Brezhoneg.</li><li><strong>Wikipedia edit history.</strong> Real copy-edits to English Wikipedia, used as English error sentences.</li><li><strong>Reference dictionaries.</strong> BÚNaMo for Irish, and Kaikki (Wiktionary extracts) for Irish, Scottish Gaelic, Manx and Cornish. These are used to cross-check answers, not to write them.</li></ul>
-<h4 id="no-human-review">No human review</h4>
+<h3 id="no-human-review">No human review</h3>
 <p>No person reviewed the items for this benchmark. Every item has <code>human_checked: false</code>. The app content is itself largely machine-authored and machine-reviewed. A score on an app-derived test therefore measures agreement with the app content. It is not a score against a standard that an expert signed off.</p>
 <p>Each item carries an evidence label so that results can be split by it:</p>
 <div class="table-scroll"><table><thead><tr><th scope="col">Label</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td><code>blas-app+bunamo</code></td><td>The answer is in the app content, and every word of it is a form that BÚNaMo lists.</td></tr><tr><td><code>blas-app+kaikki</code></td><td>The answer is in the app content, and Kaikki lists it as a form.</td></tr><tr><td><code>blas-app-only</code></td><td>The answer is in the app content. We had no second source. All Welsh and Breton app items are in this group.</td></tr><tr><td><code>blas-app-unverified</code></td><td>The app content itself marks the sentence as not yet verified. All Cornish sentences in the translation tests are in this group.</td></tr><tr><td><code>corpus-reference</code></td><td>The reference translation comes from a published parallel corpus.</td></tr><tr><td><code>distractor-derived-unverified</code></td><td>The error sentence was made by putting a wrong option from an app exercise into the sentence. See "Tutor tests".</td></tr><tr><td><code>planted-typo</code></td><td>The error is a doubled letter that a script planted in a clean sentence.</td></tr><tr><td><code>tonada-app-machine-reviewed</code></td><td>The exercise is in the Tonada app content, and the app's automated review marks it verified.</td></tr><tr><td><code>tonada-app-distractor-machine-reviewed</code></td><td>The error sentence was made by putting a wrong option from a Tonada exercise into the sentence.</td></tr><tr><td><code>tonada-app-answer-machine-reviewed</code></td><td>A correct sentence from a Tonada exercise, used as a sentence with no error.</td></tr><tr><td><code>wikipedia-revision-silver-unreviewed</code></td><td>A real edit from the English Wikipedia history. Some are changes of style and not clear errors.</td></tr></tbody></table></div>
 <p>A cross-check with BÚNaMo or Kaikki shows that a form exists. It does not show that the form is the right one for the question.</p>
-<h4 id="licences">Licences</h4>
+<h3 id="licences">Licences</h3>
 <p>Each item records a licence. The app's own content is marked <code>private-blas</code> or <code>private-tonada</code>. Where the app took a sentence from another source, the item carries the licence of that source:</p>
 <ul><li>Tatoeba sentences: CC BY 2.0 FR.</li><li>Manx sentences from the Gaelg corpus: GPL-3.0.</li><li>Senedd record and Welsh legislation: Open Government Licence v3.0.</li><li>Gaois legislation and Ofis Publik ar Brezhoneg text: CC BY 4.0.</li><li>Wikipedia sentences and Wiktionary text from Kaikki: CC BY-SA 4.0.</li><li>English Wikipedia edit pairs: the text is CC BY-SA 4.0, and the WikiEdits-MultiGEC dataset that collected them is MIT. Both apply.</li></ul>
 <p>BÚNaMo, used for cross-checks, is under the Open Database Licence 1.0. Each public sample file has an attribution file beside it that lists its sources, licences and notices.</p>
-<h3 id="the-tests">The tests</h3>
+<div class="h-row"><h2 id="the-tests">The tests</h2><a class="copy-link" href="#the-tests" aria-label="Link to this section">#</a></div>
 <p>The table of tests on this page is generated from the build reports. It shows the number of items, the languages and the evidence counts for each test.</p>
-<h4 id="grammar-forms-and-lesson-exercises">Grammar forms and lesson exercises</h4>
+<h3 id="grammar-forms-and-lesson-exercises">Grammar forms and lesson exercises</h3>
 <p>The model is asked for one form or one answer: a genitive, a verb form, a prepositional pronoun, a number, the right option in an exercise. The answer is compared with a list of accepted answers after light normalisation (case, apostrophe style and outer spaces do not matter). The list contains every alternative that the source records.</p>
 <p>Limit: if a valid dialect or variant form is not in the source, the model is marked wrong for it. Few items have more than one accepted answer, because the sources rarely list alternatives.</p>
-<h4 id="translation-and-round-trip">Translation and round trip</h4>
+<h3 id="translation-and-round-trip">Translation and round trip</h3>
 <p>In the translation test the model translates a sentence into English or from English. In the Breton corpus items the other language is French. The score is chrF++, a standard measure of character and word overlap with the reference translation.</p>
 <p>In the round-trip test the model translates a sentence into English, and then, in a new conversation, translates its own English back. The score is chrF++ between the result and the original sentence.</p>
 <p>Limits: an overlap measure gives a lower score to a correct translation that uses different words. Most translation items have one reference. Round-trip scores can be high when a model makes the same mistake in both directions.</p>
-<h4 id="tutor-tests">Tutor tests</h4>
+<h3 id="tutor-tests">Tutor tests</h3>
 <p>The model sees a learner's sentence. The sentence has one error or no error. The model must say if there is an error, give the wrong span, give the correction, give the corrected sentence and explain the error.</p>
 <p>The headline score is marked by rule. An item is correct when the model finds the error, fixes it, and changes nothing else. For a sentence with no error, the model must say so and leave the sentence as it is. About one third of the items have no error.</p>
 <p>The error sentences are not real learner errors. We found no corpus of real learner errors for these languages. The errors come from three places:</p>
 <ul><li><strong>Exercise distractors.</strong> An app exercise gives a sentence with a blank, the right option and wrong options. We put a wrong option in the blank. We keep only grammatical contrasts, such as a missing mutation or a wrong particle. A wrong option is sometimes also valid in the sentence. We do not know how often. A machine reading of 30 random items, not a reading by a speaker, found 2 such items. For 2 of 30, the 95 percent interval is about 1 to 22 percent.</li><li><strong>Planted typos.</strong> A script doubles one letter in a clean sentence. Only a few Welsh items use this source.</li><li><strong>Real edits (English only).</strong> Real copy-edits from the English Wikipedia edit history.</li></ul>
 <p>The Blas tutor test covers Irish, Welsh and Scottish Gaelic only. The app has too few suitable exercises for Manx, Breton and Cornish, and a test built on planted typos alone would mislead.</p>
-<h4 id="the-explanation-score">The explanation score</h4>
+<h3 id="the-explanation-score">The explanation score</h3>
 <p>The explanation is the only part that a model marks. Two judge models from two different model families mark each explanation. The explanation passes only when both judges pass it. The same two judges mark every model, so the scores can be compared. A model from the same family as a judge gets no explanation score.</p>
 <p>No person has checked the judges' marks. For this reason the explanation score is reported apart from the headline score, with the rate at which the two judges agreed. If a judge call fails three times, the explanation is left unscored. It is not counted as wrong.</p>
-<h3 id="runs-intervals-and-cost">Runs, intervals and cost</h3>
+<div class="h-row"><h2 id="runs-intervals-and-cost">Runs, intervals and cost</h2><a class="copy-link" href="#runs-intervals-and-cost" aria-label="Link to this section">#</a></div>
 <ul><li><strong>Repeat runs.</strong> Each item is run three times with the provider's default settings. An item's score is the mean of its three runs.</li><li><strong>Confidence intervals.</strong> Each score has a 95 percent interval from 2,000 bootstrap resamples of the items. When two models' intervals overlap, do not read the difference between them as real.</li><li><strong>Consistency.</strong> We report the share of items where the model gave the same result in all three runs.</li><li><strong>Cost.</strong> Prices are read from OpenRouter at the start of the run. We report the cost of the run and the cost per correct answer. Each run has a hard cost cap.</li><li><strong>Sampling.</strong> Items are selected with a fixed random seed, spread evenly over languages and grammar topics. A rebuild from the same sources gives the same items.</li></ul>
-<h3 id="contamination">Contamination</h3>
+<div class="h-row"><h2 id="contamination">Contamination</h2><a class="copy-link" href="#contamination" aria-label="Link to this section">#</a></div>
 <p>A model may have seen some of the source text in training. Each translation item is labelled <code>private</code> or <code>public-source</code>.</p>
 <ul><li>The Irish sentences come from the Blas app's own sentence bank and are private.</li><li>The sentences for the other five languages come from public sources, such as Tatoeba, the Senedd record and dictionary examples. Models may have seen them.</li><li>The parallel corpora are published legal and administrative text.</li><li>The app exercises and tables are not published as data, but the app itself is public.</li></ul>
-<h3 id="known-limits">Known limits</h3>
+<div class="h-row"><h2 id="known-limits">Known limits</h2><a class="copy-link" href="#known-limits" aria-label="Link to this section">#</a></div>
 <ul><li>No human review, as described above.</li><li>The Blas app content has known errors. A build script found one Irish exercise whose marked answer looks wrong. There will be others.</li><li>Cornish text in the sources uses more than one spelling system. A single reference can mark a valid spelling as wrong.</li><li>Manx translation sentences are mostly dictionary examples, and some are archaic.</li><li>Welsh and Breton answers have no second source.</li><li>Scores for small groups, such as one grammar topic in one language, have wide intervals.</li></ul></div>
-<h2 id="test-sets">Test sets in the Tonada suite</h2>
+<div class="h-row"><h2 id="test-sets">Test sets in the Tonada suite</h2><a class="copy-link" href="#test-sets" aria-label="Link to this section">#</a></div>
 <p class="section-intro">Generated from the build reports in <code>data/build-reports/</code>. Items are sampled with a fixed seed. The full sets are private; 20 items per test are published in <a href="https://github.com/johnway114/teanga-bench/tree/main/samples/tonada">samples/tonada</a>.</p>
 <div class="table-block"><p class="table-note">Items per test, with counts by group. Human-checked counts only items whose source records human review.</p><div class="table-scroll" role="region" aria-label="Test sets" tabindex="0"><table class="board"><thead><tr><th scope="col">Test</th><th scope="col" class="r">Items</th><th scope="col" class="r">Public</th><th scope="col">First language</th><th scope="col">CEFR level</th><th scope="col" class="r">Human-checked</th></tr></thead><tbody><tr><th scope="row">Lesson exercises<br><code>exercises</code></th><td class="r num">400</td><td class="r num">20</td><td>Japanese 100, Portuguese 100, Spanish 100, Vietnamese 100</td><td>A1 70, A2 66, B1 128, B2 136</td><td class="r num">0</td></tr><tr><th scope="row">Tutor accuracy<br><code>tutor_accuracy</code></th><td class="r num">360</td><td class="r num">20</td><td>Japanese 90, Portuguese 90, Spanish 90, Vietnamese 90</td><td>A1 56, A2 56, B1 97, B2 107, Unspecified 44</td><td class="r num">0</td></tr></tbody></table></div></div>
-<p class="section-intro">Evidence says how strong the gold answer is: for example whether a course answer is confirmed by a dictionary, or comes from the course alone.</p>
-<h3>Lesson exercises</h3><p>Closed English exercises from the Tonada course, with the instruction in the learner&#x27;s first language, marked against the accepted answers.</p><dl class="plain"><dt>Sources</dt><dd>grammar-lessons.json, grammar-lessons.review.json, lesson-screens.json, lesson-screens.review.json, tonada-grammar-lessons, tonada-lesson-screens</dd><dt>Licences</dt><dd>private-tonada 400</dd><dt>Evidence</dt><dd>tonada-app-machine-reviewed 400</dd><dt>Build report</dt><dd><a href="https://github.com/johnway114/teanga-bench/blob/main/data/build-reports/tonada_exercises.json">tonada_exercises.json</a></dd></dl>
-<h3>Tutor accuracy</h3><p>Find and fix the error in an English sentence, or leave a correct sentence alone; an item counts only when the error is found and fixed and nothing else is changed.</p><dl class="plain"><dt>Sources</dt><dd>eng_sentences_detailed.tsv.bz2, english-clean.jsonl, english-error.jsonl, lesson-screens.json, lesson-screens.review.json, manifest.json, tonada-grammar-lessons, tonada-lesson-screens, wikiedits-multigec-en</dd><dt>Licences</dt><dd>CC BY-SA 4.0 (Wikipedia text); MIT (WikiEdits-MultiGEC dataset, https://huggingface.co/datasets/lang-uk/WikiEdits-MultiGEC) 44, private-tonada 316</dd><dt>Evidence</dt><dd>tonada-app-answer-machine-reviewed 106, tonada-app-distractor-machine-reviewed 210, wikipedia-revision-silver-unreviewed 44</dd><dt>Shortfalls</dt><dd>japanese, portuguese, spanish, vietnamese (see the build report)</dd><dt>Build report</dt><dd><a href="https://github.com/johnway114/teanga-bench/blob/main/data/build-reports/tonada_tutor_accuracy.json">tonada_tutor_accuracy.json</a></dd></dl>
+<p class="section-intro">Evidence says how strong the gold answer is: for example whether a course answer is confirmed by a dictionary, or comes from the course alone. Open a test for its sources.</p>
+<details class="drill drill-sm" id="set-exercises"><summary><span class="drill-title"><h3>Lesson exercises</h3></span></summary><div class="drill-body"><p>Closed English exercises from the Tonada course, with the instruction in the learner&#x27;s first language, marked against the accepted answers.</p><dl class="plain"><dt>Sources</dt><dd>grammar-lessons.json, grammar-lessons.review.json, lesson-screens.json, lesson-screens.review.json, tonada-grammar-lessons, tonada-lesson-screens</dd><dt>Licences</dt><dd>private-tonada 400</dd><dt>Evidence</dt><dd>tonada-app-machine-reviewed 400</dd><dt>Build report</dt><dd><a href="https://github.com/johnway114/teanga-bench/blob/main/data/build-reports/tonada_exercises.json">tonada_exercises.json</a></dd></dl></div></details>
+<details class="drill drill-sm" id="set-tutor-accuracy"><summary><span class="drill-title"><h3>Tutor accuracy</h3></span></summary><div class="drill-body"><p>Find and fix the error in an English sentence, or leave a correct sentence alone; an item counts only when the error is found and fixed and nothing else is changed.</p><dl class="plain"><dt>Sources</dt><dd>eng_sentences_detailed.tsv.bz2, english-clean.jsonl, english-error.jsonl, lesson-screens.json, lesson-screens.review.json, manifest.json, tonada-grammar-lessons, tonada-lesson-screens, wikiedits-multigec-en</dd><dt>Licences</dt><dd>CC BY-SA 4.0 (Wikipedia text); MIT (WikiEdits-MultiGEC dataset, https://huggingface.co/datasets/lang-uk/WikiEdits-MultiGEC) 44, private-tonada 316</dd><dt>Evidence</dt><dd>tonada-app-answer-machine-reviewed 106, tonada-app-distractor-machine-reviewed 210, wikipedia-revision-silver-unreviewed 44</dd><dt>Shortfalls</dt><dd>japanese, portuguese, spanish, vietnamese (see the build report)</dd><dt>Build report</dt><dd><a href="https://github.com/johnway114/teanga-bench/blob/main/data/build-reports/tonada_tutor_accuracy.json">tonada_tutor_accuracy.json</a></dd></dl></div></details>
+</div></div>
 </main>
 <footer class="site-foot"><div class="wrap">
 <p>Teanga Bench is open source under Apache-2.0. Code, the public samples and every results file are on <a href="https://github.com/johnway114/teanga-bench">GitHub</a>.</p>
 <p>Gold answers come from the sources named in the <a href="./methodology.html">methodology</a>; they have not been reviewed by native speakers.</p>
-<p>Results as of 15 November 2026. Also see the <a href="https://research.blasapp.com/">Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish</a>.</p>
+<p>Results as of 15 November 2026. Also see the <a href="https://research.blasapp.com/" data-local="../blas/">Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish</a>.</p>
 </div></footer>
+<script>
+(function () {
+  var d = document;
+  function each(sel, fn, root) { Array.prototype.forEach.call((root || d).querySelectorAll(sel), fn); }
+  if (!/^research\.(blasapp|tonadaapp)\.com$/.test(location.hostname)) {
+    each("a[data-local]", function (a) { a.setAttribute("href", a.getAttribute("data-local")); });
+  }
+  var nav = d.querySelector(".site-nav"), here = nav && nav.querySelector("[aria-current]");
+  if (here && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = here.offsetLeft - 16;
+  function target() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id ? d.getElementById(id) : null;
+    for (var p = el; p; p = p.parentElement) { if (p.tagName === "DETAILS") p.open = true; }
+    return el;
+  }
+  each("[data-collapsible]", function (box) {
+    var btn = box.querySelector("[data-show-all]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var open = box.classList.toggle("expanded");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = btn.getAttribute(open ? "data-less" : "data-more");
+    });
+  });
+  each("table[data-sortable]", function (table) {
+    var body = table.tBodies[0], top = parseInt(table.getAttribute("data-top") || "0", 10);
+    each("th[data-sort]", function (th) {
+      var col = th.cellIndex, first = th.getAttribute("data-sort");
+      var b = d.createElement("button");
+      b.type = "button";
+      b.className = "sort";
+      while (th.firstChild) b.appendChild(th.firstChild);
+      th.appendChild(b);
+      b.addEventListener("click", function () {
+        var now = th.getAttribute("aria-sort");
+        var asc = now ? now !== "ascending" : first === "asc";
+        var rows = Array.prototype.slice.call(body.rows);
+        rows.sort(function (x, y) {
+          var a = x.cells[col].getAttribute("data-v"), c = y.cells[col].getAttribute("data-v");
+          var na = parseFloat(a), nc = parseFloat(c);
+          var r = isNaN(na) || isNaN(nc) ? a.localeCompare(c) : na - nc;
+          return asc ? r : -r;
+        });
+        rows.forEach(function (r, i) { body.appendChild(r); if (top) r.classList.toggle("more", i >= top); });
+        each("th[aria-sort]", function (h) { h.removeAttribute("aria-sort"); }, table);
+        th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+      });
+    }, table);
+  });
+  var tabSets = [];
+  each("[data-tabs]", function (box) {
+    var links = box.querySelectorAll("[data-tablist] a"), panels = [];
+    box.querySelector("[data-tablist]").setAttribute("role", "tablist");
+    function show(i) {
+      panels.forEach(function (p, j) {
+        p.hidden = j !== i;
+        links[j].setAttribute("aria-selected", j === i ? "true" : "false");
+        links[j].tabIndex = j === i ? 0 : -1;
+      });
+    }
+    Array.prototype.forEach.call(links, function (a, i) {
+      var panel = d.getElementById(a.getAttribute("href").slice(1));
+      panels.push(panel);
+      a.id = "tab-" + panel.id;
+      a.setAttribute("role", "tab");
+      a.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", a.id);
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        show(i);
+        history.replaceState(null, "", "#" + panel.id);
+      });
+      a.addEventListener("keydown", function (ev) {
+        var k = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+        if (!k) return;
+        ev.preventDefault();
+        var j = (i + k + links.length) % links.length;
+        show(j);
+        links[j].focus();
+        history.replaceState(null, "", "#" + panels[j].id);
+      });
+    });
+    function sync() {
+      var el = target(), at = 0;
+      panels.forEach(function (p, j) { if (el && p.contains(el)) at = j; });
+      show(at);
+    }
+    sync();
+    box.classList.add("tabs-ready");
+    tabSets.push(sync);
+  });
+  target();
+  window.addEventListener("hashchange", function () { target(); tabSets.forEach(function (f) { f(); }); });
+  each("a.copy-link", function (a) {
+    a.addEventListener("click", function (ev) {
+      if (!navigator.clipboard) return;
+      ev.preventDefault();
+      navigator.clipboard.writeText(location.href.split("#")[0] + a.getAttribute("href")).then(function () {
+        a.classList.add("copied");
+        a.setAttribute("aria-label", "Link copied");
+        setTimeout(function () { a.classList.remove("copied"); a.setAttribute("aria-label", "Link to this section"); }, 1600);
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>

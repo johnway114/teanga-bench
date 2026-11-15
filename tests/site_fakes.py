@@ -1,9 +1,16 @@
-"""Fake results files for the site tests. Shaped like docs/results-schema.md."""
+"""Fake results files for the site tests. Shaped like docs/results-schema.md.
+
+``nine_models()`` gives a realistic leaderboard for previewing the site:
+nine complete runs with spread-out scores and costs, plus one run the cost
+cap stopped.
+"""
 
 from __future__ import annotations
 
 import random
 from typing import Any
+
+from teanga_bench.models_config import configured_judges
 
 BLAS_TESTS = {
     "lesson_exercises": "accept_list",
@@ -13,6 +20,11 @@ BLAS_TESTS = {
     "tutor_accuracy": "tutor",
 }
 TONADA_TESTS = {"exercises": "accept_list", "tutor_accuracy": "tutor"}
+# Some tests are harder than others for every model.
+TEST_OFFSET = {
+    "lesson_exercises": 0.08, "morphology": 0.0, "translation": -0.08, "round_trip": -0.12,
+    "tutor_accuracy": -0.05, "exercises": 0.1,
+}
 BLAS_LANGUAGES = ["irish", "welsh", "scots-gaelic", "manx", "breton", "cornish"]
 L1S = ["portuguese", "spanish", "vietnamese", "japanese"]
 CEFR = ["A1", "A2", "B1", "B2", "unspecified"]
@@ -20,6 +32,7 @@ TOPICS = [
     "verb_present", "verb_past", "verb_future", "noun_plural", "copula", "prepositions",
     "mutations", "articles", "word_order", "numbers", "pronouns", "negation",
 ]
+JUDGES = [judge.id for judge in configured_judges()]
 
 
 def _stat(rng: random.Random, centre: float, n: int, epochs: int) -> dict[str, Any]:
@@ -34,24 +47,24 @@ def _stat(rng: random.Random, centre: float, n: int, epochs: int) -> dict[str, A
     }
 
 
-def _block(rng, suite, test, scoring, centre, epochs, output_text) -> dict[str, Any]:
+def _block(rng, suite, test, scoring, centre, epochs, output_text, cost_scale, dataset) -> dict[str, Any]:
     groups = BLAS_LANGUAGES if suite == "blas" else L1S
     per_group = 40 if suite == "blas" else 60
     n_items = per_group * len(groups)
     block = {
-        "suite": suite, "test": test, "scoring": scoring, "dataset": "full", "status": "complete",
+        "suite": suite, "test": test, "scoring": scoring, "dataset": dataset, "status": "complete",
         "incomplete_reason": None, "n_items_dataset": n_items, "n_errors": 0,
         **_stat(rng, centre, n_items, epochs),
     }
     block["ci95"] = [round(max(0.0, block["score"] - 0.04), 4), round(min(1.0, block["score"] + 0.04), 4)]
-    candidate = round(rng.uniform(0.02, 0.4) * (centre + 0.5), 4)
-    judge = round(candidate * 0.3, 4) if scoring == "tutor" else 0.0
+    candidate = round(rng.uniform(0.02, 0.4) * (centre + 0.5) * cost_scale, 4)
+    judge = round(rng.uniform(0.02, 0.06), 4) if scoring == "tutor" else 0.0
     block["cost_usd"] = round(candidate + judge, 4)
     block["cost_per_correct_usd"] = block["cost_usd"] / (block["score"] * n_items * epochs) if block["score"] else None
     block["cost"] = {"candidate": {"cost_usd": candidate, "calls": n_items * epochs}, "judge": {"cost_usd": judge}}
     block["n_human_checked"] = 0
     language_key = "by_language" if suite == "blas" else "by_l1"
-    block[language_key] = {g: _stat(rng, centre - 0.1 * i / len(groups), per_group, epochs) for i, g in enumerate(groups)}
+    block[language_key] = {g: _stat(rng, centre - 0.2 * i / len(groups), per_group, epochs) for i, g in enumerate(groups)}
     if suite == "blas":
         block["by_l1"] = {"none": _stat(rng, centre, n_items, epochs)}
     else:
@@ -64,7 +77,7 @@ def _block(rng, suite, test, scoring, centre, epochs, output_text) -> dict[str, 
     if scoring == "tutor":
         block["tutor"] = {
             "headline": "rule-only: found AND fixed AND no over-correction",
-            "judges": ["google/gemini-judge", "mistralai/mistral-judge"],
+            "judges": list(JUDGES),
             "components": {"found": round(centre + 0.1, 3), "fixed": round(centre + 0.05, 3), "no_overcorrection": 0.9},
             "explanation": {
                 "label": "judge-marked, not human-validated",
@@ -99,13 +112,18 @@ def fake_document(
     generated_at: str = "2026-11-14T10:00:00+00:00",
     output_text: str = "ANSWER: cats",
     epochs: int = 3,
+    cost_scale: float = 1.0,
+    dataset: str = "full",
 ) -> dict[str, Any]:
     rng = random.Random(f"{model}-{seed}")
     suites = {}
     total = 0.0
     for suite, tests in (("blas", BLAS_TESTS), ("tonada", TONADA_TESTS)):
         blocks = {
-            test: _block(rng, suite, test, scoring, centre + rng.uniform(-0.15, 0.1), epochs, output_text)
+            test: _block(
+                rng, suite, test, scoring, centre + TEST_OFFSET.get(test, 0.0) + rng.uniform(-0.06, 0.06),
+                epochs, output_text, cost_scale, dataset,
+            )
             for test, scoring in tests.items()
         }
         mean = sum(b["score"] for b in blocks.values()) / len(blocks)
@@ -118,7 +136,7 @@ def fake_document(
         sum(b["score"] for s in suites.values() for b in s["tests"].values()) / 7, 4
     )
     pricing = {
-        "prompt_usd_per_token": 0.0000004, "completion_usd_per_token": 0.0000016,
+        "prompt_usd_per_token": 0.0000004 * cost_scale, "completion_usd_per_token": 0.0000016 * cost_scale,
         "cache_read_usd_per_token": None, "cache_write_usd_per_token": None,
         "source": "https://openrouter.ai/api/v1/models", "retrieved_at": generated_at,
     }
@@ -128,9 +146,9 @@ def fake_document(
         "run_kind": run_kind, "status": status,
         "model": {"id": model, "family": model.split("/")[0], "inspect_id": f"openrouter/{model}", "pricing": pricing},
         "config": {"epochs": epochs, "limit": None, "max_cost_usd": 5.0},
-        "judges": ["google/gemini-judge", "mistralai/mistral-judge"],
+        "judges": list(JUDGES),
         "explanation_status": "scored",
-        "judge_info": {"called": True, "pricing": {"google/gemini-judge": pricing, "mistralai/mistral-judge": pricing}},
+        "judge_info": {"called": True, "pricing": {judge: pricing for judge in JUDGES}},
         "gold": {"note": "sourced"},
         "cost": {"cap_usd": 5.0, "total_usd": round(total, 4), "candidate_usd": round(total * 0.9, 4), "judge_usd": round(total * 0.1, 4), "cap_reached": False, "by_model": {}},
         "overall": {
@@ -140,3 +158,28 @@ def fake_document(
         "suites": suites,
         "tool_versions": {"inspect_ai": "0.3.0"},
     }
+
+
+# (OpenRouter id, centre score, cost scale) for a realistic preview leaderboard.
+NINE_MODELS = (
+    ("anthropic/claude-opus-5", 0.84, 6.0),
+    ("openai/gpt-6-astra", 0.83, 4.0),
+    ("google/gemini-3.5-pro", 0.81, 3.0),
+    ("openai/gpt-6-luna", 0.78, 1.0),
+    ("x-ai/grok-5", 0.75, 2.5),
+    ("moonshotai/kimi-k3", 0.71, 0.6),
+    ("mistralai/mistral-large-3", 0.66, 0.8),
+    ("meta-llama/llama-5-maverick", 0.6, 0.35),
+    ("google/gemma-4-27b", 0.52, 0.12),
+)
+
+
+def nine_models() -> dict[str, dict[str, Any]]:
+    """File stem to results document: nine complete runs and one capped run."""
+    documents = {}
+    for day, (model, centre, scale) in enumerate(NINE_MODELS):
+        documents[model.replace("/", "__")] = fake_document(
+            model, centre, cost_scale=scale, generated_at=f"2026-11-{10 + day:02d}T09:00:00+00:00"
+        )
+    documents["z-ai__glm-5"] = fake_document("z-ai/glm-5", 0.7, status="cost_cap_reached")
+    return documents

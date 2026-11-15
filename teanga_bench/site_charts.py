@@ -1,8 +1,9 @@
 """Inline SVG and HTML charts for the research site.
 
-Colours come from the page stylesheet through class names, so one chart reads
-in either suite's accent. Every chart carries text a screen reader can use, and
-every number is also printed as text beside the graphic.
+Colours come from the page stylesheet through class names and CSS variables,
+so one chart reads in either suite's accent and in the light or dark theme.
+Every chart carries text a screen reader can use, and every number is also
+printed as text beside the graphic.
 """
 
 from __future__ import annotations
@@ -35,38 +36,42 @@ def pct(value: float | None, digits: int = 1) -> str:
 
 
 def interval_words(ci: list[float] | None) -> str:
-    return "no interval" if not ci else f"{ci[0] * 100:.1f}% to {ci[1] * 100:.1f}%"
+    return "no range" if not ci else f"{ci[0] * 100:.1f}% to {ci[1] * 100:.1f}%"
 
 
 def interval_short(ci: list[float] | None) -> str:
-    return "n/a" if not ci else f"{ci[0] * 100:.1f}–{ci[1] * 100:.1f}"
+    return "n/a" if not ci else f"{ci[0] * 100:.1f}–{ci[1] * 100:.1f}%"
 
 
 def _clamp(value: float) -> float:
     return max(0.0, min(1.0, value))
 
 
-def interval_bar(score: float | None, ci: list[float] | None, label: str) -> str:
-    """A 0..100% track with the score as a bar and the 95% interval as a whisker.
+def interval_bar(score: float | None, ci: list[float] | None, label: str, *, decorative: bool = False) -> str:
+    """A 0..100% track with the score as a bar and the 95% range as a whisker.
 
     The SVG stretches to its container (``preserveAspectRatio="none"``); lines
-    keep their width through ``vector-effect``.
+    keep their width through ``vector-effect``. ``decorative`` hides the bar
+    from screen readers where the same numbers are printed next to it.
     """
     if score is None:
         return '<span class="muted">n/a</span>'
-    aria = escape(f"{label}: {pct(score)}, 95% interval {interval_words(ci)}")
+    if decorative:
+        role = 'aria-hidden="true"'
+    else:
+        role = f'role="img" aria-label="{escape(f"{label}: {pct(score)}, 95% range {interval_words(ci)}")}"'
     parts = [
-        f'<svg class="ibar" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="{aria}" focusable="false">',
+        f'<svg class="ibar" viewBox="0 0 100 12" preserveAspectRatio="none" {role} focusable="false">',
         '<rect class="ibar-track" x="0" y="2" width="100" height="8"/>',
     ]
     for tick in (25, 50, 75):
-        parts.append(f'<line class="ibar-grid" x1="{tick}" y1="0" x2="{tick}" y2="12" vector-effect="non-scaling-stroke"/>')
+        parts.append(f'<line class="ibar-grid" x1="{tick}" y1="2" x2="{tick}" y2="10" vector-effect="non-scaling-stroke"/>')
     parts.append(f'<rect class="ibar-fill" x="0" y="2" width="{_clamp(score) * 100:.2f}" height="8"/>')
     if ci:
         lo, hi = _clamp(ci[0]) * 100, _clamp(ci[1]) * 100
         parts.append(f'<line class="ibar-whisker" x1="{lo:.2f}" y1="6" x2="{hi:.2f}" y2="6" vector-effect="non-scaling-stroke"/>')
         for x in (lo, hi):
-            parts.append(f'<line class="ibar-whisker" x1="{x:.2f}" y1="2.5" x2="{x:.2f}" y2="9.5" vector-effect="non-scaling-stroke"/>')
+            parts.append(f'<line class="ibar-whisker" x1="{x:.2f}" y1="3.5" x2="{x:.2f}" y2="8.5" vector-effect="non-scaling-stroke"/>')
     parts.append("</svg>")
     return "".join(parts)
 
@@ -78,27 +83,31 @@ def _axis() -> str:
     return f'<li class="bars-axis" aria-hidden="true"><span></span><span class="axis-ticks">{ticks}</span><span></span></li>'
 
 
-def ranked_bars(rows: list[BarRow], caption_html: str) -> str:
-    """Ranked horizontal bars, highest first. Text holds every number."""
+def ranked_bars(rows: list[BarRow], caption_html: str, *, sort: bool = True) -> str:
+    """Horizontal bars, highest first unless ``sort`` is off. Text holds every number."""
     if not rows:
         return f'<p class="empty-note">{caption_html} No complete runs yet.</p>'
-    rows = sorted(rows, key=lambda row: (-row.score, row.label_text))
+    if sort:
+        rows = sorted(rows, key=lambda row: (-row.score, row.label_text))
     items = []
     for row in rows:
         items.append(
             "<li>"
             f'<span class="bar-label">{row.label_html}{row.note_html}</span>'
             f'<span class="bar-track">{interval_bar(row.score, row.ci95, row.label_text)}</span>'
-            f'<span class="bar-value" aria-hidden="true"><strong>{pct(row.score)}</strong> '
-            f'<span class="ci">{interval_short(row.ci95)}</span></span>'
-            "</li>"
+            f'<span class="bar-value" aria-hidden="true"><strong>{pct(row.score)}</strong>'
+            + (f' <span class="ci">{interval_short(row.ci95)}</span>' if row.ci95 else "")
+            + "</span></li>"
         )
-    return (
-        '<figure class="chart">'
-        f"<figcaption>{caption_html}</figcaption>"
-        f'<ol class="bars">{"".join(items)}{_axis()}</ol>'
-        "</figure>"
-    )
+    caption = f"<figcaption>{caption_html}</figcaption>" if caption_html else ""
+    return f'<figure class="chart">{caption}<ol class="bars">{"".join(items)}{_axis()}</ol></figure>'
+
+
+def mini_bar(score: float | None) -> str:
+    """A small plain bar for compact lists; the number is printed beside it."""
+    if score is None:
+        return ""
+    return f'<span class="mini" aria-hidden="true"><span style="width:{_clamp(score) * 100:.1f}%"></span></span>'
 
 
 def _ticks_linear(maximum: float) -> list[float]:
@@ -163,7 +172,7 @@ def _score_axis(points: list[ScatterPoint]) -> tuple[float, float, float]:
 
 def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
     """Score (y) against cost (x). Markers carry the leaderboard rank; the
-    legend under the chart names each one. The x axis is logarithmic when
+    legend beside the chart names each one. The x axis is logarithmic when
     costs span ten times or more."""
     if not points:
         return '<p class="empty-note">No complete runs yet.</p>'
@@ -232,11 +241,11 @@ def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
     return "".join(body)
 
 
-def heat_style(score: float | None, rgb: tuple[int, int, int]) -> str:
-    """Background mixed from white towards the accent by the score. The curve
-    spreads the common 40-90% range; dark text stays above 4.5:1 at the top."""
+def heat_style(score: float | None) -> str:
+    """How strongly a grid cell mixes the accent into the card colour. The
+    stylesheet does the mixing, so the cell reads in both themes. The curve
+    spreads the common 40-90% range."""
     if score is None:
         return ""
     weight = 0.04 + 0.64 * _clamp(score) ** 1.5
-    mixed = tuple(round(255 + (channel - 255) * weight) for channel in rgb)
-    return f' style="background-color:#{mixed[0]:02x}{mixed[1]:02x}{mixed[2]:02x}"'
+    return f' style="--h:{weight * 100:.0f}%"'
