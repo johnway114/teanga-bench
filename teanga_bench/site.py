@@ -762,9 +762,7 @@ def _tutor(suite: SuiteInfo, entry: Entry, tests: list[str]) -> str:
             continue
         explanation = tutor.get("explanation") or {}
         components = tutor.get("components") or {}
-        judges = ", ".join(
-            f"{j.get('id')}" for j in explanation.get("judges") or [] if isinstance(j, dict)
-        ) or "n/a"
+        judges = ", ".join(str(j) for j in tutor.get("judges") or []) or "n/a"
         out.append(f"<h3>{e(_test_title(suite.key, test))}</h3>")
         out.append(
             '<dl class="plain">'
@@ -815,9 +813,11 @@ def _cost(entry: Entry) -> str:
     judge_cost = sum(
         float(((block.get("cost") or {}).get("judge") or {}).get("cost_usd") or 0.0) for block in entry.tests.values()
     )
-    judges = (run.get("judges") or {}).get("selected") or []
+    judge_pricing = (run.get("judge_info") or {}).get("pricing") or {}
     judge_prices = "".join(
-        f"<dt>Judge {e(j.get('id'))}</dt>{_price_rows(j.get('pricing'))}" for j in judges if isinstance(j, dict)
+        f"<dt>Judge {e(judge_id)}</dt>{_price_rows(judge_pricing.get(judge_id))}"
+        for judge_id in run.get("judges") or []
+        if judge_pricing.get(judge_id)
     )
     return (
         '<h2 id="cost">Cost and prices</h2>'

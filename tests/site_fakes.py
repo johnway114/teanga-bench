@@ -64,13 +64,14 @@ def _block(rng, suite, test, scoring, centre, epochs, output_text) -> dict[str, 
     if scoring == "tutor":
         block["tutor"] = {
             "headline": "rule-only: found AND fixed AND no over-correction",
+            "judges": ["google/gemini-judge", "mistralai/mistral-judge"],
             "components": {"found": round(centre + 0.1, 3), "fixed": round(centre + 0.05, 3), "no_overcorrection": 0.9},
             "explanation": {
                 "label": "judge-marked, not human-validated",
+                "status": "scored",
                 "score": round(centre * 0.9, 4), "ci95": [round(centre * 0.85, 4), round(centre * 0.95, 4)],
                 "n_items": n_items, "epochs": epochs, "judged_item_epochs": n_items * epochs - 3,
                 "unscored_item_epochs": 3, "judge_agreement": 0.87, "judge_failures": 4,
-                "judges": [{"id": "google/gemini-judge"}, {"id": "mistralai/mistral-judge"}],
             },
         }
     language = groups[0] if suite == "blas" else "english"
@@ -127,10 +128,9 @@ def fake_document(
         "run_kind": run_kind, "status": status,
         "model": {"id": model, "family": model.split("/")[0], "inspect_id": f"openrouter/{model}", "pricing": pricing},
         "config": {"epochs": epochs, "limit": None, "max_cost_usd": 5.0},
-        "judges": {"selected": [
-            {"id": "google/gemini-judge", "family": "google", "pricing": pricing},
-            {"id": "mistralai/mistral-judge", "family": "mistralai", "pricing": pricing},
-        ]},
+        "judges": ["google/gemini-judge", "mistralai/mistral-judge"],
+        "explanation_status": "scored",
+        "judge_info": {"called": True, "pricing": {"google/gemini-judge": pricing, "mistralai/mistral-judge": pricing}},
         "gold": {"note": "sourced"},
         "cost": {"cap_usd": 5.0, "total_usd": round(total, 4), "candidate_usd": round(total * 0.9, 4), "judge_usd": round(total * 0.1, 4), "cap_reached": False, "by_model": {}},
         "overall": {
