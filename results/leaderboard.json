@@ -3,7 +3,7 @@
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
-  "generated_at": "2026-11-16T18:11:46+00:00",
+  "generated_at": "2026-11-16T18:13:22+00:00",
   "note": "Only runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval. Runs on public samples and runs on full sets are not comparable; the data column says which. Explanation scores are judge-marked, not human-validated, and shown only for runs that used the current judge pair.",
   "current_judges": [
     "deepseek/deepseek-v4.1-flash-1017",
