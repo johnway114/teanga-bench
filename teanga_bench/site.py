@@ -711,8 +711,14 @@ def _drill(anchor: str, title: str, body: str, *, count: str = "", note: str = "
     )
 
 
+# Optional plain-text notice from ``<results_dir>/notice.txt``, shown with every honesty note.
+# ``build_site`` sets it. It is for a temporary warning, such as scores that are being re-run.
+_SITE_NOTICE = ""
+
+
 def _honesty(home: str) -> str:
-    return (
+    notice = f'<p class="notice">{e(_SITE_NOTICE)}</p>' if _SITE_NOTICE else ""
+    return notice + (
         '<p class="honesty"><span class="honesty-mark" aria-hidden="true">i</span><span>'
         "Items and answers come from the named sources and have not been reviewed by people, so a few "
         f'gold answers may be wrong. <a href="{home}methodology.html#no-human-review">How the items are built</a></span></p>'
@@ -3152,7 +3158,10 @@ def _write(path: Path, text: str) -> None:
 
 def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root: Path | str = REPO_ROOT) -> dict[str, Any]:
     """Build the static site. Returns a summary: ranked models per suite and files written."""
+    global _SITE_NOTICE
     results_dir, out_dir, repo_root = Path(results_dir), Path(out_dir), Path(repo_root)
+    notice_file = results_dir / "notice.txt"
+    _SITE_NOTICE = " ".join(notice_file.read_text(encoding="utf-8").split()) if notice_file.is_file() else ""
     runs_dir = results_dir / "runs"
     runs, _skipped = load_runs(runs_dir) if runs_dir.is_dir() else ([], [])
     runs = [run for run in runs if run.get("run_kind") == "live"]
