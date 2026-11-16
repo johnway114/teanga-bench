@@ -206,3 +206,18 @@ item is labelled `private` or `public-source`.
 - Welsh and Breton answers have no second source.
 - Scores for small groups, such as one grammar topic in one language, have
   wide intervals.
+
+## Notes on the first runs
+
+- **Resumed runs.** Eight of the first nine runs stopped before the end. Seven
+  stopped because the account ran out of credit, and one reached its cost
+  cap. Each was resumed: answers already scored were kept, and only the
+  missing ones were asked again. The answers in a resumed run were therefore
+  given at two different times. Each results file records this in its
+  `resumed` block.
+- **One corrected file.** The results file for `openai/gpt-6-luna` was
+  written before a cost-reporting bug was fixed. The cost shown for the
+  Tonada tutor test also included the cost of the Blas tutor test. A script
+  subtracted the duplicate amount in that one file. The file was not
+  regenerated from the run logs. Its scores and its total cost did not
+  change, and its `corrections` field records the edit.
