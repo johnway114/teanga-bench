@@ -161,7 +161,7 @@ def test_cli_mock_run_writes_json_report_leaderboard_and_charts(fixture_root, tm
     )
     assert code == 0
     document = json.loads(output.read_text(encoding="utf-8"))
-    assert document["schema_version"] == "2.1.0" and document["status"] == "complete"
+    assert document["schema_version"] == "2.2.0" and document["status"] == "complete"
     assert document["config"]["max_tokens"]["candidate"] == 16000
     assert document["truncation"]["max_tokens"] == 16000
     assert document["truncation"]["n_truncated_item_epochs"] == 0 and document["truncation"]["n_item_epochs"] > 0
@@ -256,3 +256,47 @@ def test_missing_judge_in_the_live_list_means_no_explanation_but_the_run_complet
     assert block["tutor"]["explanation"]["score"] is None
     assert block["tutor"]["explanation"]["status"] == "not_scored_judge_unavailable"
     assert document["cost"]["judge_usd"] == 0
+
+
+@pytest.mark.parametrize("suite,attribute", [("blas", "language"), ("tonada", "l1")])
+def test_export_crosses_language_or_l1_with_phenomenon(tmp_path, suite, attribute):
+    from decimal import Decimal
+    from types import SimpleNamespace
+
+    from teanga_bench.cost import CostGuard
+    from teanga_bench.datasets import DatasetFile
+    from teanga_bench.export import build_test_outcome, not_run_block
+
+    samples = []
+    for language, phenomenon, count, value in (
+        ("irish", "mutation", 5, 1),
+        ("irish", "syntax", 5, 0),
+        ("welsh", "mutation", 5, 0.5),
+        ("welsh", "syntax", 4, 1),
+    ):
+        for n in range(count):
+            for epoch in (1, 2):
+                samples.append(SimpleNamespace(
+                    id=f"{language}-{phenomenon}-{n}",
+                    epoch=epoch,
+                    metadata={attribute: language, "phenomenon": phenomenon, "scoring": "accept_list"},
+                    scores={"teanga_scorer": SimpleNamespace(value=value)},
+                    error=None,
+                    output=None,
+                    store={},
+                ))
+    dataset = DatasetFile(suite, "fixture", tmp_path / "unused.jsonl", "public_sample", None)
+    outcome = build_test_outcome(
+        samples, dataset, n_items_dataset=19, epochs=2,
+        guard=CostGuard(max_cost=Decimal("5"), prices={}), public=set(), judges=[],
+    )
+    field = f"by_{attribute}_phenomenon"
+    cells = outcome.block[field]
+    assert cells["irish"]["mutation"] == {
+        "score": 1.0, "ci95": [1.0, 1.0], "n_items": 5, "epochs": 2, "consistency": 1.0,
+    }
+    assert cells["irish"]["syntax"]["score"] == 0
+    assert cells["welsh"]["mutation"]["score"] == 0.5
+    assert "syntax" not in cells["welsh"]
+    assert ("by_language_phenomenon" if suite == "tonada" else "by_l1_phenomenon") not in outcome.block
+    assert not_run_block(dataset, 19, 2, "cost_cap_reached")[field] == {}

@@ -651,3 +651,136 @@ def test_resume_plan_with_rerun_truncated(data_root, tmp_path, judges, monkeypat
     assert rows["blas/translation"] == ["4", "0", "0", "0", "4"]
     assert "cost 3 times that average" in out and f"lower answer limit ({OLD_LIMIT} tokens)" in out
     assert first.output.read_text(encoding="utf-8") == before  # read-only
+
+
+def _reexport_source(first):
+    first.output = first.output.rename(first.output.with_name("mockllm__model.json"))
+    return first
+
+
+def _reexport_args(first, data_root, output=None):
+    args = [
+        "reexport", "--model", "mockllm/model",
+        "--results-dir", str(first.output.parent),
+        "--log-dir", str(first.output.parent),
+        "--data-root", str(data_root),
+    ]
+    if output is not None:
+        args += ["--output", str(output)]
+    return args
+
+
+def _forbid_reexport_calls(monkeypatch):
+    from unittest.mock import Mock
+
+    from inspect_ai.model import Model
+
+    forbidden = Mock(side_effect=AssertionError("reexport must not call a model or network"))
+    monkeypatch.setattr(Model, "generate", forbidden)
+    monkeypatch.setattr("teanga_bench.runner.inspect_eval", forbidden)
+    monkeypatch.setattr("teanga_bench.pricing.fetch_catalog", forbidden)
+    monkeypatch.setattr("teanga_bench.apikey.export_api_key", forbidden)
+    return forbidden
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_reexport_recomputes_all_scores_without_model_calls(data_root, tmp_path, judges, monkeypatch, capsys, legacy):
+    _run(data_root, tmp_path, "reexport", Candidate(flaky=FLAKY))
+    first = _reexport_source(_resume(data_root, tmp_path, "reexport", Candidate()))
+    original = first.document
+    original["schema_version"] = "2.0.0" if legacy else "2.1.0"
+    original["corrections"] = ["Preserve this hand correction."]
+    if legacy:
+        del original["config"]["dataset_hashes"]
+        del original["truncation"]
+    for block in _tests(original).values():
+        block.pop("by_language_phenomenon", None)
+        block.pop("by_l1_phenomenon", None)
+        # An obsolete derived score must be rebuilt, not just copied.
+        block["by_phenomenon"] = {}
+    write_results(original, first.output)
+    before = first.output.read_bytes()
+    forbidden = _forbid_reexport_calls(monkeypatch)
+    output = tmp_path / "rebuilt.json"
+    assert cli.main(_reexport_args(first, data_root, output)) == cli.EXIT_OK
+    forbidden.assert_not_called()
+    rebuilt = json.loads(output.read_text(encoding="utf-8"))
+    assert first.output.read_bytes() == before
+    assert "all headline numbers reproduced" in capsys.readouterr().out
+    assert rebuilt["schema_version"] == "2.2.0"
+    assert rebuilt["reexported"]["from_schema"] == original["schema_version"]
+    assert rebuilt["reexported"]["to_schema"] == "2.2.0"
+    assert rebuilt["reexported"]["at"]
+    assert rebuilt["overall"] == original["overall"]
+    for field in ("config", "resumed", "corrections", "cost"):
+        assert rebuilt[field] == original[field]
+    assert rebuilt.get("truncation") == original.get("truncation")
+    assert ("truncation" in rebuilt) == ("truncation" in original)
+    for name, block in _tests(rebuilt).items():
+        field = "by_l1_phenomenon" if name.startswith("tonada/") else "by_language_phenomenon"
+        assert field in block
+        assert block["by_phenomenon"]
+        for headline in ("score", "ci95", "n_items", "cost_usd", "cost", "cost_per_correct_usd"):
+            assert block[headline] == _tests(original)[name][headline]
+
+
+def test_reexport_refuses_a_missing_sample_epoch(data_root, tmp_path, judges, monkeypatch, capsys):
+    first = _reexport_source(_run(data_root, tmp_path, "run", Candidate()))
+    log_path = next((first.output.parent / "logs").glob("*.json"))
+    log = json.loads(log_path.read_text(encoding="utf-8"))
+    log["samples"].pop()
+    log_path.write_text(json.dumps(log), encoding="utf-8")
+    before = first.output.read_bytes()
+    forbidden = _forbid_reexport_calls(monkeypatch)
+    output = tmp_path / "missing.json"
+    assert cli.main(_reexport_args(first, data_root, output)) == cli.EXIT_INCOMPLETE
+    forbidden.assert_not_called()
+    assert "missing scored sample-epochs" in capsys.readouterr().err
+    assert not output.exists()
+    assert first.output.read_bytes() == before
+
+
+@pytest.mark.parametrize("field", ["score", "ci95", "n_items", "cost_usd", "overall", "suite_overall"])
+def test_reexport_refuses_headline_mismatches(data_root, tmp_path, judges, monkeypatch, capsys, field):
+    first = _reexport_source(_run(data_root, tmp_path, "run", Candidate()))
+    block = next(iter(_tests(first.document).values()))
+    if field == "overall":
+        first.document["overall"]["score"] += 0.1
+    elif field == "suite_overall":
+        first.document["suites"]["blas"]["overall"]["ci95"][0] += 0.1
+    elif field == "ci95":
+        block[field][0] += 0.1
+    else:
+        block[field] += 1
+    write_results(first.document, first.output)
+    before = first.output.read_bytes()
+    forbidden = _forbid_reexport_calls(monkeypatch)
+    # Default destination is the original file: mismatches must not touch it.
+    assert cli.main(_reexport_args(first, data_root)) == cli.EXIT_INCOMPLETE
+    forbidden.assert_not_called()
+    error = capsys.readouterr().err
+    assert "headline mismatch; nothing written" in error
+    assert "existing" in error and "recomputed" in error
+    assert first.output.read_bytes() == before
+
+
+def test_reexport_refuses_dataset_changes(data_root, tmp_path, judges, monkeypatch, capsys):
+    first = _reexport_source(_run(data_root, tmp_path, "run", Candidate()))
+    path = data_root / "samples" / "blas" / "mutations.jsonl"
+    path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    forbidden = _forbid_reexport_calls(monkeypatch)
+    output = tmp_path / "changed.json"
+    assert cli.main(_reexport_args(first, data_root, output)) == cli.EXIT_INCOMPLETE
+    forbidden.assert_not_called()
+    assert "dataset file(s) changed" in capsys.readouterr().err
+    assert not output.exists()
+
+
+def test_reexport_refuses_an_incomplete_run(data_root, tmp_path, judges, monkeypatch, capsys):
+    first = _reexport_source(_run(data_root, tmp_path, "run", Candidate(flaky=FLAKY)))
+    forbidden = _forbid_reexport_calls(monkeypatch)
+    output = tmp_path / "incomplete.json"
+    assert cli.main(_reexport_args(first, data_root, output)) == cli.EXIT_INCOMPLETE
+    forbidden.assert_not_called()
+    assert "requires a complete run" in capsys.readouterr().err
+    assert not output.exists()

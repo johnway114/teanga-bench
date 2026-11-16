@@ -52,6 +52,27 @@ log folder itself, default `logs/`), `--data-root`, and `--rerun-truncated`
 resumed, 1 that it cannot (complete with nothing to re-run, or a dataset
 changed), 2 that the files could not be read.
 
+`teanga-bench reexport --model <id>` rebuilds a **complete** results JSON from
+the saved Inspect sample scores, without model calls, judge calls, pricing
+requests, or API credentials. It uses resume's log selection and sample merge.
+Options: `--results-dir`, `--log-dir`, and `--data-root` have the same meanings
+as in `resume-plan`; `--output PATH` writes elsewhere instead of replacing the
+original file. It does not rebuild reports, the leaderboard, or the site.
+
+Every sample-epoch must already have a final score, and the resume dataset
+check must pass. Before writing, it compares each original test's `score`,
+`ci95`, `n_items`, and `cost_usd`, and every suite/run `overall` value against
+the rebuilt values (absolute tolerance `1e-9`). Any mismatch prints the
+differences and writes nothing. Exit codes: 0 on success, 1 on refusal or error.
+Costs and the original `config`, `resumed`, `corrections`, and `truncation`
+blocks stay unchanged, including their absence in older files. Run timestamps
+stay unchanged; `reexported: {at, from_schema, to_schema}` records the export.
+This is suitable for adding new derived breakdowns to existing results:
+
+```bash
+teanga-bench reexport --model openai/gpt-6-luna --output /tmp/luna-reexport.json
+```
+
 `teanga-bench leaderboard` reads every `results/runs/*.json` and writes
 `results/leaderboard.json`, `results/leaderboard.md`, and SVG charts in
 `results/charts/`. `run` calls it for you.
@@ -124,8 +145,10 @@ results give the mean score, a 95% interval, `n_items`, `epochs`, and
 The interval resamples items with replacement: 2000 resamples, fixed seed
 `20261115`, 2.5th and 97.5th percentiles. The same inputs give the same interval.
 The same statistics are given by language, l1, phenomenon, CEFR level and
-evidence. The overall score is the mean of per-test means, every test weighted
-equally, with its own interval.
+evidence. Each test also crosses phenomenon with language (Blas) or learner L1
+(Tonada), omitting cells with fewer than five fully scored items. Older files
+may lack this cross-breakdown. The overall score is the mean of per-test means,
+every test weighted equally, with its own interval.
 
 ## Key and pricing
 

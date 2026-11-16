@@ -102,6 +102,29 @@ def breakdown(
     }
 
 
+def phenomenon_breakdown(
+    items: Sequence[ItemResult], attribute: str, key: str, epochs: int
+) -> dict[str, dict[str, dict[str, Any]]]:
+    """Cross language (or learner L1) with phenomenon; suppress cells below five items."""
+    groups: dict[str, dict[str, list[ItemResult]]] = {}
+    for item in items:
+        language = item.attributes.get(attribute, "unspecified")
+        phenomenon = item.attributes.get("phenomenon", "unspecified")
+        groups.setdefault(language, {}).setdefault(phenomenon, []).append(item)
+    result = {}
+    for language, phenomena in sorted(groups.items()):
+        cells = {
+            phenomenon: group_stats(
+                members, f"{key}|{attribute}={language}|phenomenon={phenomenon}", epochs
+            )
+            for phenomenon, members in sorted(phenomena.items())
+            if len(members) >= 5
+        }
+        if cells:
+            result[language] = cells
+    return result
+
+
 def pooled(
     parts: Sequence[tuple[Sequence[float], str]],
 ) -> dict[str, Any] | None:

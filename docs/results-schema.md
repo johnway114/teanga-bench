@@ -1,6 +1,6 @@
 # Teanga Bench results JSON
 
-Version `2.1.0`. One file per run, written by `teanga-bench run` to
+Version `2.2.0`. One file per run, written by `teanga-bench run` to
 `results/runs/<model id with / as __>.json`. `teanga-bench leaderboard` reads
 these files and writes `results/leaderboard.json`.
 
@@ -18,7 +18,7 @@ when `status` is not `"complete"`.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `schema_version` | string | `"2.1.0"`. `2.1.0` added `truncation`, `n_truncated_item_epochs`, and the truncation fields of `resumed`. Older files are `"2.0.0"` |
+| `schema_version` | string | `"2.2.0"`. `2.2.0` adds language/L1-by-phenomenon cells and optional `reexported` provenance. `2.1.0` added truncation fields; older files are `"2.0.0"` |
 | `benchmark`, `benchmark_name`, `benchmark_version` | string | Name and the package version that wrote the file |
 | `started_at`, `generated_at` | string | UTC ISO-8601 |
 | `run_kind` | string | `"live"`, `"mock"`, or `"smoke"` (a run with `--limit`, never ranked or published) |
@@ -37,6 +37,7 @@ when `status` is not `"complete"`.
 | `tool_versions.inspect_ai` | string | Inspect version |
 | `resumed` | object | Only in a run finished with `--resume`. See below |
 | `corrections` | array of strings | Only in a file edited by hand after it was written: one note per edit. A resume keeps it |
+| `reexported` | object | Only after offline `reexport`: `at` (UTC ISO-8601), `from_schema`, `to_schema`. Records the latest export, not a model attempt; original run timestamps and protected blocks remain unchanged |
 
 ### `model`
 
@@ -148,11 +149,20 @@ every epoch (compared at 4 decimals). It is null when `epochs` is 1.
 | `cost` | `candidate` and `judge` usage objects |
 | `n_human_checked` | Scored items whose metadata says `human_checked: true` |
 | `by_language`, `by_l1`, `by_phenomenon`, `by_cefr`, `by_evidence` | Map of value to the statistics above. A missing value is `"unspecified"` |
+| `by_language_phenomenon` | Blas tests: language -> phenomenon -> statistics (`score`, `ci95`, `n_items`, `epochs`, `consistency`). Only cells with at least 5 fully scored items. Empty languages are omitted |
+| `by_l1_phenomenon` | Tonada tests: the same cross-breakdown, with learner first language (`l1`) as the outer key instead of language |
 | `tutor` | Only for tutor tests. See below |
 | `failure_examples` | Up to 3 lowest-scoring public items |
 
 A test that did not start has `status: "incomplete"`, `incomplete_reason`,
 `n_items_dataset`, and null scores.
+
+The cross-breakdowns are optional in older files; readers must not assume they
+exist. New exports include the appropriate field on every test, with `{}` when
+no cell qualifies (including unstarted tests). Missing metadata uses
+`"unspecified"`, as in the one-dimensional breakdowns. The five-item threshold
+counts items, not item-epochs. Cell intervals use the same fixed bootstrap
+settings, with a stream keyed by test, language/L1, and phenomenon.
 
 ### `tutor`
 

@@ -57,6 +57,7 @@ from teanga_bench.resume import (
     display_path,
     first_attempt,
     load_previous_run,
+    merge_samples,
     plan_test,
 )
 from teanga_bench.stats import CONFIDENCE, RESAMPLES, SEED
@@ -209,18 +210,6 @@ def _check_same_judging(
         f"the explanation was {before!r} in the first attempt but would be {explanation_status!r} now "
         "(a judge is missing from the live model list); resuming would mix the two."
     )
-
-
-def _merge(plan: TestPlan, log: Any) -> list[Any]:
-    """Every sample-epoch of a test: from this attempt when it ran, else reused."""
-    new = {(str(s.id), int(s.epoch)): s for s in (log.samples or [])} if log is not None else {}
-    merged = []
-    for key in plan.keys():
-        if key in new:
-            merged.append(new[key])
-        elif key in plan.reuse:
-            merged.append(plan.reuse[key])
-    return merged
 
 
 def run_benchmark(
@@ -518,7 +507,7 @@ def _run_test(
     attempt.rerun_limits.update(plan.truncated.values())
     to_eval = plan.items_to_eval()
     if not to_eval:
-        return None, _merge(plan, None)
+        return None, merge_samples(plan)
     pending = set(to_eval)
     context.replay = {
         key: Replay(sample=sample, score=score_of(sample))
@@ -534,4 +523,4 @@ def _run_test(
         log = inspect_eval(task, sample_id=[f"{task.name}:{item}" for item in to_eval], **eval_args)[0]
     finally:
         context.replay = {}
-    return log, _merge(plan, log)
+    return log, merge_samples(plan, log)

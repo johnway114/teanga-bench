@@ -61,6 +61,13 @@ def _build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
     plan.add_argument("--rerun-truncated", action="store_true", help="Plan for run --resume --rerun-truncated: count answers cut off by a lower token limit as missing")
 
+    reexport = sub.add_parser("reexport", help="Rebuild a complete results file from saved Inspect scores, with no model calls")
+    reexport.add_argument("--model", required=True, help="Model id of the complete run")
+    reexport.add_argument("--results-dir", type=Path, default=RESULTS, help="Folder holding runs/ (default results/)")
+    reexport.add_argument("--log-dir", type=Path, default=LOGS, help="Folder holding the run's log folders, or the log folder itself")
+    reexport.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
+    reexport.add_argument("--output", type=Path, help="Destination JSON (default: replace the existing results file)")
+
     board = sub.add_parser("leaderboard", help="Rebuild the leaderboard from results/runs/*.json")
     board.add_argument("--runs-dir", type=Path, default=RUNS)
     board.add_argument("--out-dir", type=Path, default=RESULTS)
@@ -92,6 +99,8 @@ def main(argv: list[str] | None = None) -> int:
         return _publish(args)
     if args.command == "resume-plan":
         return _resume_plan(args)
+    if args.command == "reexport":
+        return _reexport(args)
     return _run(args)
 
 
@@ -161,6 +170,27 @@ def _resume_command(args: argparse.Namespace, document: dict) -> str:
     if args.publish:
         parts.append("--publish")
     return shlex.join(parts)
+
+
+def _reexport(args: argparse.Namespace) -> int:
+    from teanga_bench.datasets import discover, select
+    from teanga_bench.export import write_results
+    from teanga_bench.resume import ResumeError, load_previous_run, reexport_document
+
+    name = f"{safe_name(args.model)}.json"
+    candidates = [args.results_dir / "runs" / name, args.results_dir / "mock" / name, args.results_dir / name]
+    results = next((path for path in candidates if path.is_file()), candidates[0])
+    try:
+        previous = load_previous_run(results, args.model, [args.log_dir])
+        datasets = select(discover(args.data_root), list(previous.config["tests"]))
+        document = reexport_document(previous, datasets)
+        output = args.output or results
+        write_results(document, output)
+    except (ResumeError, KeyError, RuntimeError, ValueError, OSError) as exc:
+        print(f"error: {exc.args[0] if exc.args else exc}", file=sys.stderr)
+        return EXIT_INCOMPLETE
+    print(f"Reexported {args.model}: all headline numbers reproduced; {output}")
+    return EXIT_OK
 
 
 def _resume_plan(args: argparse.Namespace) -> int:

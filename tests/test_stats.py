@@ -10,6 +10,7 @@ from teanga_bench.stats import (
     consistent,
     group_stats,
     pooled,
+    phenomenon_breakdown,
 )
 
 
@@ -70,3 +71,31 @@ def test_pooled_weights_each_part_equally():
     assert result["score"] == 0.5
     assert result["n_tests"] == 2 and result["n_items"] == 5
     assert result == pooled([([1.0, 1.0, 1.0, 1.0], "a"), ([0.0], "b")])
+
+
+def test_phenomenon_breakdown_uses_item_means_and_suppresses_small_cells():
+    items = [
+        ItemResult(
+            f"{language}-{phenomenon}-{n}",
+            (float(n % 2), 1.0),
+            {"language": language, "phenomenon": phenomenon},
+        )
+        for language, phenomenon, count in (
+            ("irish", "mutation", 5),
+            ("irish", "syntax", 6),
+            ("welsh", "mutation", 5),
+            ("welsh", "syntax", 4),
+        )
+        for n in range(count)
+    ]
+    result = phenomenon_breakdown(items, "language", "test", 2)
+    assert set(result) == {"irish", "welsh"}
+    assert set(result["irish"]) == {"mutation", "syntax"}
+    assert set(result["welsh"]) == {"mutation"}
+    members = items[:5]
+    assert result["irish"]["mutation"] == group_stats(
+        members, "test|language=irish|phenomenon=mutation", 2
+    )
+    assert result["irish"]["mutation"]["score"] == 0.7
+    assert result["irish"]["mutation"]["consistency"] == 0.4
+    assert phenomenon_breakdown(items[-4:], "language", "test", 2) == {}

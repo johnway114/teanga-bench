@@ -19,9 +19,9 @@ from teanga_bench import BENCHMARK, BENCHMARK_NAME, __version__
 from teanga_bench.context import TRUNCATED_KEY, stopped_at_limit
 from teanga_bench.cost import CostGuard
 from teanga_bench.datasets import DatasetFile
-from teanga_bench.stats import ItemResult, breakdown, group_stats, pooled
+from teanga_bench.stats import ItemResult, breakdown, group_stats, phenomenon_breakdown, pooled
 
-SCHEMA_VERSION = "2.1.0"
+SCHEMA_VERSION = "2.2.0"
 FAILURE_LIMIT = 3
 TEXT_LIMIT = 500
 ATTRIBUTES = ("language", "l1", "phenomenon", "cefr", "evidence")
@@ -103,6 +103,7 @@ def not_run_block(dataset: DatasetFile, n_items: int, epochs: int, reason: str) 
         "cost_usd": 0.0,
         "cost_per_correct_usd": None,
         "n_truncated_item_epochs": 0,
+        "by_l1_phenomenon" if dataset.suite == "tonada" else "by_language_phenomenon": {},
     }
 
 
@@ -198,6 +199,8 @@ def build_test_outcome(
     }
     for attribute, field in BREAKDOWN_KEYS.items():
         block[field] = breakdown(items, attribute, key, epochs)
+    attribute = "l1" if dataset.suite == "tonada" else "language"
+    block[f"by_{attribute}_phenomenon"] = phenomenon_breakdown(items, attribute, key, epochs)
     if scoring == "tutor":
         block["tutor"] = _tutor_block(items, per_item, key, epochs, judges, explanation_status)
     block["failure_examples"] = _failure_examples(items, per_item, sample_of, meta_of, public)

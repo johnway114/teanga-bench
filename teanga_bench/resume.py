@@ -32,9 +32,11 @@ import hashlib
 import json
 import re
 from collections import defaultdict
+from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
+from math import isclose
 from pathlib import Path
 from typing import Any
 
@@ -49,9 +51,20 @@ from teanga_bench.context import (
     TRUNCATED_KEY,
     stopped_at_limit,
 )
-from teanga_bench.cost import Usage
-from teanga_bench.datasets import DatasetFile, read_items
-from teanga_bench.export import EXPLANATION_SCORED, REASON_CAP, REASON_CREDIT, REASON_ERRORS, score_of
+from teanga_bench.cost import CostGuard, Usage
+from teanga_bench.datasets import DatasetFile, public_ids, read_items
+from teanga_bench.export import (
+    EXPLANATION_SCORED,
+    REASON_CAP,
+    REASON_CREDIT,
+    REASON_ERRORS,
+    SCHEMA_VERSION,
+    build_test_outcome,
+    now_iso,
+    pool_overall,
+    pool_suite,
+    score_of,
+)
 from teanga_bench.paths import REPO_ROOT, safe_name
 from teanga_bench.pricing import Catalog, PricingError
 
@@ -390,6 +403,123 @@ def plan_test(
                 plan.rescore[key] = kept
         del log
     return plan
+
+
+def merge_samples(plan: TestPlan, log: Any = None) -> list[Any]:
+    """Every sample-epoch: this attempt when it ran, otherwise a saved scored sample."""
+    new = {(str(s.id), int(s.epoch)): s for s in (log.samples or [])} if log is not None else {}
+    return [
+        new[key] if key in new else plan.reuse[key]
+        for key in plan.keys()
+        if key in new or key in plan.reuse
+    ]
+
+
+def _headline_differences(before: Any, after: Any, path: str) -> list[str]:
+    """Compare all pre-existing headline values, with an absolute tolerance of 1e-9."""
+    if isinstance(before, dict) and isinstance(after, dict):
+        return [
+            difference
+            for key, value in before.items()
+            for difference in _headline_differences(value, after.get(key), f"{path}.{key}")
+        ]
+    if isinstance(before, list) and isinstance(after, list) and len(before) == len(after):
+        return [
+            difference
+            for index, (old, new) in enumerate(zip(before, after))
+            for difference in _headline_differences(old, new, f"{path}[{index}]")
+        ]
+    if isinstance(before, (int, float)) and isinstance(after, (int, float)):
+        equal = isclose(before, after, rel_tol=0, abs_tol=1e-9)
+    else:
+        equal = before == after
+    return [] if equal else [f"{path}: existing {before!r}; recomputed {after!r}"]
+
+
+def reexport_document(previous: PreviousRun, datasets: list[DatasetFile]) -> dict[str, Any]:
+    """Rebuild a complete run from saved scores only; never evaluate or rescore a sample."""
+    original = previous.document
+    if original.get("status") != "complete":
+        raise ResumeError("reexport requires a complete run")
+    recorded = {
+        f"{suite}/{test}"
+        for suite, body in original["suites"].items()
+        for test in body["tests"]
+    }
+    if not recorded or recorded != set(previous.config["tests"]) or recorded != {d.name for d in datasets}:
+        raise ResumeError("reexport requires the complete original set of tests and datasets")
+    epochs = int(previous.config["epochs"])
+    limit = previous.config.get("limit")
+    check_datasets(previous, datasets, limit)
+    # Unlike a resume, an export must not repair legacy cost accounting: all
+    # recorded costs, including hand corrections, belong to the original run.
+    by_test = {
+        (name, role): Usage.from_dict((previous.block(name).get("cost") or {}).get(role) or {})
+        for name in previous.config["tests"]
+        for role in ("candidate", "judge")
+    }
+    guard = CostGuard(max_cost=Decimal(str(original["cost"]["cap_usd"])), prices={})
+    guard.carry_forward(by_test, {}, Decimal(str(original["cost"]["total_usd"])))
+    outcomes = []
+    differences = []
+    for dataset in datasets:
+        before = previous.block(dataset.name)
+        if before.get("status") != "complete":
+            raise ResumeError(f"reexport requires a complete test: {dataset.name}")
+        plan = plan_test(
+            previous,
+            dataset,
+            epochs=epochs,
+            limit=limit,
+            explanation_scored=original["explanation_status"] == EXPLANATION_SCORED,
+        )
+        if plan.run or plan.rescore:
+            raise ResumeError(
+                f"{dataset.name}: missing scored sample-epochs: "
+                f"{len(plan.run)} missing, {len(plan.rescore)} require rescoring; reexport makes no model calls"
+            )
+        outcome = build_test_outcome(
+            merge_samples(plan),
+            dataset,
+            n_items_dataset=len(plan.item_ids),
+            epochs=epochs,
+            guard=guard,
+            public=public_ids(dataset),
+            judges=original["judges"],
+            explanation_status=original["explanation_status"],
+        )
+        for field in ("score", "ci95", "n_items", "cost_usd"):
+            if field in before:
+                differences += _headline_differences(before[field], outcome.block[field], f"{dataset.name}.{field}")
+        # Carry all cost representations unchanged, rather than round-tripping
+        # their floats through Decimal or applying resume's legacy cost repair.
+        for field in ("cost", "cost_usd", "cost_per_correct_usd"):
+            if field in before:
+                outcome.block[field] = deepcopy(before[field])
+        outcomes.append(outcome)
+    overall = pool_overall(outcomes)
+    if "overall" in original:
+        differences += _headline_differences(original["overall"], overall, "overall")
+    suite_overalls = {}
+    for suite, body in original["suites"].items():
+        suite_overalls[suite] = pool_suite(outcomes, suite)
+        if "overall" in body:
+            differences += _headline_differences(body["overall"], suite_overalls[suite], f"{suite}.overall")
+    if differences:
+        raise ResumeError("headline mismatch; nothing written:\n" + "\n".join(differences))
+    document = deepcopy(original)
+    document["schema_version"] = SCHEMA_VERSION
+    document["overall"] = overall
+    for outcome in outcomes:
+        document["suites"][outcome.block["suite"]]["tests"][outcome.block["test"]] = outcome.block
+    for suite, overall in suite_overalls.items():
+        document["suites"][suite]["overall"] = overall
+    document["reexported"] = {
+        "at": now_iso(),
+        "from_schema": original["schema_version"],
+        "to_schema": SCHEMA_VERSION,
+    }
+    return document
 
 
 def carried_cost(document: dict[str, Any]) -> tuple[dict[tuple[str, str], Usage], dict[str, Usage], Decimal]:
