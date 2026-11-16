@@ -1,7 +1,9 @@
 """Run every test on one model and write the results.
 
 Tests run one after another. Every model call, candidate and judge, goes through
-one cost guard, so ``--max-cost`` is a hard stop for the whole run.
+one cost guard, so ``--max-cost`` is a hard stop for the whole run. With
+``resume`` the run continues an earlier attempt of the same model: see
+``teanga_bench/resume.py``.
 """
 
 from __future__ import annotations
@@ -21,28 +23,47 @@ from teanga_bench.context import (
     JUDGE_MAX_TOKENS,
     JUDGE_RETRIES,
     JudgeSpec,
+    Replay,
     RunContext,
     set_context,
 )
-from teanga_bench.cost import CostGuard
-from teanga_bench.datasets import discover, public_ids, read_items, select
+from teanga_bench.cost import CostGuard, CreditBackoff
+from teanga_bench.datasets import DatasetFile, discover, public_ids, read_items, select
 from teanga_bench.export import (
     EXPLANATION_JUDGE_UNAVAILABLE,
     EXPLANATION_SAME_FAMILY,
     EXPLANATION_SCORED,
+    REASON_CAP,
+    REASON_CREDIT,
+    REASON_ERRORS,
     TestRun,
     build_document,
     build_test_outcome,
     not_run_block,
     now_iso,
+    score_of,
 )
 from teanga_bench.models_config import JudgeChoice, configured_judges, family_of
-from teanga_bench.paths import LOGS, REPO_ROOT, RESULTS, RUNS
+from teanga_bench.paths import LOGS, REPO_ROOT, RESULTS, RUNS, safe_name
 from teanga_bench.pricing import MODELS_URL, Catalog, Pricing, fetch_catalog
+from teanga_bench.resume import (
+    PreviousRun,
+    ResumeError,
+    TestPlan,
+    carried_cost,
+    check_datasets,
+    dataset_hash,
+    display_path,
+    first_attempt,
+    load_previous_run,
+    plan_test,
+)
 from teanga_bench.stats import CONFIDENCE, RESAMPLES, SEED
 
 MAX_CONNECTIONS = 8
 MOCK_PREFIX = "mockllm/"
+DEFAULT_MAX_COST = Decimal("5.00")
+DEFAULT_EPOCHS = 3
 
 STATUS_COMPLETE = "complete"
 STATUS_CAP = "cost_cap_reached"
@@ -50,20 +71,22 @@ STATUS_INCOMPLETE = "incomplete"
 
 
 class RunError(RuntimeError):
-    """The run could not start (bad model id, no key, no datasets)."""
+    """The run could not start (bad model id, no key, no datasets, refused resume)."""
 
 
 @dataclass
 class RunOptions:
     model: str
-    max_cost: Decimal = Decimal("5.00")
-    epochs: int = 3
+    max_cost: Decimal | None = None  # None: 5.00, or the earlier cap when resuming
+    epochs: int | None = None  # None: 3, or the earlier value when resuming
     limit: int | None = None
     tests: list[str] | None = None
     output: Path | None = None
     root: Path = REPO_ROOT
     log_dir: Path | None = None
     mock_pricing: Pricing | None = None  # fake prices for mockllm, for tests
+    resume: bool = False
+    logs_root: Path = LOGS  # where the log folders of earlier attempts are looked for
 
 
 @dataclass
@@ -73,13 +96,13 @@ class RunResult:
     status: str
     outcomes: list[TestRun] = field(default_factory=list)
 
+    @property
+    def incomplete_reason(self) -> str | None:
+        return self.document.get("incomplete_reason")
+
 
 def is_mock(model: str) -> bool:
     return model.startswith(MOCK_PREFIX)
-
-
-def safe_name(model: str) -> str:
-    return model.replace("/", "__")
 
 
 def default_output(model: str) -> Path:
@@ -109,25 +132,115 @@ def _judges_for_run(
     return [JudgeSpec(c.id, c.family, f"openrouter/{c.id}") for c in choices], choices, EXPLANATION_SCORED
 
 
+@dataclass
+class _Settings:
+    epochs: int
+    limit: int | None
+    tests: list[str] | None
+    max_cost: Decimal
+
+
+def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
+    if previous is None:
+        return _Settings(
+            epochs=DEFAULT_EPOCHS if options.epochs is None else options.epochs,
+            limit=options.limit,
+            tests=options.tests,
+            max_cost=DEFAULT_MAX_COST if options.max_cost is None else options.max_cost,
+        )
+    config = previous.config
+    if previous.document["status"] == STATUS_COMPLETE:
+        raise RunError(f"{previous.results_path} is already complete; there is nothing to resume")
+    saved_tests = list(config["tests"])
+    conflicts = []
+    if options.epochs is not None and options.epochs != config["epochs"]:
+        conflicts.append(f"--epochs {options.epochs} (the run used {config['epochs']})")
+    if options.limit is not None and options.limit != config.get("limit"):
+        conflicts.append(f"--limit {options.limit} (the run used {config.get('limit')})")
+    if options.tests is not None:
+        try:
+            chosen = [d.name for d in select(discover(options.root), options.tests)]
+        except KeyError:
+            chosen = list(options.tests)
+        if chosen != saved_tests:
+            conflicts.append(f"--tests {' '.join(options.tests)} (the run used {' '.join(saved_tests)})")
+    if conflicts:
+        raise RunError("--resume keeps the settings of the first attempt; drop " + ", ".join(conflicts))
+    return _Settings(
+        epochs=int(config["epochs"]),
+        limit=config.get("limit"),
+        tests=saved_tests,
+        max_cost=Decimal(str(config["max_cost_usd"])) if options.max_cost is None else options.max_cost,
+    )
+
+
+def _check_same_judging(
+    previous: PreviousRun, judge_ids: list[str], explanation_status: str, judge_specs: list[JudgeSpec]
+) -> tuple[list[JudgeSpec], str]:
+    """A resumed run keeps the judging of its first attempt, or refuses."""
+    before = previous.document.get("explanation_status")
+    if previous.document.get("judges") != judge_ids:
+        raise RunError(
+            f"the judge pair changed since the first attempt ({previous.document.get('judges')} then, "
+            f"{judge_ids} now); explanation scores would not be comparable. Start a fresh run."
+        )
+    if before == explanation_status:
+        return judge_specs, explanation_status
+    if before == EXPLANATION_JUDGE_UNAVAILABLE:
+        return [], before  # stay unscored, as the samples already done are
+    raise RunError(
+        f"the explanation was {before!r} in the first attempt but would be {explanation_status!r} now "
+        "(a judge is missing from the live model list); resuming would mix the two."
+    )
+
+
+def _merge(plan: TestPlan, log: Any) -> list[Any]:
+    """Every sample-epoch of a test: from this attempt when it ran, else reused."""
+    new = {(str(s.id), int(s.epoch)): s for s in (log.samples or [])} if log is not None else {}
+    merged = []
+    for key in plan.keys():
+        if key in new:
+            merged.append(new[key])
+        elif key in plan.reuse:
+            merged.append(plan.reuse[key])
+    return merged
+
+
 def run_benchmark(
     options: RunOptions,
     *,
     catalog: Catalog | None = None,
     inspect_model: str | Model | None = None,
+    backoff: CreditBackoff | None = None,
 ) -> RunResult:
-    """Run the benchmark. ``catalog`` and ``inspect_model`` are for tests."""
-    if options.epochs < 1:
-        raise RunError("--epochs must be at least 1")
-    if options.max_cost <= 0:
-        raise RunError("--max-cost must be above 0")
+    """Run the benchmark. ``catalog``, ``inspect_model`` and ``backoff`` are for tests."""
     mock = is_mock(options.model)
+    output = options.output or default_output(options.model)
+    previous: PreviousRun | None = None
+    if options.resume:
+        search = ([options.log_dir] if options.log_dir is not None else []) + [options.logs_root]
+        try:
+            previous = load_previous_run(output, options.model, search)
+        except ResumeError as exc:
+            raise RunError(str(exc)) from exc
+    settings = _settings(options, previous)
+    if settings.epochs < 1:
+        raise RunError("--epochs must be at least 1")
+    if settings.max_cost <= 0:
+        raise RunError("--max-cost must be above 0")
 
-    datasets = select(discover(options.root), options.tests)
+    datasets = select(discover(options.root), settings.tests)
     if not datasets:
         raise RunError(
             "No datasets found. Put full sets in data/private/<suite>/<test>.jsonl "
             "or samples in samples/<suite>/<test>.jsonl."
         )
+    dataset_check: str | None = None
+    if previous is not None:
+        try:
+            dataset_check = check_datasets(previous, datasets, settings.limit)
+        except ResumeError as exc:
+            raise RunError(str(exc)) from exc
 
     prices: dict[str, Pricing] = {}
     model_block: dict[str, Any]
@@ -164,6 +277,8 @@ def run_benchmark(
     except Exception as exc:
         raise RunError(str(exc)) from exc
     judge_ids = [choice.id for choice in judge_choices]
+    if previous is not None:
+        judge_specs, explanation_status = _check_same_judging(previous, judge_ids, explanation_status, judge_specs)
     judge_info: dict[str, Any] = {
         "called": bool(judge_specs),
         "families": {choice.id: choice.family for choice in judge_choices},
@@ -191,7 +306,16 @@ def run_benchmark(
         except Exception as exc:
             raise RunError(str(exc)) from exc
 
-    guard = CostGuard(max_cost=options.max_cost, prices=prices)
+    guard = CostGuard(max_cost=settings.max_cost, prices=prices, backoff=backoff or CreditBackoff())
+    carried_total = Decimal(0)
+    if previous is not None:
+        by_test, by_model, carried_total = carried_cost(previous.document)
+        if carried_total >= settings.max_cost:
+            raise RunError(
+                f"the earlier attempts already spent ${carried_total:.2f} of the ${settings.max_cost} cap; "
+                "pass a higher --max-cost"
+            )
+        guard.carry_forward(by_test, by_model, carried_total)
     context = RunContext(guard=guard, candidate_id=options.model, judges=judge_specs)
     set_context(context)
 
@@ -200,38 +324,34 @@ def run_benchmark(
     model_arg = inspect_model if inspect_model is not None else model_block["inspect_id"]
     outcomes: list[TestRun] = []
     not_run: list[dict[str, Any]] = []
+    attempt_counts: dict[str, dict[str, int]] = {}
     try:
         from teanga_bench.tasks import build_task
 
         for dataset in datasets:
             n_items = len(read_items(dataset.path))
-            if options.limit is not None:
-                n_items = min(n_items, options.limit)
-            if guard.stopped:
-                not_run.append(not_run_block(dataset, n_items, options.epochs, "cost_cap_reached"))
+            if settings.limit is not None:
+                n_items = min(n_items, settings.limit)
+            if guard.stopped or guard.credit_exhausted:
+                reason = REASON_CAP if guard.stopped else REASON_CREDIT
+                not_run.append(not_run_block(dataset, n_items, settings.epochs, reason))
+                if previous is not None:
+                    attempt_counts[dataset.name] = {"reused": 0, "rescored": 0, "run": 0}
                 continue
-            logs = inspect_eval(
-                build_task(dataset, options.epochs),
-                model=model_arg,
-                log_dir=str(log_dir),
-                log_format="json",
-                display="none",
-                limit=options.limit,
-                fail_on_error=False,
-                max_connections=MAX_CONNECTIONS,
+            log, samples = _run_test(
+                dataset, previous, context, settings, explanation_status, model_arg, log_dir, attempt_counts, build_task
             )
-            log = logs[0]
             outcome = build_test_outcome(
-                log,
+                samples,
                 dataset,
                 n_items_dataset=n_items,
-                epochs=options.epochs,
+                epochs=settings.epochs,
                 guard=guard,
                 public=public_ids(dataset),
                 judges=judge_ids,
                 explanation_status=explanation_status,
             )
-            if log.status != "success":
+            if log is not None and log.status != "success":
                 detail = getattr(getattr(log, "error", None), "message", "") or str(log.status)
                 outcome.block["status"] = "incomplete"
                 outcome.block["incomplete_reason"] = f"eval_{log.status}: {detail}"
@@ -241,26 +361,52 @@ def run_benchmark(
 
     all_blocks = [o.block for o in outcomes] + not_run
     if guard.stopped:
-        status = STATUS_CAP
+        status, incomplete_reason = STATUS_CAP, REASON_CAP
+    elif guard.credit_exhausted:
+        status, incomplete_reason = STATUS_INCOMPLETE, REASON_CREDIT
     elif all(block["status"] == "complete" for block in all_blocks):
-        status = STATUS_COMPLETE
+        status, incomplete_reason = STATUS_COMPLETE, None
     else:
-        status = STATUS_INCOMPLETE
+        status, incomplete_reason = STATUS_INCOMPLETE, REASON_ERRORS
 
     config = {
-        "epochs": options.epochs,
-        "limit": options.limit,
-        "max_cost_usd": float(options.max_cost),
+        "epochs": settings.epochs,
+        "limit": settings.limit,
+        "max_cost_usd": float(settings.max_cost),
         "max_tokens": {"candidate": CANDIDATE_MAX_TOKENS, "judge": JUDGE_MAX_TOKENS},
         "temperature": "provider default",
         "bootstrap": {"seed": SEED, "resamples": RESAMPLES, "confidence": CONFIDENCE},
         "tests": [dataset.name for dataset in datasets],
         "pricing_source": MODELS_URL,
+        "dataset_hashes": {dataset.name: dataset_hash(dataset.path) for dataset in datasets},
+        "log_dir": display_path(log_dir),
     }
+    resumed = None
+    if previous is not None:
+        before = previous.document.get("resumed")
+        attempts = list(before["attempts"]) if before else [first_attempt(previous)]
+        config["log_dir"] = attempts[0]["log_dir"]
+        totals = {name: sum(c[name] for c in attempt_counts.values()) for name in ("reused", "rescored", "run")}
+        attempts.append(
+            {
+                "started_at": started_at,
+                "generated_at": None,  # set below, equal to the document's generated_at
+                "status": status,
+                "incomplete_reason": incomplete_reason,
+                "cost_usd": float(guard.spent - carried_total),
+                "log_dir": display_path(log_dir),
+                "prices_retrieved_at": catalog.retrieved_at if catalog is not None and not mock else None,
+                "dataset_check": dataset_check,
+                "sample_epochs": totals,
+                "tests": attempt_counts,
+            }
+        )
+        resumed = {"count": len(attempts) - 1, "attempts": attempts}
     document = build_document(
         # A run with --limit covers only part of each test. It is never ranked or published.
-        run_kind="mock" if mock else ("smoke" if options.limit is not None else "live"),
+        run_kind="mock" if mock else ("smoke" if settings.limit is not None else "live"),
         status=status,
+        incomplete_reason=incomplete_reason,
         model=model_block,
         config=config,
         judges=judge_ids,
@@ -269,6 +415,70 @@ def run_benchmark(
         guard=guard,
         outcomes=outcomes,
         blocks_not_run=not_run,
-        started_at=started_at,
+        started_at=previous.document["started_at"] if previous is not None else started_at,
+        resumed=resumed,
     )
-    return RunResult(document=document, output=options.output or default_output(options.model), status=status, outcomes=outcomes)
+    if resumed is not None:
+        resumed["attempts"][-1]["generated_at"] = document["generated_at"]
+    return RunResult(document=document, output=output, status=status, outcomes=outcomes)
+
+
+def _run_test(
+    dataset: DatasetFile,
+    previous: PreviousRun | None,
+    context: RunContext,
+    settings: _Settings,
+    explanation_status: str,
+    model_arg: str | Model,
+    log_dir: Path,
+    attempt_counts: dict[str, dict[str, int]],
+    build_task: Any,
+) -> tuple[Any, list[Any]]:
+    """Run one test, or in a resumed run only its missing sample-epochs.
+
+    Returns the Inspect log of this attempt (None when nothing had to run) and
+    the samples the results are built from."""
+    eval_args: dict[str, Any] = dict(
+        model=model_arg,
+        log_dir=str(log_dir),
+        log_format="json",
+        display="none",
+        fail_on_error=False,
+        # One retry layer per failure kind: Inspect retries transient errors and
+        # 429 inside each call (max_retries in the call config); the cost guard
+        # pauses the whole run on 402 and on a 429 Inspect gave up on. Retrying
+        # whole samples would repeat calls that already succeeded, so it is off.
+        retry_on_error=0,
+        max_connections=MAX_CONNECTIONS,
+    )
+    if previous is None:
+        log = inspect_eval(build_task(dataset, settings.epochs), limit=settings.limit, **eval_args)[0]
+        return log, list(log.samples or [])
+
+    plan = plan_test(
+        previous,
+        dataset,
+        epochs=settings.epochs,
+        limit=settings.limit,
+        explanation_scored=explanation_status == EXPLANATION_SCORED,
+    )
+    attempt_counts[dataset.name] = plan.counts()
+    to_eval = plan.items_to_eval()
+    if not to_eval:
+        return None, _merge(plan, None)
+    pending = set(to_eval)
+    context.replay = {
+        key: Replay(sample=sample, score=score_of(sample))
+        for key, sample in plan.reuse.items()
+        if key[0] in pending
+    }
+    context.replay.update(
+        {key: Replay(sample=sample, score=None) for key, sample in plan.rescore.items() if key[0] in pending}
+    )
+    try:
+        task = build_task(dataset, settings.epochs)
+        # Scoped as task:id, so an id with a colon in it is never read as a task selector.
+        log = inspect_eval(task, sample_id=[f"{task.name}:{item}" for item in to_eval], **eval_args)[0]
+    finally:
+        context.replay = {}
+    return log, _merge(plan, log)

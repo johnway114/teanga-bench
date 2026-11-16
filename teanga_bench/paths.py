@@ -12,3 +12,8 @@ LOGS = REPO_ROOT / "logs"
 
 # Dataset builders in scripts/ still write here until they are replaced.
 SUITES = REPO_ROOT / "suites"
+
+
+def safe_name(model: str) -> str:
+    """A model id as a file or folder name: ``openai/gpt-6-luna`` -> ``openai__gpt-6-luna``."""
+    return model.replace("/", "__")

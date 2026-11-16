@@ -11,7 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import inspect_ai
 
@@ -33,6 +33,10 @@ BREAKDOWN_KEYS = {
 }
 EXPLANATION_LABEL = "judge-marked, not human-validated"
 CAP_MARKER = "CostCapReached"
+CREDIT_MARKER = "CreditExhausted"
+REASON_CAP = "cost_cap_reached"
+REASON_CREDIT = "insufficient_credit"
+REASON_ERRORS = "errors"
 EXPLANATION_SCORED = "scored"
 EXPLANATION_SAME_FAMILY = "not_scored_same_family_as_judge"
 EXPLANATION_JUDGE_UNAVAILABLE = "not_scored_judge_unavailable"
@@ -60,7 +64,7 @@ def _attribute(value: Any) -> str:
     return "unspecified" if value is None else str(value)
 
 
-def _score_of(sample: Any) -> Any:
+def score_of(sample: Any) -> Any:
     scores = sample.scores or {}
     return scores.get("teanga_scorer") or (next(iter(scores.values())) if scores else None)
 
@@ -91,7 +95,7 @@ def not_run_block(dataset: DatasetFile, n_items: int, epochs: int, reason: str) 
 
 
 def build_test_outcome(
-    log: Any,
+    samples: Iterable[Any],
     dataset: DatasetFile,
     *,
     n_items_dataset: int,
@@ -101,26 +105,31 @@ def build_test_outcome(
     judges: list[str],
     explanation_status: str = EXPLANATION_SCORED,
 ) -> TestRun:
-    """Turn one Inspect log into the per-test block."""
+    """Turn the Inspect samples of one test into the per-test block. The samples
+    come from one log, or, in a resumed run, from the logs of every attempt."""
     key = dataset.name
     per_item: dict[str, dict[int, Any]] = defaultdict(dict)
     meta_of: dict[str, dict[str, Any]] = {}
     sample_of: dict[tuple[str, int], Any] = {}
     n_errors = 0
     cap_hit = False
+    credit_out = False
     scoring = ""
     first_error: str | None = None
-    for sample in log.samples or []:
+    for sample in samples:
         item_id = str(sample.id)
         meta_of[item_id] = dict(sample.metadata or {})
         scoring = scoring or str(meta_of[item_id].get("scoring", ""))
-        score = _score_of(sample)
+        score = score_of(sample)
         if getattr(sample, "error", None) is not None or score is None:
             n_errors += 1
             if first_error is None and getattr(sample, "error", None) is not None:
                 first_error = str(getattr(sample.error, "message", ""))[:300]
-            if CAP_MARKER in _error_text(sample):
+            error_text = _error_text(sample)
+            if CAP_MARKER in error_text:
                 cap_hit = True
+            elif CREDIT_MARKER in error_text:
+                credit_out = True
             continue
         per_item[item_id][int(sample.epoch)] = score
         sample_of[(item_id, int(sample.epoch))] = sample
@@ -138,8 +147,8 @@ def build_test_outcome(
             )
         )
 
-    candidate = guard.total(test=dataset.test, role="candidate")
-    judge = guard.total(test=dataset.test, role="judge")
+    candidate = guard.total(test=key, role="candidate")
+    judge = guard.total(test=key, role="judge")
     cost = candidate.cost_usd + judge.cost_usd
     stats = group_stats(items, key, epochs)
     correct_equivalents = (stats["score"] or 0.0) * len(items) * epochs
@@ -148,7 +157,12 @@ def build_test_outcome(
     complete = len(items) == n_items_dataset and n_errors == 0
     reason = None
     if not complete:
-        reason = "cost_cap_reached" if cap_hit else ("errors" if n_errors else "missing_samples")
+        if cap_hit:
+            reason = REASON_CAP
+        elif credit_out:
+            reason = REASON_CREDIT
+        else:
+            reason = REASON_ERRORS if n_errors else "missing_samples"
     block: dict[str, Any] = {
         "suite": dataset.suite,
         "test": dataset.test,
@@ -302,6 +316,7 @@ def build_document(
     *,
     run_kind: str,
     status: str,
+    incomplete_reason: str | None,
     model: dict[str, Any],
     config: dict[str, Any],
     judges: list[str],
@@ -311,6 +326,7 @@ def build_document(
     outcomes: list[TestRun],
     blocks_not_run: list[dict[str, Any]],
     started_at: str,
+    resumed: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     suites: dict[str, dict[str, Any]] = {}
     for block in [o.block for o in outcomes] + blocks_not_run:
@@ -319,7 +335,7 @@ def build_document(
         suite["overall"] = pool_suite(outcomes, suite_name)
     candidate = guard.total(role="candidate")
     judge = guard.total(role="judge")
-    return {
+    document = {
         "schema_version": SCHEMA_VERSION,
         "benchmark": BENCHMARK,
         "benchmark_name": BENCHMARK_NAME,
@@ -328,6 +344,7 @@ def build_document(
         "generated_at": now_iso(),
         "run_kind": run_kind,
         "status": status,
+        "incomplete_reason": incomplete_reason,
         "model": model,
         "config": config,
         "judges": judges,
@@ -353,6 +370,9 @@ def build_document(
         "suites": suites,
         "tool_versions": {"inspect_ai": inspect_ai.__version__},
     }
+    if resumed is not None:
+        document["resumed"] = resumed
+    return document
 
 
 def write_results(document: dict[str, Any], path: Path) -> None:

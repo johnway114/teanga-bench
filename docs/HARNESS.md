@@ -17,20 +17,38 @@ model id. Tests and the mock path make no paid call.
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `--model` | required | OpenRouter id, such as `anthropic/claude-haiku-5.5`. `mockllm/model` runs the offline mock path |
-| `--max-cost` | 5.00 | Hard cap in USD for candidate plus judge spend |
+| `--max-cost` | 5.00, or with `--resume` the earlier cap | Hard cap in USD on the run's total candidate plus judge spend, earlier attempts included |
 | `--epochs` | 3 | Times each item is asked |
 | `--limit` | all | Items per test, for smoke runs |
 | `--tests` | all | Test names, or `suite/test` |
 | `--output` | `results/runs/<id with / as __>.json` | Where the results JSON goes |
 | `--data-root` | repo root | Folder holding `data/private/` and `samples/` |
-| `--log-dir` | `logs/` | Inspect logs |
-| `--publish` | off | After a complete live run, run `publish` for it. Refused up front for mock models and for `--output` outside `results/runs/` |
+| `--log-dir` | `logs/<id with / as __>-<UTC time>/` | Inspect logs. The folder is recorded in the results as `config.log_dir` |
+| `--resume` | off | Finish the incomplete run in `--output`. See [Resuming a run](#resuming-a-run) |
+| `--publish` | off | After a complete live run, run `publish` for it. Refused up front for mock models and for `--output` outside `results/runs/`. Works with `--resume` |
 
 `run` writes the results JSON, a Markdown report next to it (`.md`), and then
-rebuilds the leaderboard. Exit code 0 means every test finished (and, with
-`--publish`, the publish worked). Exit code 3 means the cost cap stopped the run.
-Exit code 1 means some test did not finish, the leaderboard failed, or the
-publish was refused or failed. Exit code 2 means the run could not start.
+rebuilds the leaderboard. Exit codes:
+
+| Code | Meaning |
+| --- | --- |
+| 0 | Every test finished (and, with `--publish`, the publish worked) |
+| 1 | Some test did not finish, the leaderboard failed, or the publish was refused or failed |
+| 2 | The run could not start, or `--resume` was refused |
+| 3 | The cost cap stopped the run |
+| 4 | OpenRouter ran out of credit and the run stopped (`incomplete_reason: "insufficient_credit"`) |
+
+For every run that did not finish, `run` prints the exact command that resumes
+it, such as `teanga-bench run --model openai/gpt-6-luna --resume`. After the
+cost cap it adds a doubled `--max-cost`; raise it as you see fit.
+
+`teanga-bench resume-plan --model <id>` is read-only. It shows what `--resume`
+would do: per test, the sample-epochs it would reuse, rescore and run, and an
+estimated remaining cost. Options: `--results-dir` (folder holding `runs/`,
+default `results/`), `--log-dir` (folder holding the run's log folders, or the
+log folder itself, default `logs/`), `--data-root`. Exit code 0 means the run
+can be resumed, 1 that it cannot (complete, or a dataset changed), 2 that the
+files could not be read.
 
 `teanga-bench leaderboard` reads every `results/runs/*.json` and writes
 `results/leaderboard.json`, `results/leaderboard.md`, and SVG charts in
@@ -132,7 +150,8 @@ and 1024 for judges.
 When the cap is reached, the run writes its results with
 `status: "cost_cap_reached"`. Tests that did not finish are marked
 `incomplete`, with only fully scored items in their statistics. Tests not yet
-started are marked `incomplete` too.
+started are marked `incomplete` too. In a resumed run the cap covers the spend
+of the earlier attempts as well, so `cost.total_usd` never passes it.
 
 Known gaps:
 
@@ -144,6 +163,93 @@ Known gaps:
 - If a provider returns no usage, the call is billed at its worst case.
 
 Inspect's own `cost_limit` is per sample, not per run, so it is not used.
+
+Spend is booked per `suite/test`. Results files without `config.dataset_hashes`
+(written before resume support) booked it per bare test name, so their
+`tonada/tutor_accuracy` cost also counted the spend of `blas/tutor_accuracy`.
+`cost.total_usd` and `cost.by_model` were always right. A resume undoes the
+double count when it carries those per-test costs forward.
+
+## Out of credit and rate limits
+
+A 402 from OpenRouter (not enough credit, including "would exceed your
+available credits given your current in-flight requests") and a 429 (rate
+limit) do not fail the sample. The cost guard holds one backoff for the whole
+run: the first refusal starts a pause, calls refused while it lasts do not
+lengthen it, and every new call waits for it to end, so the run pauses instead
+of hammering the provider. Pauses start at 15 s and double up to 2 minutes; a
+successful call resets the next pause to 15 s. The pauses of one run add up to
+at most 20 minutes. A refusal after that stops the run cleanly: no further
+request is sent, unfinished and unstarted tests are marked `incomplete` with
+`incomplete_reason: "insufficient_credit"`, the run gets `status:
+"incomplete"` and top-level `incomplete_reason: "insufficient_credit"`, and
+`run` prints that you should add credit and finish with `--resume` (exit code 4).
+
+Retries happen in one layer per failure kind, so they do not multiply. Inspect
+retries transient errors (5xx, timeouts) and 429 inside each call, up to
+`max_retries` (3) in the call config; it never retries 402. The guard handles
+402, and a 429 that Inspect gave up on. Inspect's sample-level `retry_on_error`
+is set to 0, because rerunning a whole sample would repeat calls that already
+succeeded. A judge refused for credit is not counted as a judge failure: the
+sample stops with an error, keeps its candidate output, and is judged on resume.
+
+## Resuming a run
+
+```bash
+teanga-bench resume-plan --model anthropic/claude-haiku-5.5   # read-only
+teanga-bench run --model anthropic/claude-haiku-5.5 --resume [--max-cost 10] [--publish]
+```
+
+`--resume` reads the results file (`--output`, or the default path) and the
+Inspect logs of every earlier attempt: the folders recorded in `config.log_dir`
+and `resumed.attempts[].log_dir`, or, for results written before folders were
+recorded, the `logs/<id with / as __>-<UTC time>/` folders whose time falls
+inside the run. Only logs of the same model and tests created during the run
+are read. Each sample-epoch of the current dataset is then:
+
+- reused, when an earlier attempt scored it, and for tutor items the judges
+  gave their verdicts. Nothing is called again. A judge that failed for a
+  reason other than credit (an unusable reply after 3 retries) is final, as in
+  a normal run;
+- rescored, when the candidate output is complete but the scoring is not: a
+  judge was refused for credit, or the scorer stopped. The saved candidate
+  output is reused and the item is judged again;
+- run, otherwise.
+
+Only items with a sample-epoch to rescore or run go to Inspect, selected by
+sample id. Their other epochs are restored from the saved output and score,
+not asked again. The new results are built from the merged samples, so the
+file has the same schema and the same statistics as an uninterrupted run with
+the same outputs, plus a `resumed` block. Inspect's `eval_retry` is not used:
+it rebuilds tasks from Inspect's registry, which these data-driven tasks are
+not in, it would keep a sample whose judge was refused for credit, and it
+knows nothing of the spend already made.
+
+A resume keeps the first attempt's `--epochs`, `--limit`, `--tests` and judge
+pair, and refuses if you pass different ones. It refuses when a dataset file
+changed since the first attempt: results record a sha256 of each dataset file
+in `config.dataset_hashes`. Results written before the hash existed are checked
+by item ids (from the first attempt's logs) and item counts instead, and the
+resume records `dataset_check: "item_ids_and_count"`. Prices are read live
+again. The spend of the earlier attempts is carried forward from the results
+file, so `cost.total_usd` is the true total and `--max-cost` (default: the
+earlier cap) caps that total. A complete run cannot be resumed.
+
+Known gaps: a run killed before it writes its results (Ctrl-C, a crash) leaves
+no results file, so it cannot be resumed. A resumed run is ranked like any
+other complete run, even though its sample-epochs were asked at different
+times. `resume-plan` estimates cost from the tokens of the completed
+sample-epochs of each test; with fewer than 10 in a test it uses the average
+over the whole run, which can be far off for tests with long outputs.
+
+## Running several models
+
+Run models one or two at a time unless the account has credit for all of them
+at once. Parallel runs share one OpenRouter balance, and OpenRouter refuses a
+request that would exceed the credit left after the requests already in flight,
+so many parallel runs are refused for credit together. The 402 pause holds a
+run for at most 20 minutes; after that it stops with `insufficient_credit` and
+must be resumed.
 
 ## Layout
 
@@ -185,7 +291,11 @@ there, so it never reaches the real leaderboard.
 ```
 site/suites.html                       Index of both suites (preview hosts only)
 site/assets/site.css
-site/<suite>/index.html                Leaderboard, per-test charts, grid, score against cost
+site/<suite>/index.html                Leaderboard, headline facts, cards that link onward
+site/<suite>/tests.html                Every test, one tab each
+site/<suite>/languages.html            Blas: scores by language
+site/<suite>/learners.html             Tonada: scores by the learner's first language
+site/<suite>/models.html               Every ranked model as a card, score against cost
 site/<suite>/models/<model-slug>.html  One page per ranked model
 site/<suite>/methodology.html          docs/methodology.md plus a table from data/build-reports/
 site/<suite>/data/leaderboard.json     The suite's slice of the leaderboard

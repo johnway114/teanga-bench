@@ -1,25 +1,29 @@
 """Command line for Teanga Bench.
 
-``run`` benchmarks one model and writes its results. ``leaderboard`` rebuilds
-the leaderboard from all runs. ``validate`` checks the dataset files. ``site``
-builds the static research site, and ``publish`` commits and pushes one
-finished run with the rebuilt leaderboard and site.
+``run`` benchmarks one model and writes its results, or with ``--resume``
+finishes an earlier incomplete run. ``resume-plan`` shows, read-only, what a
+resume would reuse and run. ``leaderboard`` rebuilds the leaderboard from all
+runs. ``validate`` checks the dataset files. ``site`` builds the static research
+site, and ``publish`` commits and pushes one finished run with the rebuilt
+leaderboard and site.
 """
 
 from __future__ import annotations
 
 import argparse
+import shlex
 import sys
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from teanga_bench import BENCHMARK_NAME, __version__
-from teanga_bench.paths import REPO_ROOT, RESULTS, RUNS
+from teanga_bench.paths import LOGS, REPO_ROOT, RESULTS, RUNS, safe_name
 
 EXIT_OK = 0
 EXIT_INCOMPLETE = 1
 EXIT_USAGE = 2
 EXIT_COST_CAP = 3
+EXIT_NO_CREDIT = 4
 
 
 def _money(text: str) -> Decimal:
@@ -38,14 +42,21 @@ def _build_parser() -> argparse.ArgumentParser:
 
     run = sub.add_parser("run", help="Benchmark one OpenRouter model on every test")
     run.add_argument("--model", required=True, help="OpenRouter model id, for example openai/gpt-6-luna")
-    run.add_argument("--max-cost", type=_money, default=Decimal("5.00"), help="Hard cap in USD, candidate plus judges (default 5.00)")
-    run.add_argument("--epochs", type=int, default=3, help="Repeats per item (default 3)")
+    run.add_argument("--max-cost", type=_money, default=None, help="Hard cap in USD on the run's total spend, candidate plus judges (default 5.00; with --resume, the earlier cap)")
+    run.add_argument("--epochs", type=int, default=None, help="Repeats per item (default 3)")
     run.add_argument("--limit", type=int, default=None, help="Items per test, for smoke runs")
     run.add_argument("--tests", nargs="+", default=None, metavar="NAME", help="Test names, or suite/test (default: all)")
     run.add_argument("--output", type=Path, default=None, help="Results JSON path (default results/runs/<model with / as __>.json)")
     run.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
-    run.add_argument("--log-dir", type=Path, default=None, help="Where Inspect writes its logs (default logs/)")
+    run.add_argument("--log-dir", type=Path, default=None, help="Where Inspect writes its logs (default logs/<model>-<UTC time>/)")
+    run.add_argument("--resume", action="store_true", help="Finish the earlier incomplete run in --output: reuse every scored sample-epoch, run the rest")
     run.add_argument("--publish", action="store_true", help="After a complete live run, commit and push the results and site")
+
+    plan = sub.add_parser("resume-plan", help="Show what run --resume would reuse and run, and its estimated cost (read-only)")
+    plan.add_argument("--model", required=True, help="OpenRouter model id of the incomplete run")
+    plan.add_argument("--results-dir", type=Path, default=RESULTS, help="Folder holding runs/ (default results/)")
+    plan.add_argument("--log-dir", type=Path, default=LOGS, help="Folder holding the run's log folders, or the run's log folder itself (default logs/)")
+    plan.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
 
     board = sub.add_parser("leaderboard", help="Rebuild the leaderboard from results/runs/*.json")
     board.add_argument("--runs-dir", type=Path, default=RUNS)
@@ -76,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
         return _site(args)
     if args.command == "publish":
         return _publish(args)
+    if args.command == "resume-plan":
+        return _resume_plan(args)
     return _run(args)
 
 
@@ -124,8 +137,6 @@ def _publish_file(run_file: Path) -> int:
 
 
 def _publish(args: argparse.Namespace) -> int:
-    from teanga_bench.runner import safe_name
-
     run_file = args.results if args.results is not None else RUNS / f"{safe_name(args.model)}.json"
     if not run_file.exists():
         print(f"error: no results file at {run_file}", file=sys.stderr)
@@ -133,8 +144,43 @@ def _publish(args: argparse.Namespace) -> int:
     return _publish_file(run_file)
 
 
+def _resume_command(args: argparse.Namespace, document: dict) -> str:
+    """The exact command that resumes this run."""
+    parts = ["teanga-bench", "run", "--model", args.model, "--resume"]
+    if args.output is not None:
+        parts += ["--output", str(args.output)]
+    if args.data_root != REPO_ROOT:
+        parts += ["--data-root", str(args.data_root)]
+    if document["status"] == "cost_cap_reached":
+        parts += ["--max-cost", f"{Decimal(str(document['cost']['cap_usd'])) * 2:.2f}"]
+    if args.publish:
+        parts.append("--publish")
+    return shlex.join(parts)
+
+
+def _resume_plan(args: argparse.Namespace) -> int:
+    from teanga_bench.datasets import discover, select
+    from teanga_bench.pricing import fetch_catalog
+    from teanga_bench.resume import ResumeError, load_previous_run, resume_plan_report
+    from teanga_bench.runner import is_mock
+
+    name = f"{safe_name(args.model)}.json"
+    candidates = [args.results_dir / "runs" / name, args.results_dir / "mock" / name, args.results_dir / name]
+    results = next((path for path in candidates if path.is_file()), candidates[0])
+    try:
+        previous = load_previous_run(results, args.model, [args.log_dir])
+        datasets = select(discover(args.data_root), list(previous.config["tests"]))
+        catalog = None if is_mock(args.model) else fetch_catalog()
+    except (ResumeError, KeyError, RuntimeError) as exc:
+        print(f"error: {exc.args[0] if exc.args else exc}", file=sys.stderr)
+        return EXIT_USAGE
+    lines, resumable = resume_plan_report(previous, datasets, catalog)
+    print("\n".join(lines))
+    return EXIT_OK if resumable else EXIT_INCOMPLETE
+
+
 def _run(args: argparse.Namespace) -> int:
-    from teanga_bench.export import write_results
+    from teanga_bench.export import REASON_CREDIT, write_results
     from teanga_bench.leaderboard import write_leaderboard
     from teanga_bench.report import build_report
     from teanga_bench.runner import (
@@ -163,6 +209,7 @@ def _run(args: argparse.Namespace) -> int:
         output=args.output,
         root=args.data_root,
         log_dir=args.log_dir,
+        resume=args.resume,
     )
     try:
         result = run_benchmark(options)
@@ -186,21 +233,45 @@ def _run(args: argparse.Namespace) -> int:
 
     cost = result.document["cost"]
     print(f"Status: {result.status}. Spent ${cost['total_usd']:.4f} of ${cost['cap_usd']:.2f}.")
+    resumed = result.document.get("resumed")
+    if resumed:
+        counts = resumed["attempts"][-1]["sample_epochs"]
+        print(
+            f"Resume {resumed['count']}: reused {counts['reused']} sample-epochs, rescored "
+            f"{counts['rescored']}, ran {counts['run']}."
+        )
     if result.status == STATUS_COMPLETE:
         if args.publish:
             return _publish_file(result.output)
         return EXIT_OK
     if args.publish:
         print("Not published: only complete runs are published.", file=sys.stderr)
+    command = _resume_command(args, result.document)
     if result.status == STATUS_CAP:
         print("The cost cap stopped the run. Results are partial.", file=sys.stderr)
+        print(f"Raise --max-cost and finish the run with:\n  {command}", file=sys.stderr)
         return EXIT_COST_CAP
+    if result.incomplete_reason == REASON_CREDIT:
+        print(
+            "OpenRouter kept refusing calls for lack of credit (HTTP 402) or rate (HTTP 429), so the run "
+            "stopped. Add credit, then finish the run with:",
+            file=sys.stderr,
+        )
+        print(f"  {command}", file=sys.stderr)
+        return EXIT_NO_CREDIT
     print("Some tests did not finish. See incomplete_reason in the results.", file=sys.stderr)
-    for suite in result.document["suites"].values():
-        for test in suite["tests"].values():
-            if test.get("first_error"):
-                print(f"First error: {test['first_error']}", file=sys.stderr)
-                return EXIT_INCOMPLETE
+    first_error = next(
+        (
+            test["first_error"]
+            for suite in result.document["suites"].values()
+            for test in suite["tests"].values()
+            if test.get("first_error")
+        ),
+        None,
+    )
+    if first_error:
+        print(f"First error: {first_error}", file=sys.stderr)
+    print(f"Fix the cause, then finish the run with:\n  {command}", file=sys.stderr)
     return EXIT_INCOMPLETE
 
 

@@ -22,7 +22,8 @@ when `status` is not `"complete"`.
 | `benchmark`, `benchmark_name`, `benchmark_version` | string | Name and the package version that wrote the file |
 | `started_at`, `generated_at` | string | UTC ISO-8601 |
 | `run_kind` | string | `"live"`, `"mock"`, or `"smoke"` (a run with `--limit`, never ranked or published) |
-| `status` | string | `"complete"`, `"cost_cap_reached"`, or `"incomplete"` (some test hit errors) |
+| `status` | string | `"complete"`, `"cost_cap_reached"`, or `"incomplete"` (some test did not finish) |
+| `incomplete_reason` | string or null | Null when complete. Else `"cost_cap_reached"`, `"insufficient_credit"` (OpenRouter kept refusing calls with 402 or 429 through the run's 20-minute backoff budget), or `"errors"`. Absent in files written before it existed |
 | `model` | object | The candidate. See below |
 | `config` | object | Run settings. See below |
 | `judges` | array of 2 strings | The fixed judge pair, always recorded, even when no judge was called |
@@ -33,6 +34,7 @@ when `status` is not `"complete"`.
 | `overall` | object or null | Score over completed tests. See below. Null when no test completed |
 | `suites` | object | Map of suite name to `{overall, tests}` |
 | `tool_versions.inspect_ai` | string | Inspect version |
+| `resumed` | object | Only in a run finished with `--resume`. See below |
 
 ### `model`
 
@@ -50,7 +52,11 @@ price, so the cap errs towards stopping early.
 
 `epochs`, `limit`, `max_cost_usd`, `max_tokens` (`candidate`, `judge`),
 `temperature` (`"provider default"`), `bootstrap` (`seed`, `resamples`,
-`confidence`), `tests` (names run), `pricing_source`.
+`confidence`), `tests` (names run), `pricing_source`, `dataset_hashes` (map of
+`suite/test` to `"sha256:<hex>"` of the dataset file, so a resume can refuse a
+changed dataset), and `log_dir` (the first attempt's Inspect log folder,
+relative to the repo when inside it). Files written before resume support have
+neither `dataset_hashes` nor `log_dir`.
 
 ### `judge_info`
 
@@ -67,7 +73,7 @@ price, so the cap errs towards stopping early.
 | Field | Meaning |
 | --- | --- |
 | `cap_usd` | The `--max-cost` value |
-| `total_usd` | Candidate plus judge spend, from live prices times reported tokens |
+| `total_usd` | Candidate plus judge spend, from live prices times reported tokens. In a resumed run, the total over every attempt |
 | `candidate_usd`, `judge_usd` | The two parts |
 | `cap_reached` | True when the cap stopped the run |
 | `by_model` | Per model id: `calls`, token counts (`input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`), `cost_usd` |
@@ -77,6 +83,25 @@ price, so the cap errs towards stopping early.
 `score` (0 to 1), `ci95` (`[low, high]`), `n_tests`, `n_items`, and `by_language`:
 a map from language to the same four fields. Each completed test is weighted
 equally. The interval resamples items inside each test. Incomplete tests are left out.
+
+### `resumed`
+
+Present only when the run was finished with `teanga-bench run --resume`. The
+rest of the file has the same fields and meaning as for a run that was never
+interrupted. `started_at` is the first attempt's start.
+
+| Field | Meaning |
+| --- | --- |
+| `count` | Number of resumes |
+| `attempts` | One object per attempt, the first attempt first |
+| `attempts[].started_at`, `generated_at` | When the attempt started and wrote its results |
+| `attempts[].status`, `incomplete_reason` | The run's status after that attempt |
+| `attempts[].cost_usd` | Spend in that attempt |
+| `attempts[].log_dir` | That attempt's Inspect log folder |
+| `attempts[].prices_retrieved_at` | When that attempt read live prices (null for mock runs) |
+| `attempts[].dataset_check` | Resumes only: `"dataset_hash"`, or `"item_ids_and_count"` when the first attempt predates `dataset_hashes` |
+| `attempts[].sample_epochs` | Resumes only: `reused` (scored earlier, not called again), `rescored` (candidate output reused, judges or scorer run again), `run` (asked again) |
+| `attempts[].tests` | Resumes only: the same three counts per `suite/test` |
 
 ## Statistics
 
@@ -93,7 +118,7 @@ every epoch (compared at 4 decimals). It is null when `epochs` is 1.
 | `suite`, `test`, `scoring` | Names, and the scorer kind: `accept_list`, `tutor`, `translation`, or `round_trip` |
 | `dataset` | `"full"` or `"public_sample"` |
 | `status` | `"complete"` or `"incomplete"` |
-| `incomplete_reason` | Null, `"cost_cap_reached"`, `"errors"`, `"missing_samples"`, or `"eval_<status>: ..."` |
+| `incomplete_reason` | Null, `"cost_cap_reached"`, `"insufficient_credit"`, `"errors"`, `"missing_samples"`, or `"eval_<status>: ..."` |
 | `n_items_dataset` | Items asked for (after `--limit`) |
 | `n_items` | Items with a score in every epoch. Only these are in the statistics |
 | `n_errors` | Item-epochs that errored |

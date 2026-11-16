@@ -21,8 +21,8 @@ from inspect_ai.model import (
 from inspect_ai.scorer import Score, Target, mean, scorer
 from inspect_ai.solver import Generate, TaskState, solver
 
-from teanga_bench.context import JudgeSpec, RunContext, current
-from teanga_bench.cost import CostCapReached
+from teanga_bench.context import CANDIDATE_DONE_KEY, JudgeSpec, RunContext, current
+from teanga_bench.cost import CostCapReached, CreditExhausted
 from teanga_bench.scoring import (
     JUDGE_SYSTEM,
     chrf_score,
@@ -53,14 +53,34 @@ def _config(max_tokens: int, **extra: Any) -> GenerateConfig:
     )
 
 
+def spend_key(metadata: dict[str, Any]) -> str:
+    """The ``suite/test`` name that spend is booked under."""
+    return f"{metadata.get('suite', '')}/{metadata.get('test', '')}"
+
+
+def _replay(state: TaskState) -> Any:
+    return current().replay.get((str(state.sample_id), int(state.epoch)))
+
+
 @solver
 def teanga_solver():
-    """Ask the candidate. Round-trip items take two calls in two conversations."""
+    """Ask the candidate. Round-trip items take two calls in two conversations.
+
+    In a resumed run, a sample-epoch whose candidate output was saved by an
+    earlier attempt is restored from it and the model is not called."""
 
     async def solve(state: TaskState, generate: Generate) -> TaskState:
         context = current()
+        saved = _replay(state)
+        if saved is not None:
+            state.messages = list(saved.sample.messages)
+            state.output = saved.sample.output
+            for key, value in (saved.sample.store or {}).items():
+                state.store.set(key, value)
+            state.store.set(CANDIDATE_DONE_KEY, True)
+            return state
         metadata = state.metadata
-        test = str(metadata.get("test", ""))
+        test = spend_key(metadata)
         model = get_model()
         config = _config(context.max_tokens)
 
@@ -89,11 +109,13 @@ def teanga_solver():
                 second = await ask([ChatMessageUser(content=round_trip_prompt(pivot_lang, source_lang, pivot))])
                 state.store.set(BACK_KEY, extract_translation(second.completion))
                 state.output = second
+            state.store.set(CANDIDATE_DONE_KEY, True)
             return state
 
         output = await ask(list(state.messages))
         state.messages.append(output.message)
         state.output = output
+        state.store.set(CANDIDATE_DONE_KEY, True)
         return state
 
     return solve
@@ -121,7 +143,7 @@ async def _judge_once(context: RunContext, spec: JudgeSpec, test: str, prompt: s
                 messages=JUDGE_SYSTEM + "\n\n" + prompt,
                 config=config,
             )
-        except CostCapReached:
+        except (CostCapReached, CreditExhausted):
             raise
         except Exception as exc:
             last_error = f"{type(exc).__name__}: {exc}"
@@ -159,6 +181,9 @@ def teanga_scorer():
     """Score one item by its ``metadata.scoring`` kind."""
 
     async def score(state: TaskState, target: Target) -> Score:
+        saved = _replay(state)
+        if saved is not None and saved.score is not None:
+            return saved.score
         metadata = dict(state.metadata or {})
         kind = metadata.get("scoring")
         completion = state.output.completion if state.output else ""
@@ -206,7 +231,7 @@ async def _score_tutor(state: TaskState, metadata: dict[str, Any], completion: s
     failures = 0
     verdicts: list[dict[str, Any]] = []
     if context.judges and rules.parsed and rules.explanation:
-        outcome = await judge_explanation(context, str(metadata.get("test", "")), metadata, rules)
+        outcome = await judge_explanation(context, spend_key(metadata), metadata, rules)
         explanation, agree, failures, verdicts = (
             outcome.explanation,
             outcome.agree,
