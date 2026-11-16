@@ -1,37 +1,37 @@
 # Teanga Bench report: qwen/qwen3.8-flash
 
-qwen/qwen3.8-flash ran 7 of 7 tests with 3 epochs per item, and the run status is complete. The overall score is 55.2% (95% interval 53.7% to 56.7%), with each completed test weighted equally. The best test was tonada/exercises at 98.2% and the weakest was blas/tutor_accuracy at 25.6%. On the tutor test the rule-only headline is 25.6%, and the explanation was not scored (not_scored_same_family_as_judge). The run cost $3.20 against a cap of $6.00, of which $0.0000 was judge spend.
+qwen/qwen3.8-flash ran 7 of 7 tests with 3 epochs per item, and the run status is complete. The overall score is 68.5% (95% interval 67.1% to 69.9%), with each completed test weighted equally. The best test was tonada/exercises at 98.7% and the weakest was blas/morphology at 50.6%. On the tutor test the rule-only headline is 58.0%, and the explanation was not scored (not_scored_same_family_as_judge). The run cost $10.98 against a cap of $12.00, of which $0.0000 was judge spend.
 
-Run kind: live. Status: complete. Generated 2026-11-16T06:51:49+00:00.
+Run kind: live. Status: complete. Generated 2026-11-16T21:37:57+00:00.
 
 ## Suite: blas
 
 | Test | Score | 95% interval | Items | Cost (USD) |
 | --- | --- | --- | --- | --- |
-| lesson_exercises | 83.8% | 80.3% to 87.1% | 360 | $0.2873 |
-| morphology | 27.4% | 23.6% to 31.3% | 360 | $0.8383 |
-| round_trip | 36.6% | 32.6% to 40.7% | 240 | $0.6863 |
-| translation | 44.8% | 41.3% to 48.4% | 360 | $0.6099 |
-| tutor_accuracy | 25.6% | 20.6% to 30.7% | 180 | $0.4224 |
+| lesson_exercises | 90.6% | 87.9% to 93.1% | 360 | $0.7380 |
+| morphology | 50.6% | 46.2% to 55.1% | 360 | $4.13 |
+| round_trip | 52.2% | 48.8% to 55.4% | 240 | $1.94 |
+| translation | 56.9% | 54.2% to 59.9% | 360 | $1.63 |
+| tutor_accuracy | 58.0% | 51.9% to 63.7% | 180 | $2.01 |
 
 ## Suite: tonada
 
 | Test | Score | 95% interval | Items | Cost (USD) |
 | --- | --- | --- | --- | --- |
-| exercises | 98.2% | 96.8% to 99.2% | 400 | $0.1140 |
-| tutor_accuracy | 69.8% | 65.5% to 73.9% | 360 | $0.2426 |
+| exercises | 98.7% | 97.6% to 99.5% | 400 | $0.1311 |
+| tutor_accuracy | 72.9% | 68.6% to 76.9% | 360 | $0.3929 |
 
 ## By language
 
 | Language | Score | 95% interval | Items |
 | --- | --- | --- | --- |
-| breton | 45.7% | 41.6% to 49.7% | 220 |
-| cornish | 35.0% | 31.6% to 38.6% | 220 |
-| english | 84.0% | 81.9% to 86.1% | 760 |
-| irish | 54.0% | 49.7% to 58.1% | 280 |
-| manx | 28.8% | 25.6% to 32.2% | 220 |
-| scots-gaelic | 54.3% | 50.5% to 58.3% | 280 |
-| welsh | 50.6% | 47.0% to 54.2% | 280 |
+| breton | 61.5% | 57.7% to 65.2% | 220 |
+| cornish | 49.6% | 45.8% to 53.4% | 220 |
+| english | 85.8% | 83.7% to 87.8% | 760 |
+| irish | 69.1% | 65.4% to 72.6% | 280 |
+| manx | 45.0% | 41.4% to 48.5% | 220 |
+| scots-gaelic | 71.2% | 67.5% to 74.5% | 280 |
+| welsh | 69.9% | 66.4% to 73.4% | 280 |
 
 ## Failure examples
 
@@ -46,58 +46,55 @@ Examples come only from items published in `samples/`.
 - `blx-welsh-cy_ch31_lost_property_recall_v3-s1d4` score 0.00
   - Prompt: This is a fill-in-the-blank exercise from the Welsh course of a language-learning app. Supply the missing Welsh word(s) for the blank (____); the English in the exercise tells you what is meant. Exercise: Fill in the question word: "___ o'…
   - Expected: Faint
-  - Model output: 
-- `blx-scots-gaelic-gd_b1_c05_u04_lesson_v1-sc2` score 0.00
-  - Prompt: This is an exercise from the Scottish Gaelic course of a language-learning app on how a word changes in a phrase (mutation or other change to its beginning or form). The word in its basic form is “ceannach”. Fill the blank with the form th…
-  - Expected: cheannach
-  - Model output: 
+  - Model output: ANSWER: Beth
 
 ### blas/morphology
 
 - `blas-morph:breton:verb_present:br-verb-kregiñ:2p` score 0.00
   - Prompt: Language: Breton Task: Give the present form of the verb for the person given. Write one word: the inflected verb form, with no pronoun, particle or auxiliary. Verb: kregiñ Meaning: to start Tense: present Person: 2nd person plural (severa…
   - Expected: krogit
-  - Model output: 
-- `blas-morph:cornish:noun_plural:kw-decl-breselores` score 0.00
-  - Prompt: Language: Cornish Task: Give the plural (nominative plural) of the noun below. Noun: breselores Meaning: militant Gender: feminine Reply with the answer on one line, in this exact form: ANSWER: <answer>
-  - Expected: breseloresow
-  - Model output: 
+  - Model output: ANSWER: kregit
 - `blas-morph:cornish:number_cardinal:kw-num-17` score 0.00
   - Prompt: Language: Cornish Task: Give the cardinal numeral for the number below: the standalone numeral, the form used to name the number (SWF Main). Number: 17 (seventeen) Reply with the answer on one line, in this exact form: ANSWER: <answer>
   - Expected: seytek
   - Model output: 
+- `blas-morph:cornish:verb_imperative:kw-verb-bos:2p` score 0.00
+  - Prompt: Language: Cornish Task: Give the imperative form of the verb for the person given. Write one word: the inflected verb form, with no pronoun, particle or auxiliary. Verb: bos Meaning: to be Tense: imperative Person: 2nd person plural (sever…
+  - Expected: bedhewgh
+  - Model output: 
 
 ### blas/round_trip
 
-- `blas-round_trip-breton-br-sent-0288` score 0.00
-  - Prompt: Translate this Breton sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Breton: Hennezh n'eo ket ma c'hazh. Ma hini a zo gwenn e dreid.
-  - Expected: Hennezh n'eo ket ma c'hazh. Ma hini a zo gwenn e dreid.
+- `blas-round_trip-manx-gv-sent-parallel-4693` score 0.00
+  - Prompt: Translate this Manx sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Manx: Va mee sheiltyn dy darragh eh.
+  - Expected: Va mee sheiltyn dy darragh eh.
   - Model output: 
-  - Pivot text: This is not my cat. Mine has white paws.
-- `blas-round_trip-cornish-kw-sent-tat-0552` score 0.00
+  - Pivot text: I thought it happened.
+- `blas-round_trip-cornish-kw-sent-tat-0552` score 0.14
   - Prompt: Translate this Cornish sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Cornish: Mar pe dy’Sul hedhyw, ni a wrussa mos dhe byskessa.
   - Expected: Mar pe dy’Sul hedhyw, ni a wrussa mos dhe byskessa.
-  - Model output: 
+  - Model output: Os o Dehow hedhyu, gwynsen ni myghi.
   - Pivot text: If today were Sunday, we would go fishing.
-- `blas-round_trip-cornish-kw-sent-tat-2363` score 0.00
-  - Prompt: Translate this Cornish sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Cornish: My re bia owth oberi ena rag tri mis.
-  - Expected: My re bia owth oberi ena rag tri mis.
-  - Model output: 
+- `blas-round_trip-cornish-kw-sent-tat-1830` score 0.20
+  - Prompt: Translate this Cornish sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Cornish: Kas yw genev an traow na.
+  - Expected: Kas yw genev an traow na.
+  - Model output: My a gas an re na.
+  - Pivot text: I hate those things.
 
 ### blas/translation
 
-- `blas-translation-cornish-kw-sent-tat-1356-from_english` score 0.00
+- `blas-translation-cornish-kw-sent-tat-1356-from_english` score 0.06
   - Prompt: Translate this English sentence into Cornish. Reply with the Cornish translation only, on one line, with no notes or explanation. English: Do you like dogs?
   - Expected: Yw da genes keun?
-  - Model output: 
-- `blas-translation-cornish-kw-sent-tat-2332-from_english` score 0.00
-  - Prompt: Translate this English sentence into Cornish. Reply with the Cornish translation only, on one line, with no notes or explanation. English: I was trying to remember the name of the book.
-  - Expected: Yth esen vy owth assaya perthi kov hanow an lyver.
-  - Model output: 
-- `blas-translation-manx-gv-sent-parallel-14165-from_english` score 0.00
-  - Prompt: Translate this English sentence into Manx. Reply with the Manx translation only, on one line, with no notes or explanation. English: The house has stood a hundred and six years.
-  - Expected: Ta'n thie er hassoo keead blein as shey.
-  - Model output: 
+  - Model output: A gar'ta ky?
+- `blas-translation-manx-gv-sent-parallel-15295-from_english` score 0.10
+  - Prompt: Translate this English sentence into Manx. Reply with the Manx translation only, on one line, with no notes or explanation. English: I shall come back at ten o'clock at the latest.
+  - Expected: Higym er-ash dyn s'anmee na jeih er y chlag.
+  - Model output: Glooym ec feed ayns oyr.
+- `blas-translation-manx-gv-sent-parallel-15649-from_english` score 0.16
+  - Prompt: Translate this English sentence into Manx. Reply with the Manx translation only, on one line, with no notes or explanation. English: Have you made my bed?
+  - Expected: Vel shiu er chiartaghey my lhiabbee?
+  - Model output: Vel oo er my gyrvel y ymyd?
 
 ### blas/tutor_accuracy
 
@@ -105,14 +102,14 @@ Examples come only from items published in `samples/`.
   - Prompt: You are a Irish language tutor checking a sentence written by a learner. Language: Irish The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
   - Expected: Tá sé tábhachtach nach sárófaí a gcearta daonna.
   - Model output: response was not a JSON object
-- `blas-tutor-irish-exd-51c5e10877` score 0.00
-  - Prompt: You are a Irish language tutor checking a sentence written by a learner. Language: Irish The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
-  - Expected: D'fhan muid i mbrú.
-  - Model output: response was not a JSON object
 - `blas-tutor-scots-gaelic-clean-ex-943a0622b9` score 0.00
   - Prompt: You are a Scottish Gaelic language tutor checking a sentence written by a learner. Language: Scottish Gaelic The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact e…
   - Expected: Nach robh iad aig a' mhuir tron oidhche?
   - Model output: response was not a JSON object
+- `blas-tutor-scots-gaelic-exd-6e0581d3d2` score 0.00
+  - Prompt: You are a Scottish Gaelic language tutor checking a sentence written by a learner. Language: Scottish Gaelic The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact e…
+  - Expected: Cha tèid agam air deagh Fhraingis a sgrìobhadh.
+  - Model output: { "has_error": true, "error_span": "deagh Fraingis", "correction": "deagh Fhraingis", "corrected_sentence": "Cha tèid agam air deagh Fhraingis a sgrìobhadh.", "explanation": "Scottish Gaelic lenites Fraingis after the adjective deagh, so i…
 
 ### tonada/exercises
 
@@ -142,12 +139,12 @@ Examples come only from items published in `samples/`.
 
 ## Tutor detail: blas/tutor_accuracy
 
-Headline (rule-only: found AND fixed AND no over-correction): 25.6%. Found 25.9%, fixed 25.6%, no over-correction 29.4%.
+Headline (rule-only: found AND fixed AND no over-correction): 58.0%. Found 58.9%, fixed 58.1%, no over-correction 64.3%.
 
 Explanation, judge-marked, not human-validated: not scored (not_scored_same_family_as_judge).
 
 ## Tutor detail: tonada/tutor_accuracy
 
-Headline (rule-only: found AND fixed AND no over-correction): 69.8%. Found 71.9%, fixed 69.8%, no over-correction 85.0%.
+Headline (rule-only: found AND fixed AND no over-correction): 72.9%. Found 75.3%, fixed 72.9%, no over-correction 88.6%.
 
 Explanation, judge-marked, not human-validated: not scored (not_scored_same_family_as_judge).

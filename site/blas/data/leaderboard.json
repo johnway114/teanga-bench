@@ -1,10 +1,10 @@
 {
-  "schema_version": "2.1.0",
+  "schema_version": "2.2.0",
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
   "suite": "blas",
-  "generated_at": "2026-11-16T13:54:33+00:00",
+  "generated_at": "2026-11-16T23:16:59+00:00",
   "note": "Only live runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval; the suite score weights every test equally. cost_usd is the spend on this suite's tests. by_language gives the mean of per-test scores.",
   "models": [
     {
@@ -114,6 +114,110 @@
     {
       "rank": 2,
       "ranked": true,
+      "model": "google/gemini-4-hydrogen",
+      "family": "google",
+      "page": "models/google-gemini-4-hydrogen.html",
+      "run_file": "google__gemini-4-hydrogen.json",
+      "run_kind": "live",
+      "status": "complete",
+      "generated_at": "2026-11-16T23:16:59+00:00",
+      "data": "full",
+      "epochs": 3,
+      "overall": {
+        "score": 0.8439510106398233,
+        "ci95": [
+          0.8309818253456386,
+          0.8564588442272995
+        ],
+        "n_tests": 5,
+        "n_items": 1500
+      },
+      "cost_usd": 43.890379039,
+      "cost_per_correct_usd": 0.011493540925097906,
+      "by_language": {
+        "breton": 0.8092962609026477,
+        "cornish": 0.8314138543992019,
+        "irish": 0.8726229829246457,
+        "manx": 0.7432323365137458,
+        "scots-gaelic": 0.8607162412377111,
+        "welsh": 0.894323989335217
+      },
+      "tests": {
+        "lesson_exercises": {
+          "score": 0.9731481481481482,
+          "ci95": [
+            0.9555555555555556,
+            0.9879629629629628
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9916666666666667,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 3.416667,
+          "cost_per_correct_usd": 0.003250872502378687
+        },
+        "morphology": {
+          "score": 0.9111111111111111,
+          "ci95": [
+            0.8833333333333333,
+            0.9361111111111111
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9222222222222223,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 11.1436695,
+          "cost_per_correct_usd": 0.01132486737804878
+        },
+        "round_trip": {
+          "score": 0.7295443129475762,
+          "ci95": [
+            0.7038300104465091,
+            0.7561114528492663
+          ],
+          "n_items": 240,
+          "epochs": 3,
+          "consistency": 0.45,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 13.7212215,
+          "cost_per_correct_usd": 0.026122130959168693
+        },
+        "translation": {
+          "score": 0.724469999510799,
+          "ci95": [
+            0.699243943123482,
+            0.7497570945469783
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.575,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 10.6608495,
+          "cost_per_correct_usd": 0.013625349498405702
+        },
+        "tutor_accuracy": {
+          "score": 0.8814814814814815,
+          "ci95": [
+            0.8351851851851853,
+            0.9222222222222223
+          ],
+          "n_items": 180,
+          "epochs": 3,
+          "consistency": 0.9444444444444444,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 4.947971539,
+          "cost_per_correct_usd": 0.01039489819117647
+        }
+      }
+    },
+    {
+      "rank": 3,
+      "ranked": true,
       "model": "openai/gpt-6-astra",
       "family": "openai",
       "page": "models/openai-gpt-6-astra.html",
@@ -216,7 +320,7 @@
       }
     },
     {
-      "rank": 3,
+      "rank": 4,
       "ranked": true,
       "model": "google/gemini-4-argon",
       "family": "google",
@@ -320,7 +424,7 @@
       }
     },
     {
-      "rank": 4,
+      "rank": 5,
       "ranked": true,
       "model": "deepseek/deepseek-v4.1-flash-1017",
       "family": "deepseek",
@@ -424,111 +528,111 @@
       }
     },
     {
-      "rank": 5,
+      "rank": 6,
       "ranked": true,
-      "model": "google/gemini-4-hydrogen",
-      "family": "google",
-      "page": "models/google-gemini-4-hydrogen.html",
-      "run_file": "google__gemini-4-hydrogen.json",
+      "model": "moonshotai/kimi-k3.1-pro",
+      "family": "moonshot",
+      "page": "models/moonshotai-kimi-k3-1-pro.html",
+      "run_file": "moonshotai__kimi-k3.1-pro.json",
       "run_kind": "live",
       "status": "complete",
-      "generated_at": "2026-11-16T04:04:46+00:00",
+      "generated_at": "2026-11-16T22:49:16+00:00",
       "data": "full",
       "epochs": 3,
       "overall": {
-        "score": 0.7848500881126823,
+        "score": 0.7839672911911457,
         "ci95": [
-          0.7695179947076481,
-          0.7998988481922156
+          0.768676578092412,
+          0.7985258160033492
         ],
         "n_tests": 5,
         "n_items": 1500
       },
-      "cost_usd": 31.789462857,
-      "cost_per_correct_usd": 0.008935620799846406,
+      "cost_usd": 36.1956645539,
+      "cost_per_correct_usd": 0.01013828094296132,
       "by_language": {
-        "breton": 0.7554646830296622,
-        "cornish": 0.6968005784904481,
-        "irish": 0.8457362882195254,
-        "manx": 0.6175694160196877,
-        "scots-gaelic": 0.8318873421186177,
-        "welsh": 0.8667202674172237
+        "breton": 0.711994796697079,
+        "cornish": 0.7533456704020536,
+        "irish": 0.8353229835525038,
+        "manx": 0.6860086337935212,
+        "scots-gaelic": 0.8213620708388325,
+        "welsh": 0.85048385648586
       },
       "tests": {
         "lesson_exercises": {
-          "score": 0.962037037037037,
+          "score": 0.9583333333333334,
           "ci95": [
-            0.9416666666666667,
-            0.9787037037037036
+            0.9388888888888889,
+            0.9759259259259261
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.9777777777777777,
+          "consistency": 0.9694444444444444,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 2.949348,
-          "cost_per_correct_usd": 0.002838641000962464
+          "cost_usd": 2.3062124264,
+          "cost_per_correct_usd": 0.0022282245665700483
         },
         "morphology": {
-          "score": 0.8398148148148149,
+          "score": 0.8212962962962962,
           "ci95": [
-            0.8037037037037038,
-            0.8731481481481481
+            0.7842592592592592,
+            0.8564814814814814
           ],
           "n_items": 360,
           "epochs": 3,
           "consistency": 0.875,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 7.076196,
-          "cost_per_correct_usd": 0.007801759647188533
+          "cost_usd": 8.9311422701,
+          "cost_per_correct_usd": 0.010068931533370915
         },
         "round_trip": {
-          "score": 0.6182763193159599,
+          "score": 0.653405399283122,
           "ci95": [
-            0.5786987396180034,
-            0.6563812027047276
+            0.6253243370714786,
+            0.6801934346920577
           ],
           "n_items": 240,
           "epochs": 3,
-          "consistency": 0.475,
+          "consistency": 0.225,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 9.8406075,
-          "cost_per_correct_usd": 0.022105828720381755
+          "cost_usd": 9.1507005979,
+          "cost_per_correct_usd": 0.019450874449332873
         },
         "translation": {
-          "score": 0.6559741212474519,
+          "score": 0.6942088344503846,
           "ci95": [
-            0.6235151200352985,
-            0.6885357672581152
+            0.6686268971166675,
+            0.7200759615852702
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.575,
+          "consistency": 0.4222222222222222,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 8.0843715,
-          "cost_per_correct_usd": 0.011411317800817502
+          "cost_usd": 8.5490741367,
+          "cost_per_correct_usd": 0.011402634182983852
         },
         "tutor_accuracy": {
-          "score": 0.8481481481481481,
+          "score": 0.7925925925925927,
           "ci95": [
-            0.8018518518518517,
-            0.8925925925925927
+            0.7425925925925926,
+            0.8407407407407408
           ],
           "n_items": 180,
           "epochs": 3,
-          "consistency": 0.8888888888888888,
+          "consistency": 0.7722222222222223,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 3.838939857,
-          "cost_per_correct_usd": 0.00838196475327511
+          "cost_usd": 7.2585351228,
+          "cost_per_correct_usd": 0.01695919421214953
         }
       }
     },
     {
-      "rank": 6,
+      "rank": 7,
       "ranked": true,
       "model": "openai/gpt-6-luna",
       "family": "openai",
@@ -628,110 +732,6 @@
           "dataset": "full",
           "cost_usd": 0.283711564,
           "cost_per_correct_usd": 0.0007369131532467535
-        }
-      }
-    },
-    {
-      "rank": 7,
-      "ranked": true,
-      "model": "moonshotai/kimi-k3.1-pro",
-      "family": "moonshot",
-      "page": "models/moonshotai-kimi-k3-1-pro.html",
-      "run_file": "moonshotai__kimi-k3.1-pro.json",
-      "run_kind": "live",
-      "status": "complete",
-      "generated_at": "2026-11-16T03:21:31+00:00",
-      "data": "full",
-      "epochs": 3,
-      "overall": {
-        "score": 0.7327668329051373,
-        "ci95": [
-          0.7160686373118396,
-          0.7495615672539948
-        ],
-        "n_tests": 5,
-        "n_items": 1500
-      },
-      "cost_usd": 27.7987097692,
-      "cost_per_correct_usd": 0.008258607634560199,
-      "by_language": {
-        "breton": 0.6703109569289278,
-        "cornish": 0.6987513097361284,
-        "irish": 0.8043471827848407,
-        "manx": 0.6076537881259927,
-        "scots-gaelic": 0.796242430633366,
-        "welsh": 0.7979718735131115
-      },
-      "tests": {
-        "lesson_exercises": {
-          "score": 0.9481481481481481,
-          "ci95": [
-            0.9268518518518517,
-            0.9675925925925926
-          ],
-          "n_items": 360,
-          "epochs": 3,
-          "consistency": 0.9555555555555556,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 2.0452103709,
-          "cost_per_correct_usd": 0.0019972757528320313
-        },
-        "morphology": {
-          "score": 0.7657407407407406,
-          "ci95": [
-            0.725,
-            0.8055555555555556
-          ],
-          "n_items": 360,
-          "epochs": 3,
-          "consistency": 0.8222222222222222,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 6.3910248234,
-          "cost_per_correct_usd": 0.0077279623015719485
-        },
-        "round_trip": {
-          "score": 0.5997562899389107,
-          "ci95": [
-            0.5674557857073599,
-            0.6332136559745053
-          ],
-          "n_items": 240,
-          "epochs": 3,
-          "consistency": 0.2375,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 6.9264706289,
-          "cost_per_correct_usd": 0.016040012013336814
-        },
-        "translation": {
-          "score": 0.6557445412534426,
-          "ci95": [
-            0.626583260976964,
-            0.6858319120157806
-          ],
-          "n_items": 360,
-          "epochs": 3,
-          "consistency": 0.4083333333333333,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 6.9954170407,
-          "cost_per_correct_usd": 0.009877684972057925
-        },
-        "tutor_accuracy": {
-          "score": 0.6944444444444444,
-          "ci95": [
-            0.6370370370370371,
-            0.75
-          ],
-          "n_items": 180,
-          "epochs": 3,
-          "consistency": 0.7,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 5.4405869053,
-          "cost_per_correct_usd": 0.014508231747466667
         }
       }
     },
@@ -848,98 +848,98 @@
       "run_file": "qwen__qwen3.8-flash.json",
       "run_kind": "live",
       "status": "complete",
-      "generated_at": "2026-11-16T06:51:49+00:00",
+      "generated_at": "2026-11-16T21:37:57+00:00",
       "data": "full",
       "epochs": 3,
       "overall": {
-        "score": 0.4363758985928823,
+        "score": 0.6163415021844452,
         "ci95": [
-          0.4181330555858928,
-          0.4554843453947148
+          0.5982332347377539,
+          0.6341656523437941
         ],
         "n_tests": 5,
         "n_items": 1500
       },
-      "cost_usd": 2.844229534,
-      "cost_per_correct_usd": 0.0013630937639989248,
+      "cost_usd": 10.451337856,
+      "cost_per_correct_usd": 0.0036963668510568313,
       "by_language": {
-        "breton": 0.45680496243524593,
-        "cornish": 0.3504177709392638,
-        "irish": 0.5395036638038304,
-        "manx": 0.2882748075000046,
-        "scots-gaelic": 0.5434587636042643,
-        "welsh": 0.5055615981162542
+        "breton": 0.615494480873902,
+        "cornish": 0.4959923025920462,
+        "irish": 0.6907364002124158,
+        "manx": 0.4502017424655201,
+        "scots-gaelic": 0.7116037812529663,
+        "welsh": 0.6985802331183371
       },
       "tests": {
         "lesson_exercises": {
-          "score": 0.8379629629629629,
+          "score": 0.9055555555555556,
           "ci95": [
-            0.8027777777777778,
-            0.8712962962962963
+            0.8787037037037037,
+            0.9305555555555556
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.8722222222222222,
+          "consistency": 0.9222222222222223,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.28728596,
-          "cost_per_correct_usd": 0.00031744304972375695
+          "cost_usd": 0.73804295,
+          "cost_per_correct_usd": 0.0007546451431492843
         },
         "morphology": {
-          "score": 0.274074074074074,
+          "score": 0.5055555555555555,
           "ci95": [
-            0.2361111111111111,
-            0.31296296296296294
+            0.4620370370370371,
+            0.5509490740740739
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.7444444444444445,
+          "consistency": 0.6944444444444444,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.83830067,
-          "cost_per_correct_usd": 0.0028320968581081085
+          "cost_usd": 4.12990997,
+          "cost_per_correct_usd": 0.007563937673992674
         },
         "round_trip": {
-          "score": 0.3661979348084939,
+          "score": 0.5216161907202618,
           "ci95": [
-            0.3262992749167429,
-            0.40665704906538647
+            0.48751920980629915,
+            0.5535858189749158
           ],
           "n_items": 240,
           "epochs": 3,
-          "consistency": 0.3,
+          "consistency": 0.07916666666666666,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.6863267,
-          "cost_per_correct_usd": 0.0026030499824535543
+          "cost_usd": 1.93676944,
+          "cost_per_correct_usd": 0.00515696714061193
         },
         "translation": {
-          "score": 0.448088965563325,
+          "score": 0.5693505794612239,
           "ci95": [
-            0.41278161193637125,
-            0.48410409285039785
+            0.5415692934222182,
+            0.5989860220806028
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.33611111111111114,
+          "consistency": 0.19722222222222222,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.60991613,
-          "cost_per_correct_usd": 0.0012603237321352815
+          "cost_usd": 1.63495945,
+          "cost_per_correct_usd": 0.002658908934500689
         },
         "tutor_accuracy": {
-          "score": 0.25555555555555554,
+          "score": 0.5796296296296297,
           "ci95": [
-            0.20550925925925934,
-            0.3074074074074074
+            0.5185185185185186,
+            0.637037037037037
           ],
           "n_items": 180,
           "epochs": 3,
-          "consistency": 0.7555555555555555,
+          "consistency": 0.6388888888888888,
           "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.422400074,
-          "cost_per_correct_usd": 0.0030608701014492755
+          "cost_usd": 2.011656046,
+          "cost_per_correct_usd": 0.006427016121405752
         }
       }
     }

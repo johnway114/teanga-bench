@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.2.0",
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
@@ -198,6 +198,7 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
+          "n_truncated_item_epochs": 0,
           "score": 0.9361111111111111,
           "ci95": [
             0.9111111111111111,
@@ -1127,6 +1128,116 @@
               "consistency": 0.953307392996109
             }
           },
+          "by_language_phenomenon": {
+            "breton": {
+              "grammar": {
+                "score": 0.8461538461538461,
+                "ci95": [
+                  0.6153846153846154,
+                  1.0
+                ],
+                "n_items": 13,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            },
+            "cornish": {
+              "guide": {
+                "score": 0.9565217391304348,
+                "ci95": [
+                  0.8695652173913043,
+                  1.0
+                ],
+                "n_items": 23,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "recap": {
+                "score": 0.8333333333333334,
+                "ci95": [
+                  0.5833333333333334,
+                  1.0
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "unit_focus": {
+                "score": 0.9545454545454546,
+                "ci95": [
+                  0.8636363636363636,
+                  1.0
+                ],
+                "n_items": 22,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            },
+            "manx": {
+              "chapter_overview": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 11,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "narrative_grammar": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "recap": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 15,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "unit_focus": {
+                "score": 0.8333333333333333,
+                "ci95": [
+                  0.6666666666666666,
+                  0.9791666666666666
+                ],
+                "n_items": 16,
+                "epochs": 3,
+                "consistency": 0.875
+              }
+            },
+            "scots-gaelic": {
+              "grammar_point": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "unit_focus": {
+                "score": 0.9,
+                "ci95": [
+                  0.7,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            }
+          },
           "failure_examples": []
         },
         "morphology": {
@@ -1139,6 +1250,7 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
+          "n_truncated_item_epochs": 3,
           "score": 0.8046296296296297,
           "ci95": [
             0.7685185185185186,
@@ -1538,6 +1650,508 @@
               "consistency": 0.8439306358381503
             }
           },
+          "by_language_phenomenon": {
+            "breton": {
+              "article_gender_mutation": {
+                "score": 0.8666666666666668,
+                "ci95": [
+                  0.6,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "copula": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "noun_plural": {
+                "score": 0.8,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_cardinal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_ordinal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "prepositional_pronoun": {
+                "score": 0.5333333333333333,
+                "ci95": [
+                  0.13333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_conditional": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_future": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              }
+            },
+            "cornish": {
+              "article_gender_mutation": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "copula": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "noun_plural": {
+                "score": 0.611111111111111,
+                "ci95": [
+                  0.2222222222222222,
+                  0.9444444444444445
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.8333333333333334
+              },
+              "number_cardinal": {
+                "score": 0.8888888888888888,
+                "ci95": [
+                  0.7777777777777777,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "number_ordinal": {
+                "score": 0.3333333333333333,
+                "ci95": [
+                  0.0,
+                  0.6666666666666666
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "prepositional_pronoun": {
+                "score": 0.7333333333333333,
+                "ci95": [
+                  0.5333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "verb_future": {
+                "score": 0.6,
+                "ci95": [
+                  0.2,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_imperative": {
+                "score": 0.7333333333333333,
+                "ci95": [
+                  0.3333333333333333,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_imperfect": {
+                "score": 0.5333333333333333,
+                "ci95": [
+                  0.26666666666666666,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "verb_past": {
+                "score": 0.26666666666666666,
+                "ci95": [
+                  0.0,
+                  0.6666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_present": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              }
+            },
+            "manx": {
+              "article_gender_mutation": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "copula": {
+                "score": 0.9444444444444443,
+                "ci95": [
+                  0.8333333333333334,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.8333333333333334
+              },
+              "noun_plural": {
+                "score": 0.4,
+                "ci95": [
+                  0.0,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_cardinal": {
+                "score": 0.6,
+                "ci95": [
+                  0.2,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_ordinal": {
+                "score": 0.7333333333333333,
+                "ci95": [
+                  0.3333333333333333,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "prepositional_pronoun": {
+                "score": 0.8,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_conditional": {
+                "score": 0.5333333333333333,
+                "ci95": [
+                  0.13333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_future": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_imperative": {
+                "score": 0.7333333333333333,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_past": {
+                "score": 0.9333333333333332,
+                "ci95": [
+                  0.7999999999999999,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_present": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            },
+            "scots-gaelic": {
+              "article_gender_mutation": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "copula": {
+                "score": 0.4,
+                "ci95": [
+                  0.0,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "noun_genitive": {
+                "score": 0.8,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "noun_plural": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_cardinal": {
+                "score": 0.8,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_ordinal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_personal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            },
+            "welsh": {
+              "article_gender_mutation": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "copula": {
+                "score": 0.9333333333333332,
+                "ci95": [
+                  0.7999999999999999,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "noun_plural": {
+                "score": 0.8666666666666668,
+                "ci95": [
+                  0.6,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "number_cardinal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_ordinal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "prepositional_pronoun": {
+                "score": 0.9333333333333332,
+                "ci95": [
+                  0.7999999999999999,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_conditional": {
+                "score": 0.8,
+                "ci95": [
+                  0.5333333333333333,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_imperative": {
+                "score": 0.8,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_imperfect": {
+                "score": 0.8666666666666668,
+                "ci95": [
+                  0.6,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_pluperfect": {
+                "score": 0.7999999999999999,
+                "ci95": [
+                  0.6666666666666666,
+                  0.9333333333333333
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "verb_present": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_preterite": {
+                "score": 0.7999999999999999,
+                "ci95": [
+                  0.6666666666666666,
+                  0.9333333333333333
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              }
+            }
+          },
           "failure_examples": [
             {
               "id": "blas-morph:cornish:verb_imperative:kw-verb-bos:2p",
@@ -1584,6 +2198,7 @@
           "first_error": null,
           "n_items_dataset": 240,
           "n_errors": 0,
+          "n_truncated_item_epochs": 0,
           "score": 0.6447548341165746,
           "ci95": [
             0.6171525369055623,
@@ -1793,6 +2408,80 @@
               "consistency": 0.125
             }
           },
+          "by_language_phenomenon": {
+            "breton": {
+              "round_trip": {
+                "score": 0.5772307460623284,
+                "ci95": [
+                  0.5126833686892426,
+                  0.6412649771881878
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.225
+              }
+            },
+            "cornish": {
+              "round_trip": {
+                "score": 0.5291273889978606,
+                "ci95": [
+                  0.4671606995106075,
+                  0.5972914323233922
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.125
+              }
+            },
+            "irish": {
+              "round_trip": {
+                "score": 0.7818505701803179,
+                "ci95": [
+                  0.731940124535988,
+                  0.8317745701246849
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.5
+              }
+            },
+            "manx": {
+              "round_trip": {
+                "score": 0.502237980028115,
+                "ci95": [
+                  0.4478459006182856,
+                  0.5569706559206881
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.175
+              }
+            },
+            "scots-gaelic": {
+              "round_trip": {
+                "score": 0.6833144141319781,
+                "ci95": [
+                  0.6206579376927116,
+                  0.7424613744495738
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.575
+              }
+            },
+            "welsh": {
+              "round_trip": {
+                "score": 0.7947679052988473,
+                "ci95": [
+                  0.7363591758707437,
+                  0.8469464585294374
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.375
+              }
+            }
+          },
           "failure_examples": [
             {
               "id": "blas-round_trip-cornish-kw-sent-tat-1830",
@@ -1842,6 +2531,7 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
+          "n_truncated_item_epochs": 4,
           "score": 0.6800883740546572,
           "ci95": [
             0.6536907211785644,
@@ -2091,6 +2781,170 @@
               "consistency": 0.16666666666666666
             }
           },
+          "by_language_phenomenon": {
+            "breton": {
+              "from_english": {
+                "score": 0.5566279449867133,
+                "ci95": [
+                  0.4685577725606035,
+                  0.6452012468688789
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.45
+              },
+              "legal_or_administrative": {
+                "score": 0.5757030544540033,
+                "ci95": [
+                  0.49325584064706257,
+                  0.6626792648374357
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.05
+              },
+              "to_english": {
+                "score": 0.8483834606312843,
+                "ci95": [
+                  0.7414509241985325,
+                  0.9400954265868157
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.95
+              }
+            },
+            "cornish": {
+              "from_english": {
+                "score": 0.56556582001511,
+                "ci95": [
+                  0.4701141304400606,
+                  0.6587326685976292
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.3333333333333333
+              },
+              "to_english": {
+                "score": 0.8023566942374142,
+                "ci95": [
+                  0.718363311673932,
+                  0.8787151026847712
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.5333333333333333
+              }
+            },
+            "irish": {
+              "from_english": {
+                "score": 0.757367674108605,
+                "ci95": [
+                  0.6520647712694907,
+                  0.8574475240280292
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.75
+              },
+              "legal_or_administrative": {
+                "score": 0.6878203674298351,
+                "ci95": [
+                  0.6222176669046968,
+                  0.7542938404156305
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.2
+              },
+              "to_english": {
+                "score": 0.8604616652827399,
+                "ci95": [
+                  0.7885034631215383,
+                  0.9272997127576362
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.6
+              }
+            },
+            "manx": {
+              "from_english": {
+                "score": 0.43719762441202015,
+                "ci95": [
+                  0.3765012741048848,
+                  0.5010924026898286
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.06666666666666667
+              },
+              "to_english": {
+                "score": 0.42400122203586615,
+                "ci95": [
+                  0.3492568842764129,
+                  0.4953315878110908
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.3333333333333333
+              }
+            },
+            "scots-gaelic": {
+              "from_english": {
+                "score": 0.6441275603364989,
+                "ci95": [
+                  0.550211768753041,
+                  0.7364916880332626
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.6333333333333333
+              },
+              "to_english": {
+                "score": 0.8728535848312291,
+                "ci95": [
+                  0.8119305474905496,
+                  0.9292897184189304
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              }
+            },
+            "welsh": {
+              "from_english": {
+                "score": 0.7427549518006963,
+                "ci95": [
+                  0.6544561100024767,
+                  0.8197334195631775
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.3
+              },
+              "legal_or_administrative": {
+                "score": 0.8233674832235109,
+                "ci95": [
+                  0.7660156856134641,
+                  0.8780653258409307
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.25
+              },
+              "to_english": {
+                "score": 0.769950372264234,
+                "ci95": [
+                  0.6699834901161559,
+                  0.8623208440064187
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.5
+              }
+            }
+          },
           "failure_examples": [
             {
               "id": "blas-translation-scots-gaelic-gd-sent-0255-from_english",
@@ -2137,6 +2991,7 @@
           "first_error": null,
           "n_items_dataset": 180,
           "n_errors": 0,
+          "n_truncated_item_epochs": 0,
           "score": 0.7129629629629629,
           "ci95": [
             0.6537037037037037,
@@ -2596,6 +3451,134 @@
               "consistency": 1.0
             }
           },
+          "by_language_phenomenon": {
+            "irish": {
+              "clean": {
+                "score": 0.8,
+                "ci95": [
+                  0.5,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "grammar": {
+                "score": 0.7692307692307693,
+                "ci95": [
+                  0.5641025641025641,
+                  0.9487179487179487
+                ],
+                "n_items": 13,
+                "epochs": 3,
+                "consistency": 0.7692307692307693
+              },
+              "guide": {
+                "score": 0.7435897435897437,
+                "ci95": [
+                  0.5384615384615384,
+                  0.9230769230769231
+                ],
+                "n_items": 13,
+                "epochs": 3,
+                "consistency": 0.7692307692307693
+              },
+              "vocabulary": {
+                "score": 0.5555555555555555,
+                "ci95": [
+                  0.3055555555555555,
+                  0.8055555555555555
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.8333333333333334
+              }
+            },
+            "scots-gaelic": {
+              "application": {
+                "score": 0.4848484848484848,
+                "ci95": [
+                  0.2424242424242424,
+                  0.7575757575757575
+                ],
+                "n_items": 11,
+                "epochs": 3,
+                "consistency": 0.7272727272727273
+              },
+              "clean": {
+                "score": 0.8333333333333333,
+                "ci95": [
+                  0.6,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.9
+              },
+              "grammar_point": {
+                "score": 0.6388888888888888,
+                "ci95": [
+                  0.38888888888888884,
+                  0.861111111111111
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.75
+              },
+              "unit_focus": {
+                "score": 0.5555555555555555,
+                "ci95": [
+                  0.3333333333333333,
+                  0.7777777777777778
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.3333333333333333
+              }
+            },
+            "welsh": {
+              "clean": {
+                "score": 0.7666666666666666,
+                "ci95": [
+                  0.4666666666666666,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.9
+              },
+              "grammar": {
+                "score": 0.6896551724137931,
+                "ci95": [
+                  0.5514367816091958,
+                  0.8160919540229885
+                ],
+                "n_items": 29,
+                "epochs": 3,
+                "consistency": 0.6896551724137931
+              },
+              "guide": {
+                "score": 0.7619047619047619,
+                "ci95": [
+                  0.42857142857142866,
+                  1.0
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.8571428571428571
+              },
+              "orthography_doubled_letter": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            }
+          },
           "tutor": {
             "headline": "rule-only: found AND fixed AND no over-correction",
             "judges": [
@@ -2682,6 +3665,7 @@
           "first_error": null,
           "n_items_dataset": 400,
           "n_errors": 0,
+          "n_truncated_item_epochs": 0,
           "score": 0.98,
           "ci95": [
             0.965,
@@ -4541,6 +5525,7 @@
               "consistency": 1.0
             }
           },
+          "by_l1_phenomenon": {},
           "failure_examples": [
             {
               "id": "en-ch12-u06-recall-plans-and-health-lesson-s4@ja",
@@ -4576,6 +5561,7 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
+          "n_truncated_item_epochs": 0,
           "score": 0.7,
           "ci95": [
             0.6527777777777778,
@@ -4905,6 +5891,246 @@
               "consistency": 0.8636363636363636
             }
           },
+          "by_l1_phenomenon": {
+            "japanese": {
+              "agreement": {
+                "score": 0.8333333333333334,
+                "ci95": [
+                  0.6111111111111112,
+                  1.0
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.8333333333333334
+              },
+              "agreement_or_plural": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "no_error": {
+                "score": 0.9444444444444444,
+                "ci95": [
+                  0.8666666666666667,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9333333333333333
+              },
+              "preposition": {
+                "score": 0.2333333333333333,
+                "ci95": [
+                  0.0,
+                  0.5
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.9
+              },
+              "verb_form": {
+                "score": 0.6041666666666666,
+                "ci95": [
+                  0.375,
+                  0.8125
+                ],
+                "n_items": 16,
+                "epochs": 3,
+                "consistency": 0.8125
+              }
+            },
+            "portuguese": {
+              "agreement": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.38095238095238093,
+                  0.9523809523809524
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.8571428571428571
+              },
+              "agreement_or_plural": {
+                "score": 0.8333333333333334,
+                "ci95": [
+                  0.611111111111111,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "article": {
+                "score": 0.25,
+                "ci95": [
+                  0.0,
+                  0.5
+                ],
+                "n_items": 8,
+                "epochs": 3,
+                "consistency": 0.75
+              },
+              "no_error": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "preposition": {
+                "score": 0.38095238095238093,
+                "ci95": [
+                  0.09523809523809523,
+                  0.7142857142857143
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.7142857142857143
+              },
+              "verb_form": {
+                "score": 0.5964912280701755,
+                "ci95": [
+                  0.3855263157894744,
+                  0.8070175438596492
+                ],
+                "n_items": 19,
+                "epochs": 3,
+                "consistency": 0.9473684210526315
+              }
+            },
+            "spanish": {
+              "agreement": {
+                "score": 0.9523809523809524,
+                "ci95": [
+                  0.8571428571428571,
+                  1.0
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.8571428571428571
+              },
+              "article": {
+                "score": 0.2222222222222222,
+                "ci95": [
+                  0.05555555555555555,
+                  0.4444444444444444
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.5
+              },
+              "no_error": {
+                "score": 0.9222222222222222,
+                "ci95": [
+                  0.8222222222222222,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9333333333333333
+              },
+              "preposition": {
+                "score": 0.29999999999999993,
+                "ci95": [
+                  0.06666666666666667,
+                  0.5333333333333333
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.7
+              },
+              "relative_pronoun": {
+                "score": 0.8666666666666666,
+                "ci95": [
+                  0.7333333333333332,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_form": {
+                "score": 0.5166666666666666,
+                "ci95": [
+                  0.31666666666666665,
+                  0.7
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.75
+              }
+            },
+            "vietnamese": {
+              "agreement": {
+                "score": 0.8333333333333333,
+                "ci95": [
+                  0.6,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.9
+              },
+              "agreement_or_plural": {
+                "score": 0.8333333333333334,
+                "ci95": [
+                  0.5,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "article": {
+                "score": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "no_error": {
+                "score": 0.9222222222222222,
+                "ci95": [
+                  0.8222222222222222,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9666666666666667
+              },
+              "preposition": {
+                "score": 0.3333333333333333,
+                "ci95": [
+                  0.1515151515151515,
+                  0.5454545454545454
+                ],
+                "n_items": 11,
+                "epochs": 3,
+                "consistency": 0.5454545454545454
+              },
+              "verb_form": {
+                "score": 0.607843137254902,
+                "ci95": [
+                  0.4117647058823529,
+                  0.7848039215686248
+                ],
+                "n_items": 17,
+                "epochs": 3,
+                "consistency": 0.6470588235294118
+              }
+            }
+          },
           "tutor": {
             "headline": "rule-only: found AND fixed AND no over-correction",
             "judges": [
@@ -4985,5 +6211,10 @@
   },
   "corrections": [
     "2026-11-16: the cost of tonada/tutor_accuracy wrongly included the cost of blas/tutor_accuracy. The per-test cost was corrected. Scores and the run total did not change."
-  ]
+  ],
+  "reexported": {
+    "at": "2026-11-16T23:20:22+00:00",
+    "from_schema": "2.0.0",
+    "to_schema": "2.2.0"
+  }
 }

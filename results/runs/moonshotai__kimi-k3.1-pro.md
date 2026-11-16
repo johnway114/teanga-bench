@@ -1,37 +1,37 @@
 # Teanga Bench report: moonshotai/kimi-k3.1-pro
 
-moonshotai/kimi-k3.1-pro ran 7 of 7 tests with 3 epochs per item, and the run status is complete. The overall score is 78.0% (95% interval 76.6% to 79.3%), with each completed test weighted equally. The best test was tonada/exercises at 98.8% and the weakest was blas/round_trip at 60.0%. On the tutor test the rule-only headline is 69.4%, and the explanation score is 61.3% (judge-marked, not human-validated). The run cost $34.76 against a cap of $45.00, of which $0.6239 was judge spend.
+moonshotai/kimi-k3.1-pro ran 7 of 7 tests with 3 epochs per item, and the run status is complete. The overall score is 81.7% (95% interval 80.5% to 82.9%), with each completed test weighted equally. The best test was tonada/exercises at 99.1% and the weakest was blas/round_trip at 65.3%. On the tutor test the rule-only headline is 79.3%, and the explanation score is 70.4% (judge-marked, not human-validated). The run cost $43.58 against a cap of $50.00, of which $0.6807 was judge spend.
 
-Run kind: live. Status: complete. Generated 2026-11-16T03:21:31+00:00.
+Run kind: live. Status: complete. Generated 2026-11-16T22:49:16+00:00.
 
 ## Suite: blas
 
 | Test | Score | 95% interval | Items | Cost (USD) |
 | --- | --- | --- | --- | --- |
-| lesson_exercises | 94.8% | 92.7% to 96.8% | 360 | $2.05 |
-| morphology | 76.6% | 72.5% to 80.6% | 360 | $6.39 |
-| round_trip | 60.0% | 56.7% to 63.3% | 240 | $6.93 |
-| translation | 65.6% | 62.7% to 68.6% | 360 | $7.00 |
-| tutor_accuracy | 69.4% | 63.7% to 75.0% | 180 | $5.44 |
+| lesson_exercises | 95.8% | 93.9% to 97.6% | 360 | $2.31 |
+| morphology | 82.1% | 78.4% to 85.6% | 360 | $8.93 |
+| round_trip | 65.3% | 62.5% to 68.0% | 240 | $9.15 |
+| translation | 69.4% | 66.9% to 72.0% | 360 | $8.55 |
+| tutor_accuracy | 79.3% | 74.3% to 84.1% | 180 | $7.26 |
 
 ## Suite: tonada
 
 | Test | Score | 95% interval | Items | Cost (USD) |
 | --- | --- | --- | --- | --- |
-| exercises | 98.8% | 97.8% to 99.7% | 400 | $1.67 |
-| tutor_accuracy | 80.6% | 76.5% to 84.4% | 360 | $5.29 |
+| exercises | 99.1% | 98.2% to 99.8% | 400 | $1.70 |
+| tutor_accuracy | 80.6% | 76.5% to 84.4% | 360 | $5.68 |
 
 ## By language
 
 | Language | Score | 95% interval | Items |
 | --- | --- | --- | --- |
-| breton | 67.0% | 62.9% to 70.9% | 220 |
-| cornish | 69.9% | 66.0% to 73.5% | 220 |
-| english | 89.7% | 87.7% to 91.6% | 760 |
-| irish | 80.4% | 76.9% to 83.6% | 280 |
-| manx | 60.8% | 57.0% to 64.4% | 220 |
-| scots-gaelic | 79.6% | 76.5% to 82.7% | 280 |
-| welsh | 79.8% | 76.7% to 82.9% | 280 |
+| breton | 71.2% | 67.4% to 74.8% | 220 |
+| cornish | 75.3% | 71.8% to 78.5% | 220 |
+| english | 89.9% | 87.9% to 91.7% | 760 |
+| irish | 83.5% | 80.5% to 86.4% | 280 |
+| manx | 68.6% | 65.1% to 71.9% | 220 |
+| scots-gaelic | 82.1% | 79.1% to 85.0% | 280 |
+| welsh | 85.0% | 82.4% to 87.6% | 280 |
 
 ## Failure examples
 
@@ -39,10 +39,7 @@ Examples come only from items published in `samples/`.
 
 ### blas/lesson_exercises
 
-- `blx-manx-gv_flow_ch09_u02_grammar_v2-sc1` score 0.00
-  - Prompt: This is a sentence-building exercise from the Manx course of a language-learning app. Arrange the tiles into the Manx phrase that means “fetch the cake”. Use the tiles in the right order (some tiles are decoys and do not belong in the phra…
-  - Expected: cur lesh y verreen
-  - Model output: 
+No public failure examples for this test.
 
 ### blas/morphology
 
@@ -61,51 +58,51 @@ Examples come only from items published in `samples/`.
 
 ### blas/round_trip
 
-- `blas-round_trip-cornish-kw-sent-tat-0552` score 0.00
-  - Prompt: Translate this Cornish sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Cornish: Mar pe dy’Sul hedhyw, ni a wrussa mos dhe byskessa.
-  - Expected: Mar pe dy’Sul hedhyw, ni a wrussa mos dhe byskessa.
-  - Model output: 
-  - Pivot text: If it were Sunday today, we would go fishing.
 - `blas-round_trip-cornish-kw-sent-tat-1830` score 0.17
   - Prompt: Translate this Cornish sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Cornish: Kas yw genev an traow na.
   - Expected: Kas yw genev an traow na.
   - Model output: My a gas an taklow-na.
   - Pivot text: I hate those things.
-- `blas-round_trip-breton-br-sent-0288` score 0.00
+- `blas-round_trip-manx-gv-sent-parallel-6412` score 0.20
+  - Prompt: Translate this Manx sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Manx: Nee eh costal queig keead stiagh as magh.
+  - Expected: Nee eh costal queig keead stiagh as magh.
+  - Model output: Coshtys eh mysh queig cheead.
+  - Pivot text: It will cost roughly five hundred.
+- `blas-round_trip-breton-br-sent-0288` score 0.32
   - Prompt: Translate this Breton sentence into English. Reply with the English translation only, on one line, with no notes or explanation. Breton: Hennezh n'eo ket ma c'hazh. Ma hini a zo gwenn e dreid.
   - Expected: Hennezh n'eo ket ma c'hazh. Ma hini a zo gwenn e dreid.
-  - Model output: 
-  - Pivot text: That isn’t my cat. Mine has white paws.
+  - Model output: N’eo ket ma c’hazh. An hini din en deus pavioù gwenn.
+  - Pivot text: That is not my cat. Mine has white paws.
 
 ### blas/translation
 
-- `blas-translation-manx-gv-sent-parallel-14165-from_english` score 0.00
-  - Prompt: Translate this English sentence into Manx. Reply with the Manx translation only, on one line, with no notes or explanation. English: The house has stood a hundred and six years.
-  - Expected: Ta'n thie er hassoo keead blein as shey.
-  - Model output: 
-- `blas-translation-cornish-kw-sent-tat-1356-from_english` score 0.00
+- `blas-translation-cornish-kw-sent-tat-1356-from_english` score 0.25
   - Prompt: Translate this English sentence into Cornish. Reply with the Cornish translation only, on one line, with no notes or explanation. English: Do you like dogs?
   - Expected: Yw da genes keun?
-  - Model output: 
-- `blas-translation-manx-gv-sent-parallel-15649-from_english` score 0.00
+  - Model output: A wredh hwi kara keun?
+- `blas-translation-scots-gaelic-gd-sent-0223-from_english` score 0.14
+  - Prompt: Translate this English sentence into Scottish Gaelic. Reply with the Scottish Gaelic translation only, on one line, with no notes or explanation. English: He is a good carpenter.
+  - Expected: Tha e na dheagh shaor.
+  - Model output: Is saor math e.
+- `blas-translation-manx-gv-sent-parallel-15649-from_english` score 0.41
   - Prompt: Translate this English sentence into Manx. Reply with the Manx translation only, on one line, with no notes or explanation. English: Have you made my bed?
   - Expected: Vel shiu er chiartaghey my lhiabbee?
-  - Model output: 
+  - Model output: Vel oo er n'yannoo my lhiabbee?
 
 ### blas/tutor_accuracy
 
+- `blas-tutor-welsh-exd-facf492c47` score 0.00
+  - Prompt: You are a Welsh language tutor checking a sentence written by a learner. Language: Welsh The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
+  - Expected: y llyfr sydd ar y bwrdd
+  - Model output: {"has_error":true,"error_span":"y llyfr mae","correction":"mae'r llyfr","corrected_sentence":"mae'r llyfr ar y bwrdd","explanation":"Welsh statements normally use verb-initial word order, and mae + y contracts to mae'r."}
+- `blas-tutor-irish-clean-sent-9f6457b394` score 0.00
+  - Prompt: You are a Irish language tutor checking a sentence written by a learner. Language: Irish The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
+  - Expected: Tá sé tábhachtach nach sárófaí a gcearta daonna.
+  - Model output: {"has_error": true, "error_span": "nach sárófaí", "correction": "nach sáraítear", "corrected_sentence": "Tá sé tábhachtach nach sáraítear a gcearta daonna.", "explanation": "Baineann an abairt le riail ghinearálta sa chúlchaint láithreach,…
 - `blas-tutor-welsh-exd-58b2c1cfa7` score 0.00
   - Prompt: You are a Welsh language tutor checking a sentence written by a learner. Language: Welsh The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
   - Expected: Mae'n honni iddi gael ei magu yng nghanolbarth gorllewinol yr Unol Daleithiau.
   - Model output: {"has_error": true, "error_span": "iddi cael", "correction": "iddi gael", "corrected_sentence": "Mae'n honni iddi gael ei magu yng nghanolbarth gorllewinol yr Unol Daleithiau.", "explanation": "Yn y patrwm 'honni i + goddrych + berfenw', m…
-- `blas-tutor-welsh-exd-facf492c47` score 0.00
-  - Prompt: You are a Welsh language tutor checking a sentence written by a learner. Language: Welsh The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
-  - Expected: y llyfr sydd ar y bwrdd
-  - Model output: {"has_error":true,"error_span":"y llyfr mae","correction":"mae'r llyfr","corrected_sentence":"mae'r
-- `blas-tutor-irish-exd-51c5e10877` score 0.00
-  - Prompt: You are a Irish language tutor checking a sentence written by a learner. Language: Irish The sentence may contain one error, or it may already be correct. If it has an error, change only that one error: give the exact erroneous substring a…
-  - Expected: D'fhan muid i mbrú.
-  - Model output: response was not a JSON object
 
 ### tonada/exercises
 
@@ -131,12 +128,12 @@ Examples come only from items published in `samples/`.
 
 ## Tutor detail: blas/tutor_accuracy
 
-Headline (rule-only: found AND fixed AND no over-correction): 69.4%. Found 69.8%, fixed 69.4%, no over-correction 77.2%.
+Headline (rule-only: found AND fixed AND no over-correction): 79.3%. Found 79.6%, fixed 79.3%, no over-correction 88.0%.
 
-Explanation, judge-marked, not human-validated: 61.3% (95% interval 55.3% to 67.1%). Judge agreement 93.7%. Judge failures 7. Judges: deepseek/deepseek-v4.1-flash-1017, qwen/qwen3.8-flash.
+Explanation, judge-marked, not human-validated: 70.4% (95% interval 64.7% to 76.0%). Judge agreement 93.4%. Judge failures 10. Judges: deepseek/deepseek-v4.1-flash-1017, qwen/qwen3.8-flash.
 
 ## Tutor detail: tonada/tutor_accuracy
 
-Headline (rule-only: found AND fixed AND no over-correction): 80.6%. Found 84.1%, fixed 80.6%, no over-correction 89.1%.
+Headline (rule-only: found AND fixed AND no over-correction): 80.6%. Found 84.3%, fixed 80.6%, no over-correction 89.5%.
 
-Explanation, judge-marked, not human-validated: 63.8% (95% interval 59.2% to 68.5%). Judge agreement 93.1%. Judge failures 27. Judges: deepseek/deepseek-v4.1-flash-1017, qwen/qwen3.8-flash.
+Explanation, judge-marked, not human-validated: 64.4% (95% interval 59.6% to 69.0%). Judge agreement 93.2%. Judge failures 28. Judges: deepseek/deepseek-v4.1-flash-1017, qwen/qwen3.8-flash.

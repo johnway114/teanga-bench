@@ -1,10 +1,10 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.2.0",
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
   "started_at": "2026-11-15T23:03:37+00:00",
-  "generated_at": "2026-11-16T06:51:49+00:00",
+  "generated_at": "2026-11-16T21:37:57+00:00",
   "run_kind": "live",
   "status": "complete",
   "incomplete_reason": null,
@@ -18,15 +18,15 @@
       "cache_read_usd_per_token": 1.6e-08,
       "cache_write_usd_per_token": null,
       "source": "https://openrouter.ai/api/v1/models",
-      "retrieved_at": "2026-11-16T06:03:29+00:00"
+      "retrieved_at": "2026-11-16T13:54:35+00:00"
     }
   },
   "config": {
     "epochs": 3,
     "limit": null,
-    "max_cost_usd": 6.0,
+    "max_cost_usd": 12.0,
     "max_tokens": {
-      "candidate": 2048,
+      "candidate": 16000,
       "judge": 1024
     },
     "temperature": "provider default",
@@ -75,95 +75,101 @@
     "note": "Gold comes from the source files named on each item. Teanga Bench did not have native-speaker review. An item counts as human-checked only when its source file records human review. Judge marks on tutor explanations are made by models and are not human-validated."
   },
   "cost": {
-    "cap_usd": 6.0,
-    "total_usd": 3.200869986,
-    "candidate_usd": 3.200869986,
+    "cap_usd": 12.0,
+    "total_usd": 10.975342724,
+    "candidate_usd": 10.975342724,
     "judge_usd": 0.0,
     "cap_reached": false,
     "by_model": {
       "qwen/qwen3.8-flash": {
-        "calls": 7390,
-        "input_tokens": 1133510,
-        "output_tokens": 6442189,
-        "cache_read_tokens": 188416,
+        "calls": 9665,
+        "input_tokens": 1494198,
+        "output_tokens": 22868176,
+        "cache_read_tokens": 198144,
         "cache_write_tokens": 0,
-        "cost_usd": 3.200869986
+        "cost_usd": 10.975342724
       }
     }
   },
   "overall": {
-    "score": 0.5516706153970323,
+    "score": 0.6852968401846565,
     "ci95": [
-      0.5369161057896072,
-      0.5667237489426669
+      0.6712150168689949,
+      0.6988330720092036
     ],
     "n_tests": 7,
     "n_items": 2260,
     "by_language": {
       "breton": {
-        "score": 0.45680496243524593,
+        "score": 0.615494480873902,
         "ci95": [
-          0.4164566203979492,
-          0.4972023510905189
+          0.5769864631829974,
+          0.6516059062039984
         ],
         "n_tests": 4,
         "n_items": 220
       },
       "cornish": {
-        "score": 0.3504177709392638,
+        "score": 0.49599230259204624,
         "ci95": [
-          0.31621545659053074,
-          0.38568444716867906
+          0.45785126669637266,
+          0.5342081418060949
         ],
         "n_tests": 4,
         "n_items": 220
       },
       "english": {
-        "score": 0.8399074074074073,
+        "score": 0.8576851851851852,
         "ci95": [
-          0.8187013888888889,
-          0.8608344907407407
+          0.8365717592592593,
+          0.8779652777777778
         ],
         "n_tests": 2,
         "n_items": 760
       },
       "irish": {
-        "score": 0.5395036638038305,
+        "score": 0.6907364002124157,
         "ci95": [
-          0.49747991279348214,
-          0.5810851599452602
+          0.6535928878434241,
+          0.7257712991239891
         ],
         "n_tests": 5,
         "n_items": 280
       },
       "manx": {
-        "score": 0.2882748075000046,
+        "score": 0.45020174246552014,
         "ci95": [
-          0.2559966204537004,
-          0.32183668950617134
+          0.4137722133824509,
+          0.4852858064374706
         ],
         "n_tests": 4,
         "n_items": 220
       },
       "scots-gaelic": {
-        "score": 0.5434587636042643,
+        "score": 0.7116037812529663,
         "ci95": [
-          0.5049731631291284,
-          0.5827092158056371
+          0.6752399149757893,
+          0.7452791758559517
         ],
         "n_tests": 5,
         "n_items": 280
       },
       "welsh": {
-        "score": 0.5055615981162542,
+        "score": 0.6985802331183371,
         "ci95": [
-          0.4702003093412062,
-          0.5419943423087582
+          0.6637478248314657,
+          0.7344770729252847
         ],
         "n_tests": 5,
         "n_items": 280
       }
     }
+  },
+  "truncation": {
+    "max_tokens": 16000,
+    "n_item_epochs": 6780,
+    "n_truncated_item_epochs": 537,
+    "rule": "A scored item-epoch is truncated when a candidate call stopped at the answer limit. It is scored by the normal rules, so an empty answer scores 0."
   },
   "suites": {
     "blas": {
@@ -178,24 +184,25 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
-          "score": 0.8379629629629629,
+          "n_truncated_item_epochs": 38,
+          "score": 0.9055555555555556,
           "ci95": [
-            0.8027777777777778,
-            0.8712962962962963
+            0.8787037037037037,
+            0.9305555555555556
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.8722222222222222,
-          "cost_usd": 0.28728596,
-          "cost_per_correct_usd": 0.00031744304972375695,
+          "consistency": 0.9222222222222223,
+          "cost_usd": 0.73804295,
+          "cost_per_correct_usd": 0.0007546451431492843,
           "cost": {
             "candidate": {
-              "calls": 1080,
-              "input_tokens": 192696,
-              "output_tokens": 549748,
+              "calls": 1220,
+              "input_tokens": 217952,
+              "output_tokens": 1500745,
               "cache_read_tokens": 0,
               "cache_write_tokens": 0,
-              "cost_usd": 0.28728596
+              "cost_usd": 0.73804295
             },
             "judge": {
               "calls": 0,
@@ -209,76 +216,76 @@
           "n_human_checked": 0,
           "by_language": {
             "breton": {
-              "score": 0.8722222222222221,
+              "score": 0.9333333333333333,
               "ci95": [
-                0.7944444444444445,
-                0.9388888888888888
+                0.8722222222222221,
+                0.9833333333333333
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.85
+              "consistency": 0.9333333333333333
             },
             "cornish": {
-              "score": 0.8444444444444444,
+              "score": 0.8833333333333333,
               "ci95": [
-                0.75,
-                0.9277777777777777
+                0.8,
+                0.9555555555555555
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9333333333333333
+            },
+            "irish": {
+              "score": 0.888888888888889,
+              "ci95": [
+                0.8111111111111112,
+                0.95
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.8833333333333333
+            },
+            "manx": {
+              "score": 0.8777777777777779,
+              "ci95": [
+                0.7944444444444444,
+                0.95
               ],
               "n_items": 60,
               "epochs": 3,
               "consistency": 0.9166666666666666
             },
-            "irish": {
-              "score": 0.8111111111111111,
-              "ci95": [
-                0.7222222222222222,
-                0.8944444444444444
-              ],
-              "n_items": 60,
-              "epochs": 3,
-              "consistency": 0.8333333333333334
-            },
-            "manx": {
-              "score": 0.8055555555555555,
-              "ci95": [
-                0.711111111111111,
-                0.8944444444444444
-              ],
-              "n_items": 60,
-              "epochs": 3,
-              "consistency": 0.8666666666666667
-            },
             "scots-gaelic": {
-              "score": 0.8722222222222221,
+              "score": 0.9444444444444444,
               "ci95": [
-                0.788888888888889,
-                0.939027777777777
+                0.8888888888888888,
+                0.9833333333333333
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.9
+              "consistency": 0.9333333333333333
             },
             "welsh": {
-              "score": 0.8222222222222223,
+              "score": 0.9055555555555554,
               "ci95": [
-                0.7388888888888888,
-                0.9055555555555554
+                0.8388888888888888,
+                0.9666666666666667
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.8666666666666667
+              "consistency": 0.9333333333333333
             }
           },
           "by_l1": {
             "none": {
-              "score": 0.8379629629629629,
+              "score": 0.9055555555555556,
               "ci95": [
-                0.8018518518518517,
-                0.8703703703703705
+                0.8768518518518518,
+                0.9314814814814815
               ],
               "n_items": 360,
               "epochs": 3,
-              "consistency": 0.8722222222222222
+              "consistency": 0.9222222222222223
             }
           },
           "by_phenomenon": {
@@ -303,14 +310,14 @@
               "consistency": 1.0
             },
             "application": {
-              "score": 0.5,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
+                0.25,
                 1.0
               ],
               "n_items": 4,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.75
             },
             "articles": {
               "score": 1.0,
@@ -353,14 +360,14 @@
               "consistency": 1.0
             },
             "communication": {
-              "score": 0.6666666666666666,
+              "score": 0.7777777777777778,
               "ci95": [
                 0.3333333333333333,
                 1.0
               ],
               "n_items": 3,
               "epochs": 3,
-              "consistency": 0.3333333333333333
+              "consistency": 0.6666666666666666
             },
             "comparison": {
               "score": 1.0,
@@ -393,14 +400,14 @@
               "consistency": 1.0
             },
             "conjugation": {
-              "score": 0.75,
+              "score": 0.9166666666666666,
               "ci95": [
-                0.4979166666666703,
+                0.7499999999999999,
                 1.0
               ],
               "n_items": 4,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 0.75
             },
             "conjunctions": {
               "score": 1.0,
@@ -413,9 +420,9 @@
               "consistency": 1.0
             },
             "conversation": {
-              "score": 0.7222222222222223,
+              "score": 0.7777777777777777,
               "ci95": [
-                0.38888888888888884,
+                0.4444444444444444,
                 1.0
               ],
               "n_items": 6,
@@ -443,24 +450,24 @@
               "consistency": 1.0
             },
             "daily_life": {
-              "score": 0.6666666666666666,
+              "score": 0.8666666666666666,
               "ci95": [
-                0.39999999999999997,
-                0.9333333333333332
+                0.7333333333333332,
+                1.0
               ],
               "n_items": 5,
               "epochs": 3,
-              "consistency": 0.4
+              "consistency": 0.6
             },
             "declension": {
-              "score": 0.6666666666666666,
+              "score": 0.8888888888888888,
               "ci95": [
-                0.0,
+                0.6666666666666666,
                 1.0
               ],
               "n_items": 3,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.6666666666666666
             },
             "demonstratives": {
               "score": 1.0,
@@ -473,14 +480,14 @@
               "consistency": 1.0
             },
             "descriptive_grammar": {
-              "score": 0.6666666666666666,
+              "score": 1.0,
               "ci95": [
-                0.6666666666666666,
-                0.6666666666666666
+                1.0,
+                1.0
               ],
               "n_items": 1,
               "epochs": 3,
-              "consistency": 0.0
+              "consistency": 1.0
             },
             "dialogue_retrieval": {
               "score": 1.0,
@@ -533,44 +540,44 @@
               "consistency": 1.0
             },
             "genitive": {
-              "score": 0.2222222222222222,
+              "score": 0.4444444444444444,
               "ci95": [
                 0.0,
-                0.6666666666666666
+                1.0
               ],
               "n_items": 3,
               "epochs": 3,
               "consistency": 0.6666666666666666
             },
             "grammar": {
-              "score": 0.8412698412698413,
+              "score": 0.8730158730158729,
               "ci95": [
-                0.6984126984126984,
-                0.9682539682539681
+                0.746031746031746,
+                0.9686507936507913
               ],
               "n_items": 21,
               "epochs": 3,
               "consistency": 0.8571428571428571
             },
             "grammar_point": {
-              "score": 0.7999999999999999,
+              "score": 0.9666666666666666,
               "ci95": [
-                0.6333333333333333,
-                0.9666666666666666
+                0.8999999999999998,
+                1.0
               ],
               "n_items": 10,
               "epochs": 3,
-              "consistency": 0.6
+              "consistency": 0.9
             },
             "guide": {
-              "score": 0.84375,
+              "score": 0.9270833333333333,
               "ci95": [
-                0.7291666666666666,
-                0.9479166666666666
+                0.8333333333333333,
+                1.0
               ],
               "n_items": 32,
               "epochs": 3,
-              "consistency": 0.84375
+              "consistency": 0.96875
             },
             "health": {
               "score": 1.0,
@@ -603,19 +610,19 @@
               "consistency": 1.0
             },
             "inquiry_grammar": {
-              "score": 0.8333333333333333,
+              "score": 1.0,
               "ci95": [
-                0.6666666666666666,
+                1.0,
                 1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 1.0
             },
             "legal_register": {
-              "score": 0.5,
+              "score": 1.0,
               "ci95": [
-                0.0,
+                1.0,
                 1.0
               ],
               "n_items": 2,
@@ -663,19 +670,19 @@
               "consistency": 1.0
             },
             "mutations": {
-              "score": 0.37037037037037035,
+              "score": 0.6296296296296297,
               "ci95": [
-                0.14814814814814814,
-                0.6666666666666665
+                0.37037037037037035,
+                0.8888888888888888
               ],
               "n_items": 9,
               "epochs": 3,
               "consistency": 0.6666666666666666
             },
             "narrative_grammar": {
-              "score": 0.6666666666666667,
+              "score": 0.9333333333333333,
               "ci95": [
-                0.26666666666666666,
+                0.7999999999999999,
                 1.0
               ],
               "n_items": 5,
@@ -703,14 +710,14 @@
               "consistency": 1.0
             },
             "numbers": {
-              "score": 0.6111111111111112,
+              "score": 0.7777777777777777,
               "ci95": [
-                0.27777777777777773,
-                0.888888888888889
+                0.4444444444444444,
+                1.0
               ],
               "n_items": 6,
               "epochs": 3,
-              "consistency": 0.6666666666666666
+              "consistency": 0.8333333333333334
             },
             "numerals": {
               "score": 1.0,
@@ -753,24 +760,24 @@
               "consistency": 1.0
             },
             "preposition_recognition": {
-              "score": 0.9166666666666666,
+              "score": 1.0,
               "ci95": [
-                0.7499999999999999,
+                1.0,
                 1.0
               ],
               "n_items": 4,
               "epochs": 3,
-              "consistency": 0.75
+              "consistency": 1.0
             },
             "prepositions": {
-              "score": 0.9166666666666666,
+              "score": 1.0,
               "ci95": [
-                0.7499999999999999,
+                1.0,
                 1.0
               ],
               "n_items": 4,
               "epochs": 3,
-              "consistency": 0.75
+              "consistency": 1.0
             },
             "pronouns": {
               "score": 1.0,
@@ -843,14 +850,14 @@
               "consistency": 1.0
             },
             "recap": {
-              "score": 0.8648648648648649,
+              "score": 0.918918918918919,
               "ci95": [
-                0.7477477477477478,
-                0.9549549549549549
+                0.8288288288288288,
+                0.990990990990991
               ],
               "n_items": 37,
               "epochs": 3,
-              "consistency": 0.918918918918919
+              "consistency": 0.9459459459459459
             },
             "relative_clauses": {
               "score": 1.0,
@@ -923,19 +930,19 @@
               "consistency": 1.0
             },
             "subordinate_clauses": {
-              "score": 0.0,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
-                0.0
+                0.6666666666666666,
+                0.6666666666666666
               ],
               "n_items": 1,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.0
             },
             "syntax": {
-              "score": 0.7333333333333333,
+              "score": 0.8666666666666666,
               "ci95": [
-                0.3333333333333333,
+                0.6,
                 1.0
               ],
               "n_items": 5,
@@ -963,14 +970,14 @@
               "consistency": 1.0
             },
             "unit_focus": {
-              "score": 0.803921568627451,
+              "score": 0.849673202614379,
               "ci95": [
-                0.7058823529411763,
-                0.9019607843137255
+                0.7516339869281045,
+                0.9411764705882353
               ],
               "n_items": 51,
               "epochs": 3,
-              "consistency": 0.8823529411764706
+              "consistency": 0.9411764705882353
             },
             "verbal_noun": {
               "score": 1.0,
@@ -983,9 +990,9 @@
               "consistency": 1.0
             },
             "verbs": {
-              "score": 0.8888888888888888,
+              "score": 0.9166666666666666,
               "ci95": [
-                0.7222222222222222,
+                0.8055555555555555,
                 1.0
               ],
               "n_items": 12,
@@ -993,14 +1000,14 @@
               "consistency": 0.8333333333333334
             },
             "vocabulary": {
-              "score": 0.5714285714285714,
+              "score": 0.8571428571428571,
               "ci95": [
-                0.23809523809523808,
-                0.8571428571428573
+                0.5714285714285714,
+                1.0
               ],
               "n_items": 7,
               "epochs": 3,
-              "consistency": 0.7142857142857143
+              "consistency": 1.0
             },
             "voice": {
               "score": 1.0,
@@ -1025,44 +1032,44 @@
           },
           "by_cefr": {
             "A1": {
-              "score": 0.856,
+              "score": 0.9013333333333333,
               "ci95": [
-                0.7999999999999999,
-                0.9067333333333331
+                0.8506666666666668,
+                0.9466666666666667
               ],
               "n_items": 125,
               "epochs": 3,
-              "consistency": 0.904
+              "consistency": 0.936
             },
             "A2": {
-              "score": 0.8246913580246913,
+              "score": 0.893827160493827,
               "ci95": [
-                0.7703086419753088,
-                0.8790123456790123
+                0.8469135802469135,
+                0.9382716049382717
               ],
               "n_items": 135,
               "epochs": 3,
-              "consistency": 0.8518518518518519
+              "consistency": 0.9037037037037037
             },
             "B1": {
-              "score": 0.821917808219178,
+              "score": 0.9269406392694065,
               "ci95": [
-                0.7397260273972602,
-                0.8949771689497716
+                0.8721461187214612,
+                0.9726027397260274
               ],
               "n_items": 73,
               "epochs": 3,
-              "consistency": 0.863013698630137
+              "consistency": 0.9315068493150684
             },
             "B2": {
-              "score": 0.8472222222222222,
+              "score": 0.9166666666666666,
               "ci95": [
-                0.7083333333333334,
-                0.9583333333333334
+                0.8055555555555555,
+                1.0
               ],
               "n_items": 24,
               "epochs": 3,
-              "consistency": 0.8333333333333334
+              "consistency": 0.9166666666666666
             },
             "C1": {
               "score": 1.0,
@@ -1087,24 +1094,134 @@
               "consistency": 1.0
             },
             "blas-app+kaikki": {
-              "score": 0.795138888888889,
+              "score": 0.8680555555555557,
               "ci95": [
-                0.7222222222222222,
-                0.8645833333333334
+                0.8055555555555555,
+                0.9270833333333331
               ],
               "n_items": 96,
               "epochs": 3,
-              "consistency": 0.8333333333333334
+              "consistency": 0.875
             },
             "blas-app-only": {
-              "score": 0.8495460440985733,
+              "score": 0.9169909208819714,
               "ci95": [
-                0.8067444876783398,
-                0.8871595330739299
+                0.8845654993514915,
+                0.9468223086900129
               ],
               "n_items": 257,
               "epochs": 3,
-              "consistency": 0.8832684824902723
+              "consistency": 0.9377431906614786
+            }
+          },
+          "by_language_phenomenon": {
+            "breton": {
+              "grammar": {
+                "score": 0.8205128205128205,
+                "ci95": [
+                  0.6153846153846154,
+                  1.0
+                ],
+                "n_items": 13,
+                "epochs": 3,
+                "consistency": 0.8461538461538461
+              }
+            },
+            "cornish": {
+              "guide": {
+                "score": 0.898550724637681,
+                "ci95": [
+                  0.7681159420289854,
+                  1.0
+                ],
+                "n_items": 23,
+                "epochs": 3,
+                "consistency": 0.9565217391304348
+              },
+              "recap": {
+                "score": 0.861111111111111,
+                "ci95": [
+                  0.638888888888889,
+                  1.0
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.9166666666666666
+              },
+              "unit_focus": {
+                "score": 0.9545454545454546,
+                "ci95": [
+                  0.8636363636363636,
+                  1.0
+                ],
+                "n_items": 22,
+                "epochs": 3,
+                "consistency": 1.0
+              }
+            },
+            "manx": {
+              "chapter_overview": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 11,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "narrative_grammar": {
+                "score": 0.9333333333333333,
+                "ci95": [
+                  0.7999999999999999,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "recap": {
+                "score": 0.9777777777777777,
+                "ci95": [
+                  0.9333333333333332,
+                  1.0
+                ],
+                "n_items": 15,
+                "epochs": 3,
+                "consistency": 0.9333333333333333
+              },
+              "unit_focus": {
+                "score": 0.6458333333333333,
+                "ci95": [
+                  0.43749999999999994,
+                  0.8541666666666666
+                ],
+                "n_items": 16,
+                "epochs": 3,
+                "consistency": 0.8125
+              }
+            },
+            "scots-gaelic": {
+              "grammar_point": {
+                "score": 0.9666666666666666,
+                "ci95": [
+                  0.8999999999999998,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.9
+              },
+              "unit_focus": {
+                "score": 0.9,
+                "ci95": [
+                  0.7,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 1.0
+              }
             }
           },
           "failure_examples": [
@@ -1127,18 +1244,7 @@
               "phenomenon": "recap",
               "input": "This is a fill-in-the-blank exercise from the Welsh course of a language-learning app. Supply the missing Welsh word(s) for the blank (____); the English in the exercise tells you what is meant.\n\nExercise: Fill in the question word: \"___ o'r gloch yw hi?\" (What's the time?)\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
               "expected": "Faint",
-              "output": "",
-              "score": 0.0
-            },
-            {
-              "id": "blx-scots-gaelic-gd_b1_c05_u04_lesson_v1-sc2",
-              "public": true,
-              "language": "scots-gaelic",
-              "l1": "none",
-              "phenomenon": "grammar_point",
-              "input": "This is an exercise from the Scottish Gaelic course of a language-learning app on how a word changes in a phrase (mutation or other change to its beginning or form). The word in its basic form is “ceannach”. Fill the blank with the form this word takes here.\n\nPhrase: aran a ____\nEnglish meaning: to buy bread\n\nGive only the word that fills the blank.\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
-              "expected": "cheannach",
-              "output": "",
+              "output": "ANSWER: Beth",
               "score": 0.0
             }
           ]
@@ -1153,24 +1259,25 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
-          "score": 0.274074074074074,
+          "n_truncated_item_epochs": 289,
+          "score": 0.5055555555555555,
           "ci95": [
-            0.2361111111111111,
-            0.31296296296296294
+            0.4620370370370371,
+            0.5509490740740739
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.7444444444444445,
-          "cost_usd": 0.83830067,
-          "cost_per_correct_usd": 0.0028320968581081085,
+          "consistency": 0.6944444444444444,
+          "cost_usd": 4.12990997,
+          "cost_per_correct_usd": 0.007563937673992674,
           "cost": {
             "candidate": {
-              "calls": 1080,
-              "input_tokens": 174738,
-              "output_tokens": 1727851,
+              "calls": 1796,
+              "input_tokens": 292987,
+              "output_tokens": 8693536,
               "cache_read_tokens": 0,
               "cache_write_tokens": 0,
-              "cost_usd": 0.83830067
+              "cost_usd": 4.12990997
             },
             "judge": {
               "calls": 0,
@@ -1184,198 +1291,198 @@
           "n_human_checked": 0,
           "by_language": {
             "breton": {
-              "score": 0.23333333333333334,
+              "score": 0.4444444444444445,
               "ci95": [
-                0.15,
-                0.3333333333333333
+                0.33888888888888885,
+                0.55
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.7833333333333333
+              "consistency": 0.7
             },
             "cornish": {
-              "score": 0.1222222222222222,
+              "score": 0.3055555555555555,
               "ci95": [
-                0.06111111111111111,
-                0.18888888888888886
+                0.21111111111111108,
+                0.39999999999999997
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.8333333333333334
+              "consistency": 0.7
             },
             "irish": {
-              "score": 0.40555555555555556,
+              "score": 0.6277777777777778,
               "ci95": [
-                0.3,
-                0.5111111111111112
+                0.5222222222222223,
+                0.7333333333333333
               ],
               "n_items": 60,
               "epochs": 3,
               "consistency": 0.7333333333333333
             },
             "manx": {
-              "score": 0.20555555555555557,
+              "score": 0.46111111111111114,
               "ci95": [
-                0.1277777777777778,
-                0.28888888888888886
+                0.35,
+                0.5722222222222222
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.6833333333333333
+              "consistency": 0.7166666666666667
             },
             "scots-gaelic": {
-              "score": 0.3666666666666666,
+              "score": 0.6555555555555554,
               "ci95": [
-                0.26666666666666666,
-                0.4666666666666667
+                0.5555555555555555,
+                0.7444444444444446
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.65
+            },
+            "welsh": {
+              "score": 0.5388888888888889,
+              "ci95": [
+                0.43333333333333335,
+                0.6444444444444445
               ],
               "n_items": 60,
               "epochs": 3,
               "consistency": 0.6666666666666666
-            },
-            "welsh": {
-              "score": 0.31111111111111106,
-              "ci95": [
-                0.21666666666666665,
-                0.4166666666666667
-              ],
-              "n_items": 60,
-              "epochs": 3,
-              "consistency": 0.7666666666666667
             }
           },
           "by_l1": {
             "none": {
-              "score": 0.274074074074074,
+              "score": 0.5055555555555555,
               "ci95": [
-                0.23518518518518516,
-                0.3111111111111111
+                0.460162037037037,
+                0.5490972222222221
               ],
               "n_items": 360,
               "epochs": 3,
-              "consistency": 0.7444444444444445
+              "consistency": 0.6944444444444444
             }
           },
           "by_phenomenon": {
             "article_gender_mutation": {
-              "score": 0.2688172043010753,
+              "score": 0.7741935483870968,
               "ci95": [
-                0.13978494623655913,
-                0.4086021505376344
+                0.6666666666666665,
+                0.8817204301075269
               ],
               "n_items": 31,
               "epochs": 3,
-              "consistency": 0.8387096774193549
+              "consistency": 0.6129032258064516
             },
             "copula": {
-              "score": 0.5268817204301075,
+              "score": 0.7956989247311828,
               "ci95": [
-                0.3978494623655914,
-                0.6666666666666666
+                0.6774193548387096,
+                0.9032258064516129
               ],
               "n_items": 31,
               "epochs": 3,
-              "consistency": 0.5483870967741935
+              "consistency": 0.7419354838709677
             },
             "noun_genitive": {
-              "score": 0.14814814814814814,
+              "score": 0.48148148148148145,
               "ci95": [
-                0.0,
-                0.2962962962962963
+                0.2222222222222222,
+                0.7407407407407407
               ],
               "n_items": 9,
               "epochs": 3,
-              "consistency": 0.6666666666666666
+              "consistency": 0.5555555555555556
             },
             "noun_plural": {
-              "score": 0.3,
+              "score": 0.5333333333333333,
               "ci95": [
-                0.15555555555555553,
-                0.45555555555555555
+                0.3886111111111115,
+                0.6777777777777777
               ],
               "n_items": 30,
               "epochs": 3,
-              "consistency": 0.8666666666666667
+              "consistency": 0.6333333333333333
             },
             "noun_vocative": {
-              "score": 0.25,
+              "score": 0.9166666666666666,
               "ci95": [
-                0.0,
-                0.5
+                0.7499999999999999,
+                1.0
               ],
               "n_items": 4,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 0.75
             },
             "number_cardinal": {
-              "score": 0.44444444444444436,
+              "score": 0.6333333333333332,
               "ci95": [
-                0.3111111111111111,
-                0.5777777777777777
+                0.4888888888888888,
+                0.7777777777777779
               ],
               "n_items": 30,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 0.7333333333333333
             },
             "number_counting": {
-              "score": 0.5333333333333333,
+              "score": 0.6,
               "ci95": [
-                0.13333333333333333,
-                0.9333333333333332
+                0.2,
+                1.0
               ],
               "n_items": 5,
               "epochs": 3,
-              "consistency": 0.8
+              "consistency": 1.0
             },
             "number_ordinal": {
-              "score": 0.38888888888888895,
+              "score": 0.5777777777777777,
               "ci95": [
-                0.24444444444444444,
-                0.5444444444444444
+                0.4222222222222222,
+                0.7333333333333333
               ],
               "n_items": 30,
               "epochs": 3,
-              "consistency": 0.7
+              "consistency": 0.7333333333333333
             },
             "number_personal": {
-              "score": 0.5185185185185185,
+              "score": 0.7037037037037037,
               "ci95": [
-                0.2222222222222222,
-                0.7777777777777778
+                0.5185185185185185,
+                0.8888888888888888
               ],
               "n_items": 9,
               "epochs": 3,
-              "consistency": 0.6666666666666666
+              "consistency": 0.4444444444444444
             },
             "prepositional_pronoun": {
-              "score": 0.2857142857142857,
+              "score": 0.4404761904761905,
               "ci95": [
-                0.15476190476190474,
-                0.4166666666666667
+                0.2857142857142857,
+                0.5833333333333333
               ],
               "n_items": 28,
               "epochs": 3,
-              "consistency": 0.6428571428571429
+              "consistency": 0.6071428571428571
             },
             "verb_conditional": {
-              "score": 0.014492753623188404,
+              "score": 0.14492753623188406,
               "ci95": [
-                0.0,
-                0.043478260869565216
+                0.05797101449275362,
+                0.23188405797101452
               ],
               "n_items": 23,
               "epochs": 3,
-              "consistency": 0.9565217391304348
+              "consistency": 0.6521739130434783
             },
             "verb_future": {
-              "score": 0.17391304347826086,
+              "score": 0.391304347826087,
               "ci95": [
-                0.043478260869565216,
-                0.3188405797101449
+                0.21739130434782605,
+                0.5652173913043478
               ],
               "n_items": 23,
               "epochs": 3,
-              "consistency": 0.8260869565217391
+              "consistency": 0.782608695652174
             },
             "verb_futureIndicative": {
               "score": 0.0,
@@ -1388,34 +1495,34 @@
               "consistency": 1.0
             },
             "verb_imperative": {
-              "score": 0.2839506172839506,
+              "score": 0.5308641975308642,
               "ci95": [
-                0.14814814814814814,
-                0.43209876543209874
+                0.35802469135802467,
+                0.7037037037037036
               ],
               "n_items": 27,
               "epochs": 3,
-              "consistency": 0.7037037037037037
+              "consistency": 0.8148148148148148
             },
             "verb_imperfect": {
-              "score": 0.023809523809523808,
+              "score": 0.14285714285714285,
               "ci95": [
-                0.0,
-                0.07142857142857142
+                0.047619047619047616,
+                0.2619047619047619
               ],
               "n_items": 14,
               "epochs": 3,
-              "consistency": 0.9285714285714286
+              "consistency": 0.6428571428571429
             },
             "verb_past": {
-              "score": 0.13636363636363635,
+              "score": 0.34848484848484856,
               "ci95": [
-                0.045454545454545456,
-                0.25757575757575757
+                0.19696969696969696,
+                0.5
               ],
               "n_items": 22,
               "epochs": 3,
-              "consistency": 0.7727272727272727
+              "consistency": 0.5909090909090909
             },
             "verb_pastConditional": {
               "score": 0.0,
@@ -1428,14 +1535,14 @@
               "consistency": 1.0
             },
             "verb_pastParticiple": {
-              "score": 0.5833333333333334,
+              "score": 0.8333333333333333,
               "ci95": [
-                0.16666666666666666,
+                0.6666666666666666,
                 1.0
               ],
               "n_items": 4,
               "epochs": 3,
-              "consistency": 0.75
+              "consistency": 0.5
             },
             "verb_pluperfect": {
               "score": 0.0,
@@ -1448,108 +1555,610 @@
               "consistency": 1.0
             },
             "verb_present": {
-              "score": 0.20289855072463767,
+              "score": 0.49275362318840576,
               "ci95": [
-                0.07246376811594202,
-                0.34782608695652173
+                0.3188405797101449,
+                0.6666666666666666
               ],
               "n_items": 23,
               "epochs": 3,
-              "consistency": 0.7391304347826086
+              "consistency": 0.6956521739130435
             },
             "verb_preterite": {
-              "score": 0.0,
+              "score": 0.06666666666666667,
               "ci95": [
                 0.0,
-                0.0
+                0.2
               ],
               "n_items": 5,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.8
             }
           },
           "by_cefr": {
             "A1": {
-              "score": 0.4104477611940298,
+              "score": 0.6318407960199004,
               "ci95": [
-                0.34328358208955223,
-                0.47512437810945274
+                0.5621890547263682,
+                0.6990049751243781
               ],
               "n_items": 134,
               "epochs": 3,
-              "consistency": 0.6194029850746269
+              "consistency": 0.7238805970149254
             },
             "A2": {
-              "score": 0.23809523809523805,
+              "score": 0.45476190476190476,
               "ci95": [
-                0.18095238095238095,
-                0.3
+                0.3880952380952381,
+                0.5285714285714286
               ],
               "n_items": 140,
               "epochs": 3,
-              "consistency": 0.7785714285714286
+              "consistency": 0.6857142857142857
             },
             "B1": {
-              "score": 0.017094017094017092,
+              "score": 0.1367521367521367,
               "ci95": [
-                0.0,
-                0.04273504273504273
+                0.07692307692307693,
+                0.2051282051282051
               ],
               "n_items": 39,
               "epochs": 3,
-              "consistency": 0.9487179487179487
+              "consistency": 0.6666666666666666
             },
             "B2": {
-              "score": 0.08333333333333333,
+              "score": 0.2708333333333333,
               "ci95": [
-                0.0,
-                0.1875
+                0.08333333333333333,
+                0.4583333333333333
               ],
               "n_items": 16,
               "epochs": 3,
-              "consistency": 0.8125
+              "consistency": 0.75
             },
             "unspecified": {
-              "score": 0.2688172043010753,
+              "score": 0.7741935483870968,
               "ci95": [
-                0.13978494623655913,
-                0.4193548387096774
+                0.6666666666666667,
+                0.8709677419354839
               ],
               "n_items": 31,
               "epochs": 3,
-              "consistency": 0.8387096774193549
+              "consistency": 0.6129032258064516
             }
           },
           "by_evidence": {
             "blas-app+bunamo": {
-              "score": 0.3333333333333333,
+              "score": 0.5151515151515151,
               "ci95": [
-                0.1212121212121212,
-                0.606060606060606
+                0.2727272727272727,
+                0.7878787878787878
               ],
               "n_items": 11,
               "epochs": 3,
               "consistency": 0.7272727272727273
             },
             "blas-app+kaikki": {
-              "score": 0.25946969696969696,
+              "score": 0.46780303030303033,
               "ci95": [
-                0.20643939393939392,
-                0.3125
+                0.4034090909090909,
+                0.5303503787878786
               ],
               "n_items": 176,
               "epochs": 3,
-              "consistency": 0.7329545454545454
+              "consistency": 0.6931818181818182
             },
             "blas-app-only": {
-              "score": 0.28516377649325625,
+              "score": 0.5433526011560693,
               "ci95": [
-                0.2292870905587669,
-                0.34489402697495175
+                0.4816955684007707,
+                0.6011560693641619
               ],
               "n_items": 173,
               "epochs": 3,
-              "consistency": 0.7572254335260116
+              "consistency": 0.6936416184971098
+            }
+          },
+          "by_language_phenomenon": {
+            "breton": {
+              "article_gender_mutation": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.26666666666666666,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "copula": {
+                "score": 0.9333333333333332,
+                "ci95": [
+                  0.7999999999999999,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "noun_plural": {
+                "score": 0.6666666666666667,
+                "ci95": [
+                  0.26666666666666666,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "number_cardinal": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "number_ordinal": {
+                "score": 0.5999999999999999,
+                "ci95": [
+                  0.26666666666666666,
+                  0.8666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "prepositional_pronoun": {
+                "score": 0.4,
+                "ci95": [
+                  0.13333333333333333,
+                  0.6666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "verb_conditional": {
+                "score": 0.13333333333333333,
+                "ci95": [
+                  0.0,
+                  0.26666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_future": {
+                "score": 0.26666666666666666,
+                "ci95": [
+                  0.0,
+                  0.6666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              }
+            },
+            "cornish": {
+              "article_gender_mutation": {
+                "score": 0.7222222222222222,
+                "ci95": [
+                  0.5555555555555555,
+                  0.8888888888888888
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.3333333333333333
+              },
+              "copula": {
+                "score": 0.9444444444444445,
+                "ci95": [
+                  0.8333333333333334,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.8333333333333334
+              },
+              "noun_plural": {
+                "score": 0.4444444444444444,
+                "ci95": [
+                  0.16666666666666666,
+                  0.7222222222222223
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.5
+              },
+              "number_cardinal": {
+                "score": 0.16666666666666666,
+                "ci95": [
+                  0.0,
+                  0.38888888888888884
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "number_ordinal": {
+                "score": 0.27777777777777773,
+                "ci95": [
+                  0.05555555555555555,
+                  0.611111111111111
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "prepositional_pronoun": {
+                "score": 0.13333333333333333,
+                "ci95": [
+                  0.0,
+                  0.26666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_future": {
+                "score": 0.06666666666666667,
+                "ci95": [
+                  0.0,
+                  0.2
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_imperative": {
+                "score": 0.2,
+                "ci95": [
+                  0.0,
+                  0.6
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_imperfect": {
+                "score": 0.06666666666666667,
+                "ci95": [
+                  0.0,
+                  0.2
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_past": {
+                "score": 0.06666666666666667,
+                "ci95": [
+                  0.0,
+                  0.2
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_present": {
+                "score": 0.06666666666666667,
+                "ci95": [
+                  0.0,
+                  0.2
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              }
+            },
+            "manx": {
+              "article_gender_mutation": {
+                "score": 0.7222222222222222,
+                "ci95": [
+                  0.5555555555555555,
+                  0.8888888888888888
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.3333333333333333
+              },
+              "copula": {
+                "score": 0.8888888888888888,
+                "ci95": [
+                  0.7777777777777777,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "noun_plural": {
+                "score": 0.4,
+                "ci95": [
+                  0.0,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "number_cardinal": {
+                "score": 0.4666666666666666,
+                "ci95": [
+                  0.13333333333333333,
+                  0.7999999999999999
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "number_ordinal": {
+                "score": 0.4,
+                "ci95": [
+                  0.0,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "prepositional_pronoun": {
+                "score": 0.3333333333333333,
+                "ci95": [
+                  0.06666666666666667,
+                  0.6666666666666667
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_conditional": {
+                "score": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_future": {
+                "score": 0.26666666666666666,
+                "ci95": [
+                  0.0,
+                  0.6
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_imperative": {
+                "score": 0.4666666666666667,
+                "ci95": [
+                  0.06666666666666667,
+                  0.8666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_past": {
+                "score": 0.4666666666666666,
+                "ci95": [
+                  0.13333333333333333,
+                  0.7999999999999999
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_present": {
+                "score": 0.7999999999999999,
+                "ci95": [
+                  0.6666666666666666,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              }
+            },
+            "scots-gaelic": {
+              "article_gender_mutation": {
+                "score": 0.6,
+                "ci95": [
+                  0.3333333333333333,
+                  0.8666666666666668
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "copula": {
+                "score": 0.4,
+                "ci95": [
+                  0.0,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "noun_genitive": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "noun_plural": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "number_cardinal": {
+                "score": 0.7333333333333333,
+                "ci95": [
+                  0.3333333333333333,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "number_ordinal": {
+                "score": 0.7333333333333333,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "number_personal": {
+                "score": 0.5999999999999999,
+                "ci95": [
+                  0.39999999999999997,
+                  0.8
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.2
+              }
+            },
+            "welsh": {
+              "article_gender_mutation": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "copula": {
+                "score": 0.5999999999999999,
+                "ci95": [
+                  0.39999999999999997,
+                  0.8666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.2
+              },
+              "noun_plural": {
+                "score": 0.6666666666666667,
+                "ci95": [
+                  0.39999999999999997,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "number_cardinal": {
+                "score": 0.9333333333333332,
+                "ci95": [
+                  0.7999999999999999,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "number_ordinal": {
+                "score": 1.0,
+                "ci95": [
+                  1.0,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "prepositional_pronoun": {
+                "score": 0.6666666666666667,
+                "ci95": [
+                  0.39999999999999997,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "verb_conditional": {
+                "score": 0.26666666666666666,
+                "ci95": [
+                  0.06666666666666667,
+                  0.4666666666666667
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.4
+              },
+              "verb_imperative": {
+                "score": 0.4666666666666667,
+                "ci95": [
+                  0.06666666666666667,
+                  0.8666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "verb_imperfect": {
+                "score": 0.13333333333333333,
+                "ci95": [
+                  0.0,
+                  0.26666666666666666
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_pluperfect": {
+                "score": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_present": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.3333333333333333,
+                  0.9333333333333332
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.6
+              },
+              "verb_preterite": {
+                "score": 0.06666666666666667,
+                "ci95": [
+                  0.0,
+                  0.2
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              }
             }
           },
           "failure_examples": [
@@ -1561,18 +2170,7 @@
               "phenomenon": "verb_present",
               "input": "Language: Breton\nTask: Give the present form of the verb for the person given. Write one word: the inflected verb form, with no pronoun, particle or auxiliary.\nVerb: kregiñ\nMeaning: to start\nTense: present\nPerson: 2nd person plural (several people addressed)\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
               "expected": "krogit",
-              "output": "",
-              "score": 0.0
-            },
-            {
-              "id": "blas-morph:cornish:noun_plural:kw-decl-breselores",
-              "public": true,
-              "language": "cornish",
-              "l1": "none",
-              "phenomenon": "noun_plural",
-              "input": "Language: Cornish\nTask: Give the plural (nominative plural) of the noun below.\nNoun: breselores\nMeaning: militant\nGender: feminine\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
-              "expected": "breseloresow",
-              "output": "",
+              "output": "ANSWER: kregit",
               "score": 0.0
             },
             {
@@ -1583,6 +2181,17 @@
               "phenomenon": "number_cardinal",
               "input": "Language: Cornish\nTask: Give the cardinal numeral for the number below: the standalone numeral, the form used to name the number (SWF Main).\nNumber: 17 (seventeen)\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
               "expected": "seytek",
+              "output": "",
+              "score": 0.0
+            },
+            {
+              "id": "blas-morph:cornish:verb_imperative:kw-verb-bos:2p",
+              "public": true,
+              "language": "cornish",
+              "l1": "none",
+              "phenomenon": "verb_imperative",
+              "input": "Language: Cornish\nTask: Give the imperative form of the verb for the person given. Write one word: the inflected verb form, with no pronoun, particle or auxiliary.\nVerb: bos\nMeaning: to be\nTense: imperative\nPerson: 2nd person plural (several people addressed)\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
+              "expected": "bedhewgh",
               "output": "",
               "score": 0.0
             }
@@ -1598,24 +2207,25 @@
           "first_error": null,
           "n_items_dataset": 240,
           "n_errors": 0,
-          "score": 0.3661979348084939,
+          "n_truncated_item_epochs": 45,
+          "score": 0.5216161907202618,
           "ci95": [
-            0.3262992749167429,
-            0.40665704906538647
+            0.48751920980629915,
+            0.5535858189749158
           ],
           "n_items": 240,
           "epochs": 3,
-          "consistency": 0.3,
-          "cost_usd": 0.6863267,
-          "cost_per_correct_usd": 0.0026030499824535543,
+          "consistency": 0.07916666666666666,
+          "cost_usd": 1.93676944,
+          "cost_per_correct_usd": 0.00515696714061193,
           "cost": {
             "candidate": {
-              "calls": 1330,
-              "input_tokens": 161616,
-              "output_tokens": 1408690,
+              "calls": 1942,
+              "input_tokens": 236125,
+              "output_tokens": 4045427,
               "cache_read_tokens": 0,
               "cache_write_tokens": 0,
-              "cost_usd": 0.6863267
+              "cost_usd": 1.93676944
             },
             "judge": {
               "calls": 0,
@@ -1629,60 +2239,60 @@
           "n_human_checked": 0,
           "by_language": {
             "breton": {
-              "score": 0.2816423828908624,
+              "score": 0.5016112661752963,
               "ci95": [
-                0.21318999959896343,
-                0.35783751500043626
+                0.4444220924189231,
+                0.5647578965064848
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.0
+            },
+            "cornish": {
+              "score": 0.31225871925682375,
+              "ci95": [
+                0.25195744330887637,
+                0.37041023273903106
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.05
+            },
+            "irish": {
+              "score": 0.6546545278780238,
+              "ci95": [
+                0.5989840942922087,
+                0.7097640457237733
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.05
+            },
+            "manx": {
+              "score": 0.2166547034377057,
+              "ci95": [
+                0.18364208576162924,
+                0.2517348638189152
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.025
+            },
+            "scots-gaelic": {
+              "score": 0.6918678290609488,
+              "ci95": [
+                0.6339193541789938,
+                0.7524587964573806
               ],
               "n_items": 40,
               "epochs": 3,
               "consistency": 0.175
             },
-            "cornish": {
-              "score": 0.08759818790049038,
-              "ci95": [
-                0.057204791384425704,
-                0.11914795016846554
-              ],
-              "n_items": 40,
-              "epochs": 3,
-              "consistency": 0.4
-            },
-            "irish": {
-              "score": 0.5718183458254333,
-              "ci95": [
-                0.5002797132741866,
-                0.645413943293908
-              ],
-              "n_items": 40,
-              "epochs": 3,
-              "consistency": 0.075
-            },
-            "manx": {
-              "score": 0.036559721070222914,
-              "ci95": [
-                0.01596546544985437,
-                0.06323065157723781
-              ],
-              "n_items": 40,
-              "epochs": 3,
-              "consistency": 0.75
-            },
-            "scots-gaelic": {
-              "score": 0.5655318428106042,
-              "ci95": [
-                0.4743228316023782,
-                0.6508753618035013
-              ],
-              "n_items": 40,
-              "epochs": 3,
-              "consistency": 0.225
-            },
             "welsh": {
-              "score": 0.6540371283533502,
+              "score": 0.752650098512772,
               "ci95": [
-                0.5870300386018117,
-                0.7228934235799641
+                0.7058030290405047,
+                0.7980573379134006
               ],
               "n_items": 40,
               "epochs": 3,
@@ -1691,84 +2301,84 @@
           },
           "by_l1": {
             "none": {
-              "score": 0.3661979348084939,
+              "score": 0.5216161907202618,
               "ci95": [
-                0.32644817614103167,
-                0.40838243205319535
+                0.4885038480258259,
+                0.5562234657088583
               ],
               "n_items": 240,
               "epochs": 3,
-              "consistency": 0.3
+              "consistency": 0.07916666666666666
             }
           },
           "by_phenomenon": {
             "round_trip": {
-              "score": 0.3661979348084939,
+              "score": 0.5216161907202618,
               "ci95": [
-                0.3259241495808118,
-                0.4064120174743392
+                0.4893544210141339,
+                0.5546545448851561
               ],
               "n_items": 240,
               "epochs": 3,
-              "consistency": 0.3
+              "consistency": 0.07916666666666666
             }
           },
           "by_cefr": {
             "A1": {
-              "score": 0.41126600908798916,
+              "score": 0.5040312848591673,
               "ci95": [
-                0.27308066051967006,
-                0.5542132098109039
+                0.39077335000769514,
+                0.6175372552642844
               ],
               "n_items": 25,
               "epochs": 3,
-              "consistency": 0.44
+              "consistency": 0.16
             },
             "A2": {
-              "score": 0.3881692586012957,
+              "score": 0.5439692675758501,
               "ci95": [
-                0.3238019933114602,
-                0.4522712844245986
+                0.4926186897773221,
+                0.5959216923365094
               ],
               "n_items": 88,
               "epochs": 3,
-              "consistency": 0.22727272727272727
+              "consistency": 0.09090909090909091
             },
             "B1": {
-              "score": 0.30002224361575247,
+              "score": 0.4797907533495699,
               "ci95": [
-                0.23531806845361886,
-                0.370589418134686
+                0.4253648733896271,
+                0.5375675627817904
               ],
               "n_items": 79,
               "epochs": 3,
-              "consistency": 0.3291139240506329
+              "consistency": 0.06329113924050633
             },
             "B2": {
-              "score": 0.30954994682310827,
+              "score": 0.4481092286274933,
               "ci95": [
-                0.18442576112954315,
-                0.44740725093772216
+                0.3415668564086358,
+                0.5593289490886061
               ],
               "n_items": 27,
               "epochs": 3,
-              "consistency": 0.5185185185185185
+              "consistency": 0.07407407407407407
             },
             "C1": {
-              "score": 0.5025792420835632,
+              "score": 0.656454705740932,
               "ci95": [
-                0.38734543045386766,
-                0.6184327076642065
+                0.5685567751890965,
+                0.7402984195530111
               ],
               "n_items": 15,
               "epochs": 3,
-              "consistency": 0.06666666666666667
+              "consistency": 0.0
             },
             "C2": {
-              "score": 0.641444154800494,
+              "score": 0.8114281385060854,
               "ci95": [
-                0.44981743698887705,
-                0.7949214622001642
+                0.7334995364642559,
+                0.8771681864145717
               ],
               "n_items": 6,
               "epochs": 3,
@@ -1777,48 +2387,122 @@
           },
           "by_evidence": {
             "blas-app+kaikki": {
-              "score": 0.5501950099826258,
+              "score": 0.6751821514230869,
               "ci95": [
-                0.4708799738898272,
-                0.6230781378125388
+                0.6186147708911816,
+                0.7268195353308646
               ],
               "n_items": 64,
               "epochs": 3,
-              "consistency": 0.1875
+              "consistency": 0.109375
             },
             "blas-app-only": {
-              "score": 0.36155217793478583,
+              "score": 0.5109255831728846,
               "ci95": [
-                0.3096603350231751,
-                0.4129978035206779
+                0.4681878418162,
+                0.5539515196055098
               ],
               "n_items": 136,
               "epochs": 3,
-              "consistency": 0.3235294117647059
+              "consistency": 0.07352941176470588
             },
             "blas-app-unverified": {
-              "score": 0.08759818790049038,
+              "score": 0.31225871925682375,
               "ci95": [
-                0.05800076777015751,
-                0.12110386163435406
+                0.25152658591796956,
+                0.375862140145858
               ],
               "n_items": 40,
               "epochs": 3,
-              "consistency": 0.4
+              "consistency": 0.05
+            }
+          },
+          "by_language_phenomenon": {
+            "breton": {
+              "round_trip": {
+                "score": 0.5016112661752963,
+                "ci95": [
+                  0.44436641298328805,
+                  0.5626807490541367
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.0
+              }
+            },
+            "cornish": {
+              "round_trip": {
+                "score": 0.31225871925682375,
+                "ci95": [
+                  0.25643197624939673,
+                  0.3781608931783242
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.05
+              }
+            },
+            "irish": {
+              "round_trip": {
+                "score": 0.6546545278780238,
+                "ci95": [
+                  0.6007729187486452,
+                  0.7061357157110707
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.05
+              }
+            },
+            "manx": {
+              "round_trip": {
+                "score": 0.2166547034377057,
+                "ci95": [
+                  0.18504758298489493,
+                  0.25010634377430524
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.025
+              }
+            },
+            "scots-gaelic": {
+              "round_trip": {
+                "score": 0.6918678290609488,
+                "ci95": [
+                  0.6299059780190254,
+                  0.7505279093115615
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.175
+              }
+            },
+            "welsh": {
+              "round_trip": {
+                "score": 0.752650098512772,
+                "ci95": [
+                  0.7044507101060101,
+                  0.79896395956122
+                ],
+                "n_items": 40,
+                "epochs": 3,
+                "consistency": 0.175
+              }
             }
           },
           "failure_examples": [
             {
-              "id": "blas-round_trip-breton-br-sent-0288",
+              "id": "blas-round_trip-manx-gv-sent-parallel-4693",
               "public": true,
-              "language": "breton",
+              "language": "manx",
               "l1": "none",
               "phenomenon": "round_trip",
-              "input": "Translate this Breton sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nBreton: Hennezh n'eo ket ma c'hazh. Ma hini a zo gwenn e dreid.\n",
-              "expected": "Hennezh n'eo ket ma c'hazh. Ma hini a zo gwenn e dreid.",
+              "input": "Translate this Manx sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nManx: Va mee sheiltyn dy darragh eh.\n",
+              "expected": "Va mee sheiltyn dy darragh eh.",
               "output": "",
               "score": 0.0,
-              "pivot_text": "This is not my cat. Mine has white paws."
+              "pivot_text": "I thought it happened."
             },
             {
               "id": "blas-round_trip-cornish-kw-sent-tat-0552",
@@ -1828,21 +2512,21 @@
               "phenomenon": "round_trip",
               "input": "Translate this Cornish sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nCornish: Mar pe dy’Sul hedhyw, ni a wrussa mos dhe byskessa.\n",
               "expected": "Mar pe dy’Sul hedhyw, ni a wrussa mos dhe byskessa.",
-              "output": "",
-              "score": 0.0,
+              "output": "Os o Dehow hedhyu, gwynsen ni myghi.",
+              "score": 0.13570136975460162,
               "pivot_text": "If today were Sunday, we would go fishing."
             },
             {
-              "id": "blas-round_trip-cornish-kw-sent-tat-2363",
+              "id": "blas-round_trip-cornish-kw-sent-tat-1830",
               "public": true,
               "language": "cornish",
               "l1": "none",
               "phenomenon": "round_trip",
-              "input": "Translate this Cornish sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nCornish: My re bia owth oberi ena rag tri mis.\n",
-              "expected": "My re bia owth oberi ena rag tri mis.",
-              "output": "",
-              "score": 0.0,
-              "pivot_text": ""
+              "input": "Translate this Cornish sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nCornish: Kas yw genev an traow na.\n",
+              "expected": "Kas yw genev an traow na.",
+              "output": "My a gas an re na.",
+              "score": 0.19931737714618852,
+              "pivot_text": "I hate those things."
             }
           ]
         },
@@ -1856,24 +2540,25 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
-          "score": 0.448088965563325,
+          "n_truncated_item_epochs": 46,
+          "score": 0.5693505794612239,
           "ci95": [
-            0.41278161193637125,
-            0.48410409285039785
+            0.5415692934222182,
+            0.5989860220806028
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.33611111111111114,
-          "cost_usd": 0.60991613,
-          "cost_per_correct_usd": 0.0012603237321352815,
+          "consistency": 0.19722222222222222,
+          "cost_usd": 1.63495945,
+          "cost_per_correct_usd": 0.002658908934500689,
           "cost": {
             "candidate": {
-              "calls": 1080,
-              "input_tokens": 138540,
-              "output_tokens": 1253479,
+              "calls": 1446,
+              "input_tokens": 185077,
+              "output_tokens": 3419570,
               "cache_read_tokens": 0,
               "cache_write_tokens": 0,
-              "cost_usd": 0.60991613
+              "cost_usd": 1.63495945
             },
             "judge": {
               "calls": 0,
@@ -1887,222 +2572,386 @@
           "n_human_checked": 0,
           "by_language": {
             "breton": {
-              "score": 0.44002191129456575,
+              "score": 0.582588879542534,
               "ci95": [
-                0.3541994570849642,
-                0.523036435737534
+                0.5179798348623251,
+                0.6481743123842311
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.4166666666666667
+              "consistency": 0.26666666666666666
             },
             "cornish": {
-              "score": 0.3474062291898981,
+              "score": 0.4828216022224723,
               "ci95": [
-                0.26365025632052297,
-                0.43075224492443964
+                0.4160389434182518,
+                0.5486105762221697
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.3333333333333333
+              "consistency": 0.16666666666666666
             },
             "irish": {
-              "score": 0.5312555287492744,
+              "score": 0.6490274731840551,
               "ci95": [
-                0.44390626045463455,
-                0.6127903282036347
+                0.5872540675040027,
+                0.7058835686821712
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.3
+              "consistency": 0.21666666666666667
             },
             "manx": {
-              "score": 0.10542839781868442,
+              "score": 0.2452633775354857,
               "ci95": [
-                0.07024425590578076,
-                0.1424394836337558
+                0.2137861144857222,
+                0.278672887946894
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.43333333333333335
+              "consistency": 0.03333333333333333
             },
             "scots-gaelic": {
-              "score": 0.6795397529884953,
+              "score": 0.7494844105372164,
               "ci95": [
-                0.6040000562634443,
-                0.7507229936467142
+                0.6931197528176545,
+                0.8058745685438766
               ],
               "n_items": 60,
               "epochs": 3,
               "consistency": 0.38333333333333336
             },
             "welsh": {
-              "score": 0.5848819733390321,
+              "score": 0.7069177337455802,
               "ci95": [
-                0.5132256570793813,
-                0.6496651691090993
+                0.6635913219970269,
+                0.7476717254190529
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.15
+              "consistency": 0.11666666666666667
             }
           },
           "by_l1": {
             "none": {
-              "score": 0.448088965563325,
+              "score": 0.5693505794612239,
               "ci95": [
-                0.4119238941496906,
-                0.4846463175979884
+                0.5418629504067186,
+                0.5986123931336722
               ],
               "n_items": 360,
               "epochs": 3,
-              "consistency": 0.33611111111111114
+              "consistency": 0.19722222222222222
             }
           },
           "by_phenomenon": {
             "from_english": {
-              "score": 0.31709040640841396,
+              "score": 0.46670634393070515,
               "ci95": [
-                0.2710186943336707,
-                0.3631978123460954
+                0.42496197094821697,
+                0.5079566815010038
               ],
               "n_items": 150,
               "epochs": 3,
-              "consistency": 0.28
+              "consistency": 0.08
             },
             "legal_or_administrative": {
-              "score": 0.36248371980706323,
+              "score": 0.582472150139886,
               "ci95": [
-                0.29224494020001973,
-                0.4281023849501164
+                0.5370702812715129,
+                0.6290025944252893
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.25
+              "consistency": 0.016666666666666666
             },
             "to_english": {
-              "score": 0.6133296230207408,
+              "score": 0.6667461867202779,
               "ci95": [
-                0.5580557482621207,
-                0.6699925254887497
+                0.6195632664381284,
+                0.7140732438089592
               ],
               "n_items": 150,
               "epochs": 3,
-              "consistency": 0.4266666666666667
+              "consistency": 0.38666666666666666
             }
           },
           "by_cefr": {
             "A1": {
-              "score": 0.5297899370583588,
+              "score": 0.6163389839273333,
               "ci95": [
-                0.4653514430185368,
-                0.5950358607405353
+                0.5604920424605322,
+                0.6733957833623274
               ],
               "n_items": 112,
               "epochs": 3,
-              "consistency": 0.4017857142857143
+              "consistency": 0.3392857142857143
             },
             "A2": {
-              "score": 0.4129271774918364,
+              "score": 0.5247373584374603,
               "ci95": [
-                0.34323086761368937,
-                0.4796269487905292
+                0.4686136713683765,
+                0.5803958437835556
               ],
               "n_items": 91,
               "epochs": 3,
-              "consistency": 0.2967032967032967
+              "consistency": 0.1978021978021978
             },
             "B1": {
-              "score": 0.4287030907990012,
+              "score": 0.5254358130852729,
               "ci95": [
-                0.32911954799515425,
-                0.534657029267931
+                0.44523932884270057,
+                0.6100191246875288
               ],
               "n_items": 47,
               "epochs": 3,
-              "consistency": 0.40425531914893614
+              "consistency": 0.19148936170212766
             },
             "B2": {
-              "score": 0.3445190934986085,
+              "score": 0.48899141045781674,
               "ci95": [
-                0.22004376878944729,
-                0.4650326396715707
+                0.3743078802959995,
+                0.588545505546579
               ],
               "n_items": 30,
               "epochs": 3,
-              "consistency": 0.4
+              "consistency": 0.06666666666666667
             },
             "C1": {
-              "score": 0.5903161729391851,
+              "score": 0.6966846926105122,
               "ci95": [
-                0.44625815903212207,
-                0.730622535199615
+                0.5813953076762313,
+                0.7926756639203435
               ],
               "n_items": 14,
               "epochs": 3,
               "consistency": 0.14285714285714285
             },
             "C2": {
-              "score": 0.6501856364033373,
+              "score": 0.6863337591146225,
               "ci95": [
-                0.5622592388405715,
-                0.7316335906033254
+                0.6074394205129674,
+                0.7497441120520193
               ],
               "n_items": 6,
               "epochs": 3,
               "consistency": 0.16666666666666666
             },
             "unspecified": {
-              "score": 0.36248371980706323,
+              "score": 0.582472150139886,
               "ci95": [
-                0.2923083276305492,
-                0.4346861895097384
+                0.5369110056275801,
+                0.6282669120571622
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.25
+              "consistency": 0.016666666666666666
             }
           },
           "by_evidence": {
             "blas-app+kaikki": {
-              "score": 0.4593507819819917,
+              "score": 0.5819374704944953,
               "ci95": [
-                0.3755270308509476,
-                0.5433884611571458
+                0.5071222601750863,
+                0.6578875325610678
               ],
               "n_items": 44,
               "epochs": 3,
-              "consistency": 0.20454545454545456
+              "consistency": 0.1590909090909091
             },
             "blas-app-only": {
-              "score": 0.5025877359988352,
+              "score": 0.5889966059313333,
               "ci95": [
-                0.4523805181634817,
-                0.552267355308491
+                0.5468100922841153,
+                0.6304358171279318
               ],
               "n_items": 196,
               "epochs": 3,
-              "consistency": 0.39285714285714285
+              "consistency": 0.27040816326530615
             },
             "blas-app-unverified": {
-              "score": 0.3474062291898981,
+              "score": 0.4828216022224723,
               "ci95": [
-                0.26296742096530984,
-                0.4297999930221468
+                0.4157684267716123,
+                0.5466968645798612
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.3333333333333333
+              "consistency": 0.16666666666666666
             },
             "corpus-reference": {
-              "score": 0.36248371980706323,
+              "score": 0.582472150139886,
               "ci95": [
-                0.292243672474864,
-                0.4352901750157141
+                0.5352737138856607,
+                0.6277292304793722
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.25
+              "consistency": 0.016666666666666666
+            }
+          },
+          "by_language_phenomenon": {
+            "breton": {
+              "from_english": {
+                "score": 0.49005896717495673,
+                "ci95": [
+                  0.39623732420191865,
+                  0.5842765373906669
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.05
+              },
+              "legal_or_administrative": {
+                "score": 0.4834404247673799,
+                "ci95": [
+                  0.4112361637566772,
+                  0.5586236743846378
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.05
+              },
+              "to_english": {
+                "score": 0.7742672466852649,
+                "ci95": [
+                  0.659178060830245,
+                  0.8843825170365028
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.7
+              }
+            },
+            "cornish": {
+              "from_english": {
+                "score": 0.2875801618163313,
+                "ci95": [
+                  0.23728492811302998,
+                  0.3386873852312843
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.0
+              },
+              "to_english": {
+                "score": 0.6780630426286133,
+                "ci95": [
+                  0.594765005865835,
+                  0.7576971862577458
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.3333333333333333
+              }
+            },
+            "irish": {
+              "from_english": {
+                "score": 0.5928960401182464,
+                "ci95": [
+                  0.4850427641771984,
+                  0.7040054827760636
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.15
+              },
+              "legal_or_administrative": {
+                "score": 0.5343811913320642,
+                "ci95": [
+                  0.47520765056210884,
+                  0.5993092761771314
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.0
+              },
+              "to_english": {
+                "score": 0.8198051881018547,
+                "ci95": [
+                  0.7467671559792972,
+                  0.8896467525913712
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.5
+              }
+            },
+            "manx": {
+              "from_english": {
+                "score": 0.22609063351649616,
+                "ci95": [
+                  0.18707483931470936,
+                  0.267954330365572
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.0
+              },
+              "to_english": {
+                "score": 0.2644361215544753,
+                "ci95": [
+                  0.21088144319115204,
+                  0.3160150253486193
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.06666666666666667
+              }
+            },
+            "scots-gaelic": {
+              "from_english": {
+                "score": 0.6490563834372695,
+                "ci95": [
+                  0.5615196664441818,
+                  0.7358667774339577
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.2
+              },
+              "to_english": {
+                "score": 0.8499124376371634,
+                "ci95": [
+                  0.7865034068707439,
+                  0.9064520451863005
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.5666666666666667
+              }
+            },
+            "welsh": {
+              "from_english": {
+                "score": 0.6732518040319404,
+                "ci95": [
+                  0.6168656700774906,
+                  0.7262719151145357
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.1
+              },
+              "legal_or_administrative": {
+                "score": 0.7295948343202138,
+                "ci95": [
+                  0.6684464385221198,
+                  0.7903141964924009
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.0
+              },
+              "to_english": {
+                "score": 0.7179065628845867,
+                "ci95": [
+                  0.624846794166366,
+                  0.8026134502998812
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.25
+              }
             }
           },
           "failure_examples": [
@@ -2114,30 +2963,30 @@
               "phenomenon": "from_english",
               "input": "Translate this English sentence into Cornish.\nReply with the Cornish translation only, on one line, with no notes or explanation.\n\nEnglish: Do you like dogs?\n",
               "expected": "Yw da genes keun?",
-              "output": "",
-              "score": 0.0
+              "output": "A gar'ta ky?",
+              "score": 0.06394675925925926
             },
             {
-              "id": "blas-translation-cornish-kw-sent-tat-2332-from_english",
-              "public": true,
-              "language": "cornish",
-              "l1": "none",
-              "phenomenon": "from_english",
-              "input": "Translate this English sentence into Cornish.\nReply with the Cornish translation only, on one line, with no notes or explanation.\n\nEnglish: I was trying to remember the name of the book.\n",
-              "expected": "Yth esen vy owth assaya perthi kov hanow an lyver.",
-              "output": "",
-              "score": 0.0
-            },
-            {
-              "id": "blas-translation-manx-gv-sent-parallel-14165-from_english",
+              "id": "blas-translation-manx-gv-sent-parallel-15295-from_english",
               "public": true,
               "language": "manx",
               "l1": "none",
               "phenomenon": "from_english",
-              "input": "Translate this English sentence into Manx.\nReply with the Manx translation only, on one line, with no notes or explanation.\n\nEnglish: The house has stood a hundred and six years.\n",
-              "expected": "Ta'n thie er hassoo keead blein as shey.",
-              "output": "",
-              "score": 0.0
+              "input": "Translate this English sentence into Manx.\nReply with the Manx translation only, on one line, with no notes or explanation.\n\nEnglish: I shall come back at ten o'clock at the latest.\n",
+              "expected": "Higym er-ash dyn s'anmee na jeih er y chlag.",
+              "output": "Glooym ec feed ayns oyr.",
+              "score": 0.09853430078815832
+            },
+            {
+              "id": "blas-translation-manx-gv-sent-parallel-15649-from_english",
+              "public": true,
+              "language": "manx",
+              "l1": "none",
+              "phenomenon": "from_english",
+              "input": "Translate this English sentence into Manx.\nReply with the Manx translation only, on one line, with no notes or explanation.\n\nEnglish: Have you made my bed?\n",
+              "expected": "Vel shiu er chiartaghey my lhiabbee?",
+              "output": "Vel oo er my gyrvel y ymyd?",
+              "score": 0.15863668191772637
             }
           ]
         },
@@ -2151,24 +3000,25 @@
           "first_error": null,
           "n_items_dataset": 180,
           "n_errors": 0,
-          "score": 0.25555555555555554,
+          "n_truncated_item_epochs": 116,
+          "score": 0.5796296296296297,
           "ci95": [
-            0.20550925925925934,
-            0.3074074074074074
+            0.5185185185185186,
+            0.637037037037037
           ],
           "n_items": 180,
           "epochs": 3,
-          "consistency": 0.7555555555555555,
-          "cost_usd": 0.422400074,
-          "cost_per_correct_usd": 0.0030608701014492755,
+          "consistency": 0.6388888888888888,
+          "cost_usd": 2.011656046,
+          "cost_per_correct_usd": 0.006427016121405752,
           "cost": {
             "candidate": {
-              "calls": 540,
-              "input_tokens": 120469,
-              "output_tokens": 860154,
-              "cache_read_tokens": 3584,
+              "calls": 896,
+              "input_tokens": 201167,
+              "output_tokens": 4215734,
+              "cache_read_tokens": 5376,
               "cache_write_tokens": 0,
-              "cost_usd": 0.422400074
+              "cost_usd": 2.011656046
             },
             "judge": {
               "calls": 0,
@@ -2182,68 +3032,68 @@
           "n_human_checked": 0,
           "by_language": {
             "irish": {
-              "score": 0.3777777777777778,
+              "score": 0.6333333333333333,
               "ci95": [
-                0.27777777777777773,
-                0.4888888888888888
+                0.5333333333333333,
+                0.7388888888888888
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.6833333333333333
+              "consistency": 0.7
             },
             "scots-gaelic": {
-              "score": 0.23333333333333334,
+              "score": 0.5166666666666666,
               "ci95": [
-                0.15555555555555553,
-                0.3222222222222222
+                0.4111111111111111,
+                0.6166666666666667
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.7166666666666667
+              "consistency": 0.6166666666666667
             },
             "welsh": {
-              "score": 0.15555555555555553,
+              "score": 0.5888888888888889,
               "ci95": [
-                0.07777777777777777,
-                0.24444444444444444
+                0.4888888888888889,
+                0.6888888888888888
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.8666666666666667
+              "consistency": 0.6
             }
           },
           "by_l1": {
             "none": {
-              "score": 0.25555555555555554,
+              "score": 0.5796296296296297,
               "ci95": [
-                0.2037037037037037,
-                0.3111111111111111
+                0.5185185185185185,
+                0.637037037037037
               ],
               "n_items": 180,
               "epochs": 3,
-              "consistency": 0.7555555555555555
+              "consistency": 0.6388888888888888
             }
           },
           "by_phenomenon": {
             "application": {
-              "score": 0.0606060606060606,
+              "score": 0.3939393939393939,
               "ci95": [
-                0.0,
-                0.1515151515151515
+                0.18181818181818182,
+                0.606060606060606
               ],
               "n_items": 11,
               "epochs": 3,
-              "consistency": 0.8181818181818182
+              "consistency": 0.45454545454545453
             },
             "clean": {
-              "score": 0.25555555555555554,
+              "score": 0.4888888888888889,
               "ci95": [
-                0.12222222222222222,
-                0.4
+                0.3444444444444444,
+                0.6444444444444444
               ],
               "n_items": 30,
               "epochs": 3,
-              "consistency": 0.8
+              "consistency": 0.7333333333333333
             },
             "clothing": {
               "score": 1.0,
@@ -2256,14 +3106,14 @@
               "consistency": 1.0
             },
             "communication": {
-              "score": 0.0,
+              "score": 0.3333333333333333,
               "ci95": [
                 0.0,
-                0.0
+                0.6666666666666666
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.5
             },
             "comparison": {
               "score": 1.0,
@@ -2296,14 +3146,14 @@
               "consistency": 1.0
             },
             "conjunctions": {
-              "score": 0.6666666666666666,
+              "score": 1.0,
               "ci95": [
-                0.6666666666666666,
-                0.6666666666666666
+                1.0,
+                1.0
               ],
               "n_items": 1,
               "epochs": 3,
-              "consistency": 0.0
+              "consistency": 1.0
             },
             "conversation": {
               "score": 1.0,
@@ -2316,14 +3166,14 @@
               "consistency": 1.0
             },
             "copula": {
-              "score": 0.16666666666666666,
+              "score": 1.0,
               "ci95": [
-                0.0,
-                0.3333333333333333
+                1.0,
+                1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 1.0
             },
             "daily_life": {
               "score": 1.0,
@@ -2336,50 +3186,50 @@
               "consistency": 1.0
             },
             "declension": {
-              "score": 0.3333333333333333,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
+                0.3333333333333333,
                 1.0
               ],
               "n_items": 3,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.3333333333333333
             },
             "discourse": {
-              "score": 0.16666666666666666,
+              "score": 0.5,
               "ci95": [
                 0.0,
-                0.3333333333333333
+                1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 1.0
             },
             "grammar": {
-              "score": 0.16666666666666666,
+              "score": 0.626984126984127,
               "ci95": [
-                0.07936507936507936,
-                0.2698412698412699
+                0.5079365079365079,
+                0.7380952380952381
               ],
               "n_items": 42,
               "epochs": 3,
-              "consistency": 0.8095238095238095
+              "consistency": 0.5714285714285714
             },
             "grammar_point": {
-              "score": 0.16666666666666666,
+              "score": 0.4722222222222221,
               "ci95": [
-                0.05555555555555555,
-                0.27777777777777785
+                0.25000000000000006,
+                0.6944444444444443
               ],
               "n_items": 12,
               "epochs": 3,
-              "consistency": 0.5833333333333334
+              "consistency": 0.5
             },
             "guide": {
-              "score": 0.35,
+              "score": 0.7166666666666666,
               "ci95": [
-                0.1833333333333333,
-                0.5333333333333333
+                0.55,
+                0.8666666666666666
               ],
               "n_items": 20,
               "epochs": 3,
@@ -2396,6 +3246,26 @@
               "consistency": 1.0
             },
             "mutation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "orthography_doubled_letter": {
+              "score": 0.8571428571428571,
+              "ci95": [
+                0.6666666666666666,
+                1.0
+              ],
+              "n_items": 7,
+              "epochs": 3,
+              "consistency": 0.7142857142857143
+            },
+            "passive": {
               "score": 0.6666666666666666,
               "ci95": [
                 0.6666666666666666,
@@ -2405,35 +3275,15 @@
               "epochs": 3,
               "consistency": 0.0
             },
-            "orthography_doubled_letter": {
-              "score": 0.38095238095238093,
-              "ci95": [
-                0.09523809523809523,
-                0.7142857142857143
-              ],
-              "n_items": 7,
-              "epochs": 3,
-              "consistency": 0.8571428571428571
-            },
-            "passive": {
-              "score": 0.0,
-              "ci95": [
-                0.0,
-                0.0
-              ],
-              "n_items": 1,
-              "epochs": 3,
-              "consistency": 1.0
-            },
             "prepositions": {
-              "score": 0.5,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
+                0.3333333333333333,
                 1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.5
             },
             "questions": {
               "score": 0.5,
@@ -2446,10 +3296,10 @@
               "consistency": 1.0
             },
             "recall": {
-              "score": 0.0,
+              "score": 0.25,
               "ci95": [
                 0.0,
-                0.0
+                0.75
               ],
               "n_items": 4,
               "epochs": 3,
@@ -2466,40 +3316,40 @@
               "consistency": 1.0
             },
             "subordinate_clauses": {
-              "score": 0.2222222222222222,
+              "score": 0.5555555555555555,
               "ci95": [
-                0.0,
-                0.6666666666666666
+                0.3333333333333333,
+                1.0
               ],
               "n_items": 3,
               "epochs": 3,
-              "consistency": 0.6666666666666666
+              "consistency": 0.3333333333333333
             },
             "unit_focus": {
-              "score": 0.36666666666666664,
+              "score": 0.6,
               "ci95": [
-                0.13333333333333333,
-                0.6
+                0.4,
+                0.8
               ],
               "n_items": 10,
               "epochs": 3,
-              "consistency": 0.6
+              "consistency": 0.4
             },
             "verbal_noun": {
-              "score": 0.3333333333333333,
+              "score": 1.0,
               "ci95": [
-                0.3333333333333333,
-                0.3333333333333333
+                1.0,
+                1.0
               ],
               "n_items": 1,
               "epochs": 3,
-              "consistency": 0.0
+              "consistency": 1.0
             },
             "vocabulary": {
-              "score": 0.22222222222222224,
+              "score": 0.4444444444444444,
               "ci95": [
-                0.08888888888888888,
-                0.3777777777777777
+                0.24444444444444444,
+                0.6444444444444444
               ],
               "n_items": 15,
               "epochs": 3,
@@ -2508,54 +3358,54 @@
           },
           "by_cefr": {
             "A1": {
-              "score": 0.45454545454545453,
+              "score": 0.7878787878787878,
               "ci95": [
-                0.28787878787878785,
-                0.6363636363636364
+                0.6666666666666666,
+                0.9090909090909091
               ],
               "n_items": 22,
               "epochs": 3,
-              "consistency": 0.6818181818181818
+              "consistency": 0.6363636363636364
             },
             "A2": {
-              "score": 0.20987654320987653,
+              "score": 0.6049382716049382,
               "ci95": [
-                0.09876543209876543,
-                0.34567901234567905
+                0.45679012345679015,
+                0.7407407407407407
               ],
               "n_items": 27,
               "epochs": 3,
-              "consistency": 0.7407407407407407
+              "consistency": 0.5555555555555556
             },
             "B1": {
-              "score": 0.19047619047619047,
+              "score": 0.5476190476190477,
               "ci95": [
-                0.09523809523809523,
-                0.29365079365079366
+                0.4206349206349206,
+                0.6666666666666666
               ],
               "n_items": 42,
               "epochs": 3,
-              "consistency": 0.7857142857142857
+              "consistency": 0.6428571428571429
             },
             "B2": {
-              "score": 0.05797101449275362,
+              "score": 0.3333333333333333,
               "ci95": [
-                0.0,
-                0.14492753623188404
+                0.18840579710144925,
+                0.4782608695652174
               ],
               "n_items": 23,
               "epochs": 3,
-              "consistency": 0.9130434782608695
+              "consistency": 0.6086956521739131
             },
             "C1": {
-              "score": 0.03333333333333333,
+              "score": 0.4333333333333333,
               "ci95": [
-                0.0,
-                0.1
+                0.19999999999999998,
+                0.7
               ],
               "n_items": 10,
               "epochs": 3,
-              "consistency": 0.9
+              "consistency": 0.6
             },
             "C2": {
               "score": 0.16666666666666666,
@@ -2568,46 +3418,174 @@
               "consistency": 0.5
             },
             "unspecified": {
-              "score": 0.37654320987654316,
+              "score": 0.6543209876543209,
               "ci95": [
-                0.2654320987654321,
-                0.4876543209876543
+                0.5555555555555555,
+                0.7592592592592593
               ],
               "n_items": 54,
               "epochs": 3,
-              "consistency": 0.6851851851851852
+              "consistency": 0.7037037037037037
             }
           },
           "by_evidence": {
             "blas-app-only": {
-              "score": 0.3333333333333333,
+              "score": 0.5777777777777778,
               "ci95": [
-                0.22777777777777777,
-                0.45
+                0.4666666666666667,
+                0.6888888888888889
               ],
               "n_items": 60,
               "epochs": 3,
-              "consistency": 0.8166666666666667
+              "consistency": 0.7833333333333333
             },
             "distractor-derived-unverified": {
-              "score": 0.20648967551622419,
+              "score": 0.5634218289085545,
               "ci95": [
-                0.15044247787610615,
-                0.26843657817109146
+                0.495575221238938,
+                0.6371681415929203
               ],
               "n_items": 113,
               "epochs": 3,
-              "consistency": 0.7168141592920354
+              "consistency": 0.5575221238938053
             },
             "planted-typo": {
-              "score": 0.38095238095238093,
+              "score": 0.8571428571428571,
               "ci95": [
-                0.09523809523809523,
-                0.7142857142857143
+                0.6666666666666666,
+                1.0
               ],
               "n_items": 7,
               "epochs": 3,
-              "consistency": 0.8571428571428571
+              "consistency": 0.7142857142857143
+            }
+          },
+          "by_language_phenomenon": {
+            "irish": {
+              "clean": {
+                "score": 0.6,
+                "ci95": [
+                  0.3,
+                  0.8666666666666666
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "grammar": {
+                "score": 0.6923076923076923,
+                "ci95": [
+                  0.48717948717948717,
+                  0.8461538461538463
+                ],
+                "n_items": 13,
+                "epochs": 3,
+                "consistency": 0.5384615384615384
+              },
+              "guide": {
+                "score": 0.6666666666666666,
+                "ci95": [
+                  0.43589743589743585,
+                  0.8717948717948718
+                ],
+                "n_items": 13,
+                "epochs": 3,
+                "consistency": 0.7692307692307693
+              },
+              "vocabulary": {
+                "score": 0.49999999999999994,
+                "ci95": [
+                  0.2777777777777778,
+                  0.7222222222222222
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.5833333333333334
+              }
+            },
+            "scots-gaelic": {
+              "application": {
+                "score": 0.3939393939393939,
+                "ci95": [
+                  0.2121212121212121,
+                  0.606060606060606
+                ],
+                "n_items": 11,
+                "epochs": 3,
+                "consistency": 0.45454545454545453
+              },
+              "clean": {
+                "score": 0.5333333333333333,
+                "ci95": [
+                  0.26666666666666666,
+                  0.8
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.7
+              },
+              "grammar_point": {
+                "score": 0.4722222222222221,
+                "ci95": [
+                  0.2777777777777778,
+                  0.6944444444444443
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.5
+              },
+              "unit_focus": {
+                "score": 0.611111111111111,
+                "ci95": [
+                  0.3333333333333333,
+                  0.8888888888888888
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.5
+              }
+            },
+            "welsh": {
+              "clean": {
+                "score": 0.33333333333333337,
+                "ci95": [
+                  0.1,
+                  0.5666666666666667
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.7
+              },
+              "grammar": {
+                "score": 0.5977011494252873,
+                "ci95": [
+                  0.4597701149425287,
+                  0.735632183908046
+                ],
+                "n_items": 29,
+                "epochs": 3,
+                "consistency": 0.5862068965517241
+              },
+              "guide": {
+                "score": 0.8095238095238094,
+                "ci95": [
+                  0.619047619047619,
+                  0.9523809523809524
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.5714285714285714
+              },
+              "orthography_doubled_letter": {
+                "score": 0.8571428571428571,
+                "ci95": [
+                  0.6666666666666666,
+                  1.0
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.7142857142857143
+              }
             }
           },
           "tutor": {
@@ -2617,9 +3595,9 @@
               "qwen/qwen3.8-flash"
             ],
             "components": {
-              "found": 0.25925925925925924,
-              "fixed": 0.25555555555555554,
-              "no_overcorrection": 0.29444444444444445
+              "found": 0.5888888888888889,
+              "fixed": 0.5814814814814815,
+              "no_overcorrection": 0.6425925925925926
             },
             "explanation": {
               "label": "judge-marked, not human-validated",
@@ -2647,17 +3625,6 @@
               "score": 0.0
             },
             {
-              "id": "blas-tutor-irish-exd-51c5e10877",
-              "public": true,
-              "language": "irish",
-              "l1": "none",
-              "phenomenon": "communication",
-              "input": "You are a Irish language tutor checking a sentence written by a learner.\nLanguage: Irish\nThe sentence may contain one error, or it may already be correct.\nIf it has an error, change only that one error: give the exact erroneous substring and the replacement for it. If it is correct, set has_error to false, leave error_span and correction empty and repeat the sentence as corrected_sentence.\nSentence: Fhan muid i mbrú.\nReply with one JSON object and nothing else:\n{\"has_error\": true|false, \"error_…",
-              "expected": "D'fhan muid i mbrú.",
-              "output": "response was not a JSON object",
-              "score": 0.0
-            },
-            {
               "id": "blas-tutor-scots-gaelic-clean-ex-943a0622b9",
               "public": true,
               "language": "scots-gaelic",
@@ -2667,15 +3634,26 @@
               "expected": "Nach robh iad aig a' mhuir tron oidhche?",
               "output": "response was not a JSON object",
               "score": 0.0
+            },
+            {
+              "id": "blas-tutor-scots-gaelic-exd-6e0581d3d2",
+              "public": true,
+              "language": "scots-gaelic",
+              "l1": "none",
+              "phenomenon": "grammar_point",
+              "input": "You are a Scottish Gaelic language tutor checking a sentence written by a learner.\nLanguage: Scottish Gaelic\nThe sentence may contain one error, or it may already be correct.\nIf it has an error, change only that one error: give the exact erroneous substring and the replacement for it. If it is correct, set has_error to false, leave error_span and correction empty and repeat the sentence as corrected_sentence.\nSentence: Cha tèid agam air deagh Fraingis a sgrìobhadh.\nReply with one JSON object an…",
+              "expected": "Cha tèid agam air deagh Fhraingis a sgrìobhadh.",
+              "output": "{\n  \"has_error\": true,\n  \"error_span\": \"deagh Fraingis\",\n  \"correction\": \"deagh Fhraingis\",\n  \"corrected_sentence\": \"Cha tèid agam air deagh Fhraingis a sgrìobhadh.\",\n  \"explanation\": \"Scottish Gaelic lenites Fraingis after the adjective deagh, so it should be deagh Fhraingis.\"\n}",
+              "score": 0.0
             }
           ]
         }
       },
       "overall": {
-        "score": 0.4363758985928823,
+        "score": 0.6163415021844452,
         "ci95": [
-          0.4181330555858928,
-          0.4554843453947148
+          0.5982332347377539,
+          0.6341656523437941
         ],
         "n_tests": 5,
         "n_items": 1500
@@ -2693,24 +3671,25 @@
           "first_error": null,
           "n_items_dataset": 400,
           "n_errors": 0,
-          "score": 0.9816666666666666,
+          "n_truncated_item_epochs": 1,
+          "score": 0.9866666666666666,
           "ci95": [
-            0.9683333333333333,
-            0.9925
+            0.9758333333333334,
+            0.9950208333333332
           ],
           "n_items": 400,
           "epochs": 3,
-          "consistency": 0.9925,
-          "cost_usd": 0.114022382,
-          "cost_per_correct_usd": 9.67931935483871e-05,
+          "consistency": 0.985,
+          "cost_usd": 0.131083352,
+          "cost_per_correct_usd": 0.00011071229054054053,
           "cost": {
             "candidate": {
-              "calls": 1200,
-              "input_tokens": 229192,
-              "output_tokens": 169437,
+              "calls": 1210,
+              "input_tokens": 231053,
+              "output_tokens": 205143,
               "cache_read_tokens": 512,
               "cache_write_tokens": 0,
-              "cost_usd": 0.114022382
+              "cost_usd": 0.131083352
             },
             "judge": {
               "calls": 0,
@@ -2724,21 +3703,21 @@
           "n_human_checked": 0,
           "by_language": {
             "english": {
-              "score": 0.9816666666666666,
+              "score": 0.9866666666666666,
               "ci95": [
-                0.9683333333333334,
-                0.9925
+                0.9758333333333334,
+                0.995
               ],
               "n_items": 400,
               "epochs": 3,
-              "consistency": 0.9925
+              "consistency": 0.985
             }
           },
           "by_l1": {
             "japanese": {
-              "score": 0.98,
+              "score": 0.99,
               "ci95": [
-                0.9533333333333333,
+                0.9733333333333333,
                 1.0
               ],
               "n_items": 100,
@@ -2746,24 +3725,24 @@
               "consistency": 0.98
             },
             "portuguese": {
-              "score": 0.98,
+              "score": 0.9833333333333334,
               "ci95": [
-                0.95,
+                0.9566666666666667,
                 1.0
               ],
               "n_items": 100,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.99
             },
             "spanish": {
-              "score": 0.98,
+              "score": 0.9866666666666666,
               "ci95": [
-                0.95,
+                0.9666666666666666,
                 1.0
               ],
               "n_items": 100,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.98
             },
             "vietnamese": {
               "score": 0.9866666666666666,
@@ -2888,14 +3867,14 @@
               "consistency": 1.0
             },
             "a_note_to_the_doctor_or_the_office": {
-              "score": 0.5,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
+                0.3333333333333333,
                 1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.5
             },
             "a_personal_statement_or_cover_letter": {
               "score": 1.0,
@@ -2968,14 +3947,14 @@
               "consistency": 1.0
             },
             "adverb_position_and_complex_comparison": {
-              "score": 0.5,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
+                0.3333333333333333,
                 1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.5
             },
             "adverb_position_where_japanese_places_modifiers_early": {
               "score": 1.0,
@@ -3768,14 +4747,14 @@
               "consistency": 1.0
             },
             "checkpoint_understand_and_evaluate_evidence": {
-              "score": 0.6666666666666666,
+              "score": 0.7777777777777777,
               "ci95": [
-                0.0,
+                0.3333333333333333,
                 1.0
               ],
               "n_items": 3,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.6666666666666666
             },
             "checkpoint_understand_and_report_the_news": {
               "score": 1.0,
@@ -3798,14 +4777,14 @@
               "consistency": 1.0
             },
             "checkpoint_who_said_what": {
-              "score": 0.5,
+              "score": 0.6666666666666666,
               "ci95": [
-                0.0,
+                0.3333333333333333,
                 1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.5
             },
             "checkpoint_yesterday_and_now": {
               "score": 1.0,
@@ -4018,14 +4997,14 @@
               "consistency": 1.0
             },
             "counting_and_quantity_in_service_talk": {
-              "score": 0.6666666666666666,
+              "score": 1.0,
               "ci95": [
-                0.3333333333333333,
+                1.0,
                 1.0
               ],
               "n_items": 2,
               "epochs": 3,
-              "consistency": 0.5
+              "consistency": 1.0
             },
             "course_and_job_descriptions": {
               "score": 1.0,
@@ -4510,9 +5489,9 @@
               "consistency": 1.0
             },
             "A2": {
-              "score": 0.9696969696969697,
+              "score": 0.9848484848484849,
               "ci95": [
-                0.9292929292929292,
+                0.9595959595959596,
                 1.0
               ],
               "n_items": 66,
@@ -4530,28 +5509,29 @@
               "consistency": 1.0
             },
             "B2": {
-              "score": 0.9754901960784315,
+              "score": 0.9828431372549019,
               "ci95": [
-                0.9485294117647058,
+                0.9632352941176471,
                 0.997549019607843
               ],
               "n_items": 136,
               "epochs": 3,
-              "consistency": 0.9926470588235294
+              "consistency": 0.9705882352941176
             }
           },
           "by_evidence": {
             "tonada-app-machine-reviewed": {
-              "score": 0.9816666666666666,
+              "score": 0.9866666666666666,
               "ci95": [
-                0.9683333333333333,
-                0.9925
+                0.9758333333333334,
+                0.9958333333333332
               ],
               "n_items": 400,
               "epochs": 3,
-              "consistency": 0.9925
+              "consistency": 0.985
             }
           },
+          "by_l1_phenomenon": {},
           "failure_examples": [
             {
               "id": "en-ch31-u04-complaint-return-lesson-s4@vi",
@@ -4587,24 +5567,25 @@
           "first_error": null,
           "n_items_dataset": 360,
           "n_errors": 0,
-          "score": 0.6981481481481482,
+          "n_truncated_item_epochs": 2,
+          "score": 0.7287037037037039,
           "ci95": [
-            0.6546064814814815,
-            0.738912037037037
+            0.6861111111111111,
+            0.7685185185185184
           ],
           "n_items": 360,
           "epochs": 3,
-          "consistency": 0.7777777777777778,
-          "cost_usd": 0.24261807,
-          "cost_per_correct_usd": 0.00032177462864721484,
+          "consistency": 0.7805555555555556,
+          "cost_usd": 0.392921516,
+          "cost_per_correct_usd": 0.0004992649504447267,
           "cost": {
             "candidate": {
-              "calls": 1080,
-              "input_tokens": 116259,
-              "output_tokens": 472830,
-              "cache_read_tokens": 184320,
+              "calls": 1155,
+              "input_tokens": 129837,
+              "output_tokens": 788021,
+              "cache_read_tokens": 192256,
               "cache_write_tokens": 0,
-              "cost_usd": 0.24261807
+              "cost_usd": 0.392921516
             },
             "judge": {
               "calls": 0,
@@ -4618,56 +5599,56 @@
           "n_human_checked": 0,
           "by_language": {
             "english": {
-              "score": 0.6981481481481482,
+              "score": 0.7287037037037039,
               "ci95": [
-                0.6564583333333334,
-                0.7398148148148148
+                0.687037037037037,
+                0.7694444444444445
               ],
               "n_items": 360,
               "epochs": 3,
-              "consistency": 0.7777777777777778
+              "consistency": 0.7805555555555556
             }
           },
           "by_l1": {
             "japanese": {
-              "score": 0.6888888888888889,
+              "score": 0.7185185185185184,
               "ci95": [
-                0.6074074074074074,
-                0.7629629629629631
-              ],
-              "n_items": 90,
-              "epochs": 3,
-              "consistency": 0.7222222222222222
-            },
-            "portuguese": {
-              "score": 0.6555555555555556,
-              "ci95": [
-                0.5665740740740742,
-                0.7444444444444442
-              ],
-              "n_items": 90,
-              "epochs": 3,
-              "consistency": 0.8222222222222222
-            },
-            "spanish": {
-              "score": 0.7148148148148148,
-              "ci95": [
-                0.6333333333333333,
-                0.7888888888888889
+                0.6370370370370371,
+                0.7925925925925925
               ],
               "n_items": 90,
               "epochs": 3,
               "consistency": 0.7444444444444445
             },
-            "vietnamese": {
-              "score": 0.7333333333333333,
+            "portuguese": {
+              "score": 0.7074074074074074,
               "ci95": [
-                0.6444444444444444,
-                0.8111111111111111
+                0.6222222222222222,
+                0.7888888888888889
               ],
               "n_items": 90,
               "epochs": 3,
-              "consistency": 0.8222222222222222
+              "consistency": 0.8111111111111111
+            },
+            "spanish": {
+              "score": 0.7333333333333333,
+              "ci95": [
+                0.6555555555555556,
+                0.8037037037037037
+              ],
+              "n_items": 90,
+              "epochs": 3,
+              "consistency": 0.7222222222222222
+            },
+            "vietnamese": {
+              "score": 0.7555555555555555,
+              "ci95": [
+                0.6666666666666666,
+                0.8296296296296295
+              ],
+              "n_items": 90,
+              "epochs": 3,
+              "consistency": 0.8444444444444444
             }
           },
           "by_phenomenon": {
@@ -4682,24 +5663,24 @@
               "consistency": 0.7222222222222222
             },
             "agreement_or_plural": {
-              "score": 0.8333333333333333,
+              "score": 0.8484848484848484,
               "ci95": [
-                0.712121212121212,
-                0.9393939393939394
+                0.7272727272727272,
+                0.9545454545454546
               ],
               "n_items": 22,
               "epochs": 3,
-              "consistency": 0.7272727272727273
+              "consistency": 0.7727272727272727
             },
             "article": {
-              "score": 0.2753623188405797,
+              "score": 0.30434782608695654,
               "ci95": [
-                0.13043478260869565,
-                0.4492753623188405
+                0.15905797101449337,
+                0.46376811594202905
               ],
               "n_items": 23,
               "epochs": 3,
-              "consistency": 0.782608695652174
+              "consistency": 0.7391304347826086
             },
             "capitalisation": {
               "score": 1.0,
@@ -4742,34 +5723,34 @@
               "consistency": 0.3333333333333333
             },
             "no_error": {
-              "score": 0.9083333333333333,
+              "score": 0.9666666666666667,
               "ci95": [
-                0.8583333333333333,
-                0.9527777777777777
+                0.9361111111111112,
+                0.9916666666666667
               ],
               "n_items": 120,
               "epochs": 3,
-              "consistency": 0.925
+              "consistency": 0.9583333333333334
             },
             "omitted_auxiliary": {
-              "score": 0.125,
+              "score": 0.16666666666666666,
               "ci95": [
                 0.0,
-                0.375
+                0.4166666666666667
               ],
               "n_items": 8,
               "epochs": 3,
-              "consistency": 1.0
+              "consistency": 0.875
             },
             "preposition": {
-              "score": 0.45614035087719296,
+              "score": 0.47368421052631576,
               "ci95": [
-                0.33333333333333326,
-                0.5964912280701753
+                0.3508771929824561,
+                0.6052631578947368
               ],
               "n_items": 38,
               "epochs": 3,
-              "consistency": 0.631578947368421
+              "consistency": 0.6052631578947368
             },
             "pronoun_form": {
               "score": 1.0,
@@ -4802,14 +5783,14 @@
               "consistency": 1.0
             },
             "verb_form": {
-              "score": 0.6018518518518517,
+              "score": 0.6296296296296295,
               "ci95": [
-                0.5138888888888888,
-                0.6898148148148148
+                0.5416666666666666,
+                0.712962962962963
               ],
               "n_items": 72,
               "epochs": 3,
-              "consistency": 0.6111111111111112
+              "consistency": 0.5972222222222222
             },
             "word_class": {
               "score": 0.8333333333333333,
@@ -4834,9 +5815,9 @@
           },
           "by_cefr": {
             "A1": {
-              "score": 0.8273809523809524,
+              "score": 0.8333333333333334,
               "ci95": [
-                0.7440476190476192,
+                0.7559523809523808,
                 0.9107142857142857
               ],
               "n_items": 56,
@@ -4844,76 +5825,316 @@
               "consistency": 0.8035714285714286
             },
             "A2": {
-              "score": 0.7261904761904762,
+              "score": 0.744047619047619,
               "ci95": [
-                0.613095238095238,
-                0.8333333333333333
+                0.6369047619047619,
+                0.8452380952380951
               ],
               "n_items": 56,
               "epochs": 3,
               "consistency": 0.875
             },
             "B1": {
-              "score": 0.7216494845360825,
+              "score": 0.7594501718213059,
               "ci95": [
-                0.6529209621993126,
-                0.7869415807560137
+                0.6941580756013745,
+                0.8213058419243985
               ],
               "n_items": 97,
               "epochs": 3,
-              "consistency": 0.6288659793814433
+              "consistency": 0.6494845360824743
             },
             "B2": {
-              "score": 0.7445482866043612,
+              "score": 0.7757009345794392,
               "ci95": [
-                0.6728193146417446,
-                0.81316199376947
+                0.707165109034268,
+                0.8411214953271028
               ],
               "n_items": 107,
               "epochs": 3,
               "consistency": 0.822429906542056
             },
             "unspecified": {
-              "score": 0.33333333333333326,
+              "score": 0.3939393939393939,
               "ci95": [
-                0.2121212121212121,
-                0.4621212121212121
+                0.26515151515151514,
+                0.5229166666666657
               ],
               "n_items": 44,
               "epochs": 3,
-              "consistency": 0.8409090909090909
+              "consistency": 0.8181818181818182
             }
           },
           "by_evidence": {
             "tonada-app-answer-machine-reviewed": {
-              "score": 0.940251572327044,
+              "score": 0.9874213836477986,
               "ci95": [
-                0.8993710691823898,
-                0.9748427672955976
+                0.9685534591194969,
+                1.0
               ],
               "n_items": 106,
               "epochs": 3,
-              "consistency": 0.9339622641509434
+              "consistency": 0.9716981132075472
             },
             "tonada-app-distractor-machine-reviewed": {
-              "score": 0.6523809523809524,
+              "score": 0.6682539682539682,
               "ci95": [
-                0.6,
-                0.7031746031746032
+                0.6174603174603174,
+                0.7174603174603175
               ],
               "n_items": 210,
               "epochs": 3,
-              "consistency": 0.6857142857142857
+              "consistency": 0.6761904761904762
             },
             "wikipedia-revision-silver-unreviewed": {
-              "score": 0.33333333333333326,
+              "score": 0.3939393939393939,
               "ci95": [
-                0.2121212121212121,
-                0.46969696969696967
+                0.26515151515151514,
+                0.5303030303030302
               ],
               "n_items": 44,
               "epochs": 3,
-              "consistency": 0.8409090909090909
+              "consistency": 0.8181818181818182
+            }
+          },
+          "by_l1_phenomenon": {
+            "japanese": {
+              "agreement": {
+                "score": 0.8333333333333335,
+                "ci95": [
+                  0.6944444444444445,
+                  0.9444444444444443
+                ],
+                "n_items": 12,
+                "epochs": 3,
+                "consistency": 0.5833333333333334
+              },
+              "agreement_or_plural": {
+                "score": 0.9444444444444443,
+                "ci95": [
+                  0.8333333333333334,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.8333333333333334
+              },
+              "no_error": {
+                "score": 0.9888888888888888,
+                "ci95": [
+                  0.9666666666666667,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9666666666666667
+              },
+              "preposition": {
+                "score": 0.36666666666666664,
+                "ci95": [
+                  0.16666666666666666,
+                  0.6
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.5
+              },
+              "verb_form": {
+                "score": 0.6041666666666667,
+                "ci95": [
+                  0.41666666666666663,
+                  0.7708333333333333
+                ],
+                "n_items": 16,
+                "epochs": 3,
+                "consistency": 0.5625
+              }
+            },
+            "portuguese": {
+              "agreement": {
+                "score": 0.619047619047619,
+                "ci95": [
+                  0.2857142857142857,
+                  0.9047619047619049
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.8571428571428571
+              },
+              "agreement_or_plural": {
+                "score": 0.8333333333333334,
+                "ci95": [
+                  0.611111111111111,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "article": {
+                "score": 0.37499999999999994,
+                "ci95": [
+                  0.08333333333333333,
+                  0.6666666666666666
+                ],
+                "n_items": 8,
+                "epochs": 3,
+                "consistency": 0.75
+              },
+              "no_error": {
+                "score": 0.9666666666666667,
+                "ci95": [
+                  0.9111111111111111,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9333333333333333
+              },
+              "preposition": {
+                "score": 0.5238095238095238,
+                "ci95": [
+                  0.23809523809523808,
+                  0.8095238095238094
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.5714285714285714
+              },
+              "verb_form": {
+                "score": 0.5614035087719298,
+                "ci95": [
+                  0.3684210526315789,
+                  0.7543859649122806
+                ],
+                "n_items": 19,
+                "epochs": 3,
+                "consistency": 0.7368421052631579
+              }
+            },
+            "spanish": {
+              "agreement": {
+                "score": 0.8095238095238095,
+                "ci95": [
+                  0.619047619047619,
+                  0.9523809523809524
+                ],
+                "n_items": 7,
+                "epochs": 3,
+                "consistency": 0.5714285714285714
+              },
+              "article": {
+                "score": 0.38888888888888884,
+                "ci95": [
+                  0.1111111111111111,
+                  0.7222222222222222
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 0.6666666666666666
+              },
+              "no_error": {
+                "score": 0.9888888888888889,
+                "ci95": [
+                  0.9666666666666667,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9666666666666667
+              },
+              "preposition": {
+                "score": 0.4666666666666666,
+                "ci95": [
+                  0.2,
+                  0.7333333333333333
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.7
+              },
+              "relative_pronoun": {
+                "score": 0.8,
+                "ci95": [
+                  0.4,
+                  1.0
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "verb_form": {
+                "score": 0.6166666666666667,
+                "ci95": [
+                  0.4666666666666666,
+                  0.7504166666666644
+                ],
+                "n_items": 20,
+                "epochs": 3,
+                "consistency": 0.45
+              }
+            },
+            "vietnamese": {
+              "agreement": {
+                "score": 0.8666666666666666,
+                "ci95": [
+                  0.6666666666666666,
+                  1.0
+                ],
+                "n_items": 10,
+                "epochs": 3,
+                "consistency": 0.9
+              },
+              "agreement_or_plural": {
+                "score": 0.8333333333333334,
+                "ci95": [
+                  0.5,
+                  1.0
+                ],
+                "n_items": 6,
+                "epochs": 3,
+                "consistency": 1.0
+              },
+              "article": {
+                "score": 0.06666666666666667,
+                "ci95": [
+                  0.0,
+                  0.2
+                ],
+                "n_items": 5,
+                "epochs": 3,
+                "consistency": 0.8
+              },
+              "no_error": {
+                "score": 0.9222222222222222,
+                "ci95": [
+                  0.8222222222222222,
+                  1.0
+                ],
+                "n_items": 30,
+                "epochs": 3,
+                "consistency": 0.9666666666666667
+              },
+              "preposition": {
+                "score": 0.5454545454545454,
+                "ci95": [
+                  0.30303030303030304,
+                  0.7878787878787878
+                ],
+                "n_items": 11,
+                "epochs": 3,
+                "consistency": 0.6363636363636364
+              },
+              "verb_form": {
+                "score": 0.7450980392156863,
+                "ci95": [
+                  0.5877450980392165,
+                  0.8828431372548993
+                ],
+                "n_items": 17,
+                "epochs": 3,
+                "consistency": 0.6470588235294118
+              }
             }
           },
           "tutor": {
@@ -4923,9 +6144,9 @@
               "qwen/qwen3.8-flash"
             ],
             "components": {
-              "found": 0.7185185185185186,
-              "fixed": 0.6981481481481482,
-              "no_overcorrection": 0.85
+              "found": 0.7527777777777778,
+              "fixed": 0.7287037037037036,
+              "no_overcorrection": 0.8861111111111111
             },
             "explanation": {
               "label": "judge-marked, not human-validated",
@@ -4978,10 +6199,10 @@
         }
       },
       "overall": {
-        "score": 0.8399074074074073,
+        "score": 0.8576851851851852,
         "ci95": [
-          0.8175925925925926,
-          0.8612557870370369
+          0.8366168981481481,
+          0.8781967592592593
         ],
         "n_tests": 2,
         "n_items": 760
@@ -4992,7 +6213,7 @@
     "inspect_ai": "0.3.290"
   },
   "resumed": {
-    "count": 1,
+    "count": 2,
     "attempts": [
       {
         "started_at": "2026-11-15T23:03:37+00:00",
@@ -5001,7 +6222,8 @@
         "incomplete_reason": "cost_cap_reached",
         "cost_usd": 2.49775881,
         "log_dir": "logs/qwen__qwen3.8-flash-20261115T230337Z",
-        "prices_retrieved_at": "2026-11-15T23:03:36+00:00"
+        "prices_retrieved_at": "2026-11-15T23:03:36+00:00",
+        "candidate_max_tokens": 2048
       },
       {
         "started_at": "2026-11-16T06:03:29+00:00",
@@ -5053,8 +6275,85 @@
             "rescored": 0,
             "run": 1080
           }
+        },
+        "candidate_max_tokens": 2048
+      },
+      {
+        "started_at": "2026-11-16T13:54:35+00:00",
+        "generated_at": "2026-11-16T21:37:57+00:00",
+        "status": "complete",
+        "incomplete_reason": null,
+        "cost_usd": 7.774472738,
+        "log_dir": "logs/qwen__qwen3.8-flash-20261116T135435Z",
+        "prices_retrieved_at": "2026-11-16T13:54:35+00:00",
+        "candidate_max_tokens": 16000,
+        "dataset_check": "dataset_hash",
+        "sample_epochs": {
+          "reused": 4802,
+          "rescored": 0,
+          "run": 1978,
+          "rerun_truncated": 1978
+        },
+        "tests": {
+          "blas/lesson_exercises": {
+            "reused": 940,
+            "rescored": 0,
+            "run": 140,
+            "rerun_truncated": 140
+          },
+          "blas/morphology": {
+            "reused": 364,
+            "rescored": 0,
+            "run": 716,
+            "rerun_truncated": 716
+          },
+          "blas/round_trip": {
+            "reused": 405,
+            "rescored": 0,
+            "run": 315,
+            "rerun_truncated": 315
+          },
+          "blas/translation": {
+            "reused": 714,
+            "rescored": 0,
+            "run": 366,
+            "rerun_truncated": 366
+          },
+          "blas/tutor_accuracy": {
+            "reused": 184,
+            "rescored": 0,
+            "run": 356,
+            "rerun_truncated": 356
+          },
+          "tonada/exercises": {
+            "reused": 1190,
+            "rescored": 0,
+            "run": 10,
+            "rerun_truncated": 10
+          },
+          "tonada/tutor_accuracy": {
+            "reused": 1005,
+            "rescored": 0,
+            "run": 75,
+            "rerun_truncated": 75
+          }
+        },
+        "truncation_rerun": {
+          "old_limit": 2048,
+          "new_limit": 16000,
+          "n_rerun": 1978
         }
       }
-    ]
+    ],
+    "truncation_rerun": {
+      "old_limit": 2048,
+      "new_limit": 16000,
+      "n_rerun": 1978
+    }
+  },
+  "reexported": {
+    "at": "2026-11-16T23:22:23+00:00",
+    "from_schema": "2.1.0",
+    "to_schema": "2.2.0"
   }
 }
