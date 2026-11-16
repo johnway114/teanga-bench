@@ -14,15 +14,29 @@
 <line x1="70.0" y1="64" x2="70.0" y2="364" stroke="#d9d9d9" stroke-width="1"/>
 <text x="70.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$0</text>
 <line x1="200.0" y1="64" x2="200.0" y2="364" stroke="#d9d9d9" stroke-width="1"/>
-<text x="200.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$0.5</text>
+<text x="200.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$12.5</text>
 <line x1="330.0" y1="64" x2="330.0" y2="364" stroke="#d9d9d9" stroke-width="1"/>
-<text x="330.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$1</text>
+<text x="330.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$25</text>
 <line x1="460.0" y1="64" x2="460.0" y2="364" stroke="#d9d9d9" stroke-width="1"/>
-<text x="460.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$1.5</text>
+<text x="460.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$37.5</text>
 <line x1="590.0" y1="64" x2="590.0" y2="364" stroke="#d9d9d9" stroke-width="1"/>
-<text x="590.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$2</text>
+<text x="590.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$50</text>
 <text x="330.0" y="406.0" font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Run cost (USD, candidate plus judges)</text>
 <text transform="rotate(-90 16 214.0)" x="16.0" y="214.0" font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Overall score</text>
-<circle cx="408.1" cy="130.1" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
-<text x="416.1" y="134.1" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
+<circle cx="78.0" cy="128.6" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="86.0" y="132.6" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
+<circle cx="83.5" cy="130.1" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="91.5" y="134.1" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
+<circle cx="89.7" cy="147.6" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="97.7" y="151.6" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">anthropic/claude-haiku-5.5</text>
+<circle cx="127.9" cy="110.7" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="135.9" y="114.7" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">google/gemini-4-argon</text>
+<circle cx="431.5" cy="130.1" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="439.5" y="134.1" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">moonshotai/kimi-k3.1-pro</text>
+<circle cx="451.7" cy="106.0" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="459.7" y="110.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-astra</text>
+<circle cx="468.4" cy="117.5" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="476.4" y="121.5" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">google/gemini-4-hydrogen</text>
+<circle cx="551.7" cy="101.4" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="559.7" y="105.4" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">anthropic/claude-fable-5.2</text>
 </svg>

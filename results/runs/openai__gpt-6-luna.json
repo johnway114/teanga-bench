@@ -4584,24 +4584,24 @@
           "n_items": 360,
           "epochs": 3,
           "consistency": 0.8555555555555555,
-          "cost_usd": 0.775522367,
-          "cost_per_correct_usd": 0.001025823236772487,
+          "cost_usd": 0.49181080299999996,
+          "cost_per_correct_usd": 0.0006505433902116403,
           "cost": {
             "candidate": {
-              "calls": 1620,
-              "input_tokens": 345903,
-              "output_tokens": 301467,
+              "calls": 1080,
+              "input_tokens": 249423,
+              "output_tokens": 152036,
               "cache_read_tokens": 0,
               "cache_write_tokens": 0,
-              "cost_usd": 0.1853238
+              "cost_usd": 0.10096030000000002
             },
             "judge": {
-              "calls": 3646,
-              "input_tokens": 844572,
-              "output_tokens": 1509283,
-              "cache_read_tokens": 138671,
+              "calls": 2418,
+              "input_tokens": 557613,
+              "output_tokens": 1003138,
+              "cache_read_tokens": 80565,
               "cache_write_tokens": 0,
-              "cost_usd": 0.590198567
+              "cost_usd": 0.39085050299999996
             }
           },
           "n_human_checked": 0,
@@ -4982,5 +4982,8 @@
   },
   "tool_versions": {
     "inspect_ai": "0.3.290"
-  }
+  },
+  "corrections": [
+    "2026-11-16: the cost of tonada/tutor_accuracy wrongly included the cost of blas/tutor_accuracy. The per-test cost was corrected. Scores and the run total did not change."
+  ]
 }

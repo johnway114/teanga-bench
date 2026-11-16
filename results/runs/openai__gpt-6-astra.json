@@ -1,0 +1,5052 @@
+{
+  "schema_version": "2.0.0",
+  "benchmark": "teanga-bench",
+  "benchmark_name": "Teanga Bench",
+  "benchmark_version": "0.2.0",
+  "started_at": "2026-11-15T23:03:37+00:00",
+  "generated_at": "2026-11-16T05:18:41+00:00",
+  "run_kind": "live",
+  "status": "complete",
+  "incomplete_reason": null,
+  "model": {
+    "id": "openai/gpt-6-astra",
+    "family": "openai",
+    "inspect_id": "openrouter/openai/gpt-6-astra",
+    "pricing": {
+      "prompt_usd_per_token": 1e-05,
+      "completion_usd_per_token": 5e-05,
+      "cache_read_usd_per_token": 1e-06,
+      "cache_write_usd_per_token": 1.25e-05,
+      "source": "https://openrouter.ai/api/v1/models",
+      "retrieved_at": "2026-11-16T04:04:48+00:00"
+    }
+  },
+  "config": {
+    "epochs": 3,
+    "limit": null,
+    "max_cost_usd": 110.0,
+    "max_tokens": {
+      "candidate": 2048,
+      "judge": 1024
+    },
+    "temperature": "provider default",
+    "bootstrap": {
+      "seed": 20261115,
+      "resamples": 2000,
+      "confidence": 0.95
+    },
+    "tests": [
+      "blas/lesson_exercises",
+      "blas/morphology",
+      "blas/round_trip",
+      "blas/translation",
+      "blas/tutor_accuracy",
+      "tonada/exercises",
+      "tonada/tutor_accuracy"
+    ],
+    "pricing_source": "https://openrouter.ai/api/v1/models",
+    "dataset_hashes": {
+      "blas/lesson_exercises": "sha256:7d8178b6f5cff38d2ffc4d2e3dc04b9d15163fccee5246eb288ba12f6ee85c34",
+      "blas/morphology": "sha256:0d340626c8a0987b8354dcdbd4d2bef6b0abf9a15adb1f1071824f64b2687e0a",
+      "blas/round_trip": "sha256:c96ad6ade4824d5c52804b5f79373eb323c1e8218ed5f2d7e9a935c3334615f2",
+      "blas/translation": "sha256:ae9b1209c0708664a4e740a004e0a65128875ee5f5fe419dfd74e9b9ba2db125",
+      "blas/tutor_accuracy": "sha256:35c37d9211b59701c9bd59aba03c606468fb220a1ef8393de240cf7a499b5c87",
+      "tonada/exercises": "sha256:bfacb2c8a861b77d29cfbe5bb61fd7c33ba9cb638717ab455871d630fa198068",
+      "tonada/tutor_accuracy": "sha256:4f29bebcf78771d71ab116c66b36e3dd20e67da4b3af5ca74d1b965b0ea840c3"
+    },
+    "log_dir": "logs/openai__gpt-6-astra-20261115T230337Z"
+  },
+  "judges": [
+    "deepseek/deepseek-v4.1-flash-1017",
+    "qwen/qwen3.8-flash"
+  ],
+  "judge_info": {
+    "called": true,
+    "families": {
+      "deepseek/deepseek-v4.1-flash-1017": "deepseek",
+      "qwen/qwen3.8-flash": "qwen"
+    },
+    "rule": "One fixed judge pair for every run. Judges mark only the explanation of tutor items, and the explanation passes only when both judges pass it. When the candidate is in the family of either judge, or a judge is missing from the live model list, the explanation is not scored.",
+    "retries_per_call": 3,
+    "pricing": {
+      "deepseek/deepseek-v4.1-flash-1017": {
+        "prompt_usd_per_token": 1.5e-07,
+        "completion_usd_per_token": 6e-07,
+        "cache_read_usd_per_token": 3e-09,
+        "cache_write_usd_per_token": null,
+        "retrieved_at": "2026-11-16T04:04:48+00:00"
+      },
+      "qwen/qwen3.8-flash": {
+        "prompt_usd_per_token": 1.5e-07,
+        "completion_usd_per_token": 4.7e-07,
+        "cache_read_usd_per_token": 1.6e-08,
+        "cache_write_usd_per_token": null,
+        "retrieved_at": "2026-11-16T04:04:48+00:00"
+      }
+    }
+  },
+  "explanation_status": "scored",
+  "gold": {
+    "note": "Gold comes from the source files named on each item. Teanga Bench did not have native-speaker review. An item counts as human-checked only when its source file records human review. Judge marks on tutor explanations are made by models and are not human-validated."
+  },
+  "cost": {
+    "cap_usd": 110.0,
+    "total_usd": 36.701058259,
+    "candidate_usd": 35.8627,
+    "judge_usd": 0.838358259,
+    "cap_reached": false,
+    "by_model": {
+      "deepseek/deepseek-v4.1-flash-1017": {
+        "calls": 1711,
+        "input_tokens": 421176,
+        "output_tokens": 493324,
+        "cache_read_tokens": 20481,
+        "cache_write_tokens": 0,
+        "cost_usd": 0.317194285
+      },
+      "openai/gpt-6-astra": {
+        "calls": 7501,
+        "input_tokens": 972420,
+        "output_tokens": 522770,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cost_usd": 35.8627
+      },
+      "qwen/qwen3.8-flash": {
+        "calls": 1957,
+        "input_tokens": 417672,
+        "output_tokens": 970209,
+        "cache_read_tokens": 157184,
+        "cache_write_tokens": 0,
+        "cost_usd": 0.521163974
+      }
+    }
+  },
+  "overall": {
+    "score": 0.8600413946808138,
+    "ci95": [
+      0.8492641330281153,
+      0.8710647625972643
+    ],
+    "n_tests": 7,
+    "n_items": 2260,
+    "by_language": {
+      "breton": {
+        "score": 0.8235704469324541,
+        "ci95": [
+          0.7961499430464526,
+          0.8507924946866552
+        ],
+        "n_tests": 4,
+        "n_items": 220
+      },
+      "cornish": {
+        "score": 0.8291759294378506,
+        "ci95": [
+          0.797664088755031,
+          0.8593610034253555
+        ],
+        "n_tests": 4,
+        "n_items": 220
+      },
+      "english": {
+        "score": 0.920462962962963,
+        "ci95": [
+          0.9005972222222223,
+          0.9391215277777778
+        ],
+        "n_tests": 2,
+        "n_items": 760
+      },
+      "irish": {
+        "score": 0.8660173714945195,
+        "ci95": [
+          0.8378330319706937,
+          0.8929210741109868
+        ],
+        "n_tests": 5,
+        "n_items": 280
+      },
+      "manx": {
+        "score": 0.7230234125935282,
+        "ci95": [
+          0.6911286036898511,
+          0.7531835280386311
+        ],
+        "n_tests": 4,
+        "n_items": 220
+      },
+      "scots-gaelic": {
+        "score": 0.8377887328722482,
+        "ci95": [
+          0.8069655671515866,
+          0.8664163508176749
+        ],
+        "n_tests": 5,
+        "n_items": 280
+      },
+      "welsh": {
+        "score": 0.8919257797810005,
+        "ci95": [
+          0.8699132095868691,
+          0.9118636445455273
+        ],
+        "n_tests": 5,
+        "n_items": 280
+      }
+    }
+  },
+  "suites": {
+    "blas": {
+      "tests": {
+        "lesson_exercises": {
+          "suite": "blas",
+          "test": "lesson_exercises",
+          "scoring": "accept_list",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 360,
+          "n_errors": 0,
+          "score": 0.9657407407407407,
+          "ci95": [
+            0.9453703703703703,
+            0.9833333333333333
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9944444444444445,
+          "cost_usd": 2.47958,
+          "cost_per_correct_usd": 0.002377353787152445,
+          "cost": {
+            "candidate": {
+              "calls": 1080,
+              "input_tokens": 138153,
+              "output_tokens": 21961,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 2.47958
+            },
+            "judge": {
+              "calls": 0,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.0
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "breton": {
+              "score": 0.9555555555555555,
+              "ci95": [
+                0.8944444444444445,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9833333333333333
+            },
+            "cornish": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "irish": {
+              "score": 0.9333333333333333,
+              "ci95": [
+                0.8666666666666667,
+                0.9833333333333333
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "manx": {
+              "score": 0.9555555555555555,
+              "ci95": [
+                0.9,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9833333333333333
+            },
+            "scots-gaelic": {
+              "score": 0.9833333333333333,
+              "ci95": [
+                0.95,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "welsh": {
+              "score": 0.9666666666666667,
+              "ci95": [
+                0.9166666666666666,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_l1": {
+            "none": {
+              "score": 0.9657407407407407,
+              "ci95": [
+                0.9462962962962963,
+                0.9824074074074073
+              ],
+              "n_items": 360,
+              "epochs": 3,
+              "consistency": 0.9944444444444445
+            }
+          },
+          "by_phenomenon": {
+            "activity_and_hobby_recognition": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "adjectives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "application": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "case": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "chapter_overview": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 11,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "clothing": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "communication": {
+              "score": 0.6666666666666666,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comparison": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comprehension": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conditional_grammar": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conjugation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conjunctions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conversation": {
+              "score": 0.8888888888888888,
+              "ci95": [
+                0.6666666666666666,
+                1.0
+              ],
+              "n_items": 6,
+              "epochs": 3,
+              "consistency": 0.8333333333333334
+            },
+            "conversations": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "copula": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "daily_life": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "declension": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "demonstratives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "descriptive_grammar": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "dialogue_retrieval": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discourse": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discourse_grammar": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "food": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "general": {
+              "score": 0.5,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "genitive": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "grammar": {
+              "score": 0.9523809523809523,
+              "ci95": [
+                0.8571428571428571,
+                1.0
+              ],
+              "n_items": 21,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "grammar_point": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 10,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "guide": {
+              "score": 0.96875,
+              "ci95": [
+                0.90625,
+                1.0
+              ],
+              "n_items": 32,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "health": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "idiom": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "idioms": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "inquiry_grammar": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "legal_register": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "locations_and_services": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "modal_expressions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "modals": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "mutation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "mutations": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 9,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "narrative_grammar": {
+              "score": 0.8666666666666666,
+              "ci95": [
+                0.6,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 0.8
+            },
+            "negation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "nouns": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 6,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "numbers": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 6,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "numerals": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "obligation_grammar": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "other": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "passive": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "preposition_recognition": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "prepositions": {
+              "score": 0.75,
+              "ci95": [
+                0.25,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "pronouns": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "pronouns_and_possessives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "quantity_vocabulary": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "question_comprehension": {
+              "score": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "questions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "reading": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "recall": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "recap": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 37,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "relative_clauses": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "reported_speech": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "review": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 8,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "school_description_transfer": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "sequence_transfer": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "shopping": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "stance_grammar": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "subordinate_clauses": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "syntax": {
+              "score": 0.8,
+              "ci95": [
+                0.4,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "tense": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "time": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "unit_focus": {
+              "score": 0.9411764705882353,
+              "ci95": [
+                0.8627450980392157,
+                1.0
+              ],
+              "n_items": 51,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verbal_noun": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verbs": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 12,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "vocabulary": {
+              "score": 0.8571428571428571,
+              "ci95": [
+                0.5714285714285714,
+                1.0
+              ],
+              "n_items": 7,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "voice": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "weather": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 0.9706666666666668,
+              "ci95": [
+                0.9386666666666668,
+                0.9946666666666667
+              ],
+              "n_items": 125,
+              "epochs": 3,
+              "consistency": 0.992
+            },
+            "A2": {
+              "score": 0.9481481481481482,
+              "ci95": [
+                0.9111111111111111,
+                0.9851851851851852
+              ],
+              "n_items": 135,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "B1": {
+              "score": 0.9771689497716897,
+              "ci95": [
+                0.9406392694063925,
+                1.0
+              ],
+              "n_items": 73,
+              "epochs": 3,
+              "consistency": 0.9863013698630136
+            },
+            "B2": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 24,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "C1": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_evidence": {
+            "blas-app+bunamo": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 7,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "blas-app+kaikki": {
+              "score": 0.9513888888888888,
+              "ci95": [
+                0.9061631944444446,
+                0.9895833333333334
+              ],
+              "n_items": 96,
+              "epochs": 3,
+              "consistency": 0.9895833333333334
+            },
+            "blas-app-only": {
+              "score": 0.9701686121919584,
+              "ci95": [
+                0.9481193255512321,
+                0.9883268482490273
+              ],
+              "n_items": 257,
+              "epochs": 3,
+              "consistency": 0.9961089494163424
+            }
+          },
+          "failure_examples": []
+        },
+        "morphology": {
+          "suite": "blas",
+          "test": "morphology",
+          "scoring": "accept_list",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 360,
+          "n_errors": 0,
+          "score": 0.925,
+          "ci95": [
+            0.8990740740740741,
+            0.9481481481481481
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9416666666666667,
+          "cost_usd": 5.24112,
+          "cost_per_correct_usd": 0.005246366366366366,
+          "cost": {
+            "candidate": {
+              "calls": 1080,
+              "input_tokens": 122697,
+              "output_tokens": 80283,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 5.24112
+            },
+            "judge": {
+              "calls": 0,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.0
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "breton": {
+              "score": 0.9777777777777777,
+              "ci95": [
+                0.9333333333333333,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9833333333333333
+            },
+            "cornish": {
+              "score": 0.8666666666666668,
+              "ci95": [
+                0.7888888888888889,
+                0.9333333333333333
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.8333333333333334
+            },
+            "irish": {
+              "score": 0.9166666666666666,
+              "ci95": [
+                0.8444444444444446,
+                0.9722222222222221
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9166666666666666
+            },
+            "manx": {
+              "score": 0.8722222222222221,
+              "ci95": [
+                0.7888888888888889,
+                0.9388888888888889
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9166666666666666
+            },
+            "scots-gaelic": {
+              "score": 0.9166666666666666,
+              "ci95": [
+                0.8333333333333334,
+                0.9833333333333333
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "welsh": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_l1": {
+            "none": {
+              "score": 0.925,
+              "ci95": [
+                0.8962962962962964,
+                0.9472222222222222
+              ],
+              "n_items": 360,
+              "epochs": 3,
+              "consistency": 0.9416666666666667
+            }
+          },
+          "by_phenomenon": {
+            "article_gender_mutation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 31,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "copula": {
+              "score": 0.9032258064516129,
+              "ci95": [
+                0.8064516129032258,
+                1.0
+              ],
+              "n_items": 31,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "noun_genitive": {
+              "score": 0.8518518518518517,
+              "ci95": [
+                0.6296296296296295,
+                1.0
+              ],
+              "n_items": 9,
+              "epochs": 3,
+              "consistency": 0.8888888888888888
+            },
+            "noun_plural": {
+              "score": 0.8444444444444444,
+              "ci95": [
+                0.7,
+                0.9555555555555555
+              ],
+              "n_items": 30,
+              "epochs": 3,
+              "consistency": 0.9333333333333333
+            },
+            "noun_vocative": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "number_cardinal": {
+              "score": 0.9444444444444445,
+              "ci95": [
+                0.8555555555555555,
+                1.0
+              ],
+              "n_items": 30,
+              "epochs": 3,
+              "consistency": 0.9666666666666667
+            },
+            "number_counting": {
+              "score": 0.4,
+              "ci95": [
+                0.0,
+                0.8
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "number_ordinal": {
+              "score": 0.9222222222222222,
+              "ci95": [
+                0.8333333333333333,
+                0.9888888888888888
+              ],
+              "n_items": 30,
+              "epochs": 3,
+              "consistency": 0.9
+            },
+            "number_personal": {
+              "score": 0.9259259259259258,
+              "ci95": [
+                0.7777777777777777,
+                1.0
+              ],
+              "n_items": 9,
+              "epochs": 3,
+              "consistency": 0.8888888888888888
+            },
+            "prepositional_pronoun": {
+              "score": 0.9761904761904762,
+              "ci95": [
+                0.9404761904761905,
+                1.0
+              ],
+              "n_items": 28,
+              "epochs": 3,
+              "consistency": 0.9285714285714286
+            },
+            "verb_conditional": {
+              "score": 0.9710144927536232,
+              "ci95": [
+                0.9275362318840579,
+                1.0
+              ],
+              "n_items": 23,
+              "epochs": 3,
+              "consistency": 0.9130434782608695
+            },
+            "verb_future": {
+              "score": 0.8695652173913043,
+              "ci95": [
+                0.7246376811594203,
+                0.9855072463768115
+              ],
+              "n_items": 23,
+              "epochs": 3,
+              "consistency": 0.9130434782608695
+            },
+            "verb_futureIndicative": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verb_imperative": {
+              "score": 0.9382716049382716,
+              "ci95": [
+                0.8395061728395061,
+                1.0
+              ],
+              "n_items": 27,
+              "epochs": 3,
+              "consistency": 0.9629629629629629
+            },
+            "verb_imperfect": {
+              "score": 0.8809523809523808,
+              "ci95": [
+                0.7142857142857143,
+                1.0
+              ],
+              "n_items": 14,
+              "epochs": 3,
+              "consistency": 0.8571428571428571
+            },
+            "verb_past": {
+              "score": 0.9090909090909091,
+              "ci95": [
+                0.8174242424242436,
+                1.0
+              ],
+              "n_items": 22,
+              "epochs": 3,
+              "consistency": 0.8636363636363636
+            },
+            "verb_pastConditional": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verb_pastParticiple": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verb_pluperfect": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verb_present": {
+              "score": 0.9710144927536232,
+              "ci95": [
+                0.9130434782608694,
+                1.0
+              ],
+              "n_items": 23,
+              "epochs": 3,
+              "consistency": 0.9565217391304348
+            },
+            "verb_preterite": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 0.9228855721393036,
+              "ci95": [
+                0.8781094527363184,
+                0.9626865671641791
+              ],
+              "n_items": 134,
+              "epochs": 3,
+              "consistency": 0.9552238805970149
+            },
+            "A2": {
+              "score": 0.9071428571428571,
+              "ci95": [
+                0.8595238095238095,
+                0.95
+              ],
+              "n_items": 140,
+              "epochs": 3,
+              "consistency": 0.9285714285714286
+            },
+            "B1": {
+              "score": 0.9401709401709402,
+              "ci95": [
+                0.8717948717948718,
+                0.9829059829059827
+              ],
+              "n_items": 39,
+              "epochs": 3,
+              "consistency": 0.8974358974358975
+            },
+            "B2": {
+              "score": 0.9166666666666666,
+              "ci95": [
+                0.7916666666666666,
+                1.0
+              ],
+              "n_items": 16,
+              "epochs": 3,
+              "consistency": 0.9375
+            },
+            "unspecified": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 31,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_evidence": {
+            "blas-app+bunamo": {
+              "score": 0.9696969696969696,
+              "ci95": [
+                0.909090909090909,
+                1.0
+              ],
+              "n_items": 11,
+              "epochs": 3,
+              "consistency": 0.9090909090909091
+            },
+            "blas-app+kaikki": {
+              "score": 0.8958333333333333,
+              "ci95": [
+                0.8503787878787878,
+                0.9337121212121212
+              ],
+              "n_items": 176,
+              "epochs": 3,
+              "consistency": 0.9090909090909091
+            },
+            "blas-app-only": {
+              "score": 0.9518304431599228,
+              "ci95": [
+                0.9210019267822734,
+                0.9788053949903661
+              ],
+              "n_items": 173,
+              "epochs": 3,
+              "consistency": 0.976878612716763
+            }
+          },
+          "failure_examples": [
+            {
+              "id": "blas-morph:manx:number_ordinal:gv-num-12",
+              "public": true,
+              "language": "manx",
+              "l1": "none",
+              "phenomenon": "number_ordinal",
+              "input": "Language: Manx\nTask: Give the ordinal numeral for the number below: the ordinal ('first', 'second', ...), including the definite article yn as it stands before the ordinal.\nNumber: 12 (twelve)\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
+              "expected": "yn nah jeig",
+              "output": "ANSWER: yn nah yeig",
+              "score": 0.0
+            },
+            {
+              "id": "blas-morph:scots-gaelic:copula:cop-gd-empha-04",
+              "public": true,
+              "language": "scots-gaelic",
+              "l1": "none",
+              "phenomenon": "copula",
+              "input": "Language: Scottish Gaelic\nTask: Fill in the blank with the copula word (or copula particle) that the sentence needs. Write only the missing word(s).\nSentence: ___ do Dhia a bhuineas slàinte.\nEnglish: Salvation is God's affair.\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
+              "expected": "'S ann",
+              "output": "ANSWER: Is ann",
+              "score": 0.0
+            },
+            {
+              "id": "blas-morph:scots-gaelic:number_counting:gd-num-2",
+              "public": true,
+              "language": "scots-gaelic",
+              "l1": "none",
+              "phenomenon": "number_counting",
+              "input": "Language: Scottish Gaelic\nTask: Give the counting numeral for the number below: the form used when counting aloud (not before a noun).\nNumber: 2 (two)\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
+              "expected": "dhà",
+              "output": "ANSWER: a dhà",
+              "score": 0.0
+            }
+          ]
+        },
+        "round_trip": {
+          "suite": "blas",
+          "test": "round_trip",
+          "scoring": "round_trip",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 240,
+          "n_errors": 0,
+          "score": 0.6926391160803915,
+          "ci95": [
+            0.666335989644512,
+            0.7209806858479513
+          ],
+          "n_items": 240,
+          "epochs": 3,
+          "consistency": 0.4791666666666667,
+          "cost_usd": 7.85517,
+          "cost_per_correct_usd": 0.015751288196185362,
+          "cost": {
+            "candidate": {
+              "calls": 1441,
+              "input_tokens": 107307,
+              "output_tokens": 135642,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 7.85517
+            },
+            "judge": {
+              "calls": 0,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.0
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "breton": {
+              "score": 0.645332571631041,
+              "ci95": [
+                0.5825445201642326,
+                0.713593248613074
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.6
+            },
+            "cornish": {
+              "score": 0.6610239081610061,
+              "ci95": [
+                0.5828186517261212,
+                0.7409755814494567
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.4
+            },
+            "irish": {
+              "score": 0.7773456693366818,
+              "ci95": [
+                0.7179930097534699,
+                0.8345904470192791
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.625
+            },
+            "manx": {
+              "score": 0.5683315852111657,
+              "ci95": [
+                0.5196917946764982,
+                0.6207991277136496
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.125
+            },
+            "scots-gaelic": {
+              "score": 0.7076365168304755,
+              "ci95": [
+                0.6542958495018215,
+                0.7605728302497511
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.675
+            },
+            "welsh": {
+              "score": 0.7961644453119792,
+              "ci95": [
+                0.7404099275440081,
+                0.8463878792034562
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.45
+            }
+          },
+          "by_l1": {
+            "none": {
+              "score": 0.6926391160803915,
+              "ci95": [
+                0.6650572229404798,
+                0.7193975181832886
+              ],
+              "n_items": 240,
+              "epochs": 3,
+              "consistency": 0.4791666666666667
+            }
+          },
+          "by_phenomenon": {
+            "round_trip": {
+              "score": 0.6926391160803915,
+              "ci95": [
+                0.6664202722853997,
+                0.720126829186831
+              ],
+              "n_items": 240,
+              "epochs": 3,
+              "consistency": 0.4791666666666667
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 0.6396400716247664,
+              "ci95": [
+                0.5578602415993933,
+                0.7247849131866908
+              ],
+              "n_items": 25,
+              "epochs": 3,
+              "consistency": 0.56
+            },
+            "A2": {
+              "score": 0.7365390263875302,
+              "ci95": [
+                0.6899001615182502,
+                0.7845805253008261
+              ],
+              "n_items": 88,
+              "epochs": 3,
+              "consistency": 0.5227272727272727
+            },
+            "B1": {
+              "score": 0.6339316818185241,
+              "ci95": [
+                0.5851730117008481,
+                0.6793473080094291
+              ],
+              "n_items": 79,
+              "epochs": 3,
+              "consistency": 0.5063291139240507
+            },
+            "B2": {
+              "score": 0.6873777428009847,
+              "ci95": [
+                0.6198136909697626,
+                0.7599430534802638
+              ],
+              "n_items": 27,
+              "epochs": 3,
+              "consistency": 0.2962962962962963
+            },
+            "C1": {
+              "score": 0.7726220022914982,
+              "ci95": [
+                0.6924340826348253,
+                0.8578323410881011
+              ],
+              "n_items": 15,
+              "epochs": 3,
+              "consistency": 0.4
+            },
+            "C2": {
+              "score": 0.8663032988182818,
+              "ci95": [
+                0.7931694089448301,
+                0.9450554071173313
+              ],
+              "n_items": 6,
+              "epochs": 3,
+              "consistency": 0.16666666666666666
+            }
+          },
+          "by_evidence": {
+            "blas-app+kaikki": {
+              "score": 0.7457723380203749,
+              "ci95": [
+                0.6926990996216177,
+                0.7939472873394389
+              ],
+              "n_items": 64,
+              "epochs": 3,
+              "consistency": 0.671875
+            },
+            "blas-app-only": {
+              "score": 0.6769338374966892,
+              "ci95": [
+                0.6429266259956777,
+                0.7088365762059288
+              ],
+              "n_items": 136,
+              "epochs": 3,
+              "consistency": 0.4117647058823529
+            },
+            "blas-app-unverified": {
+              "score": 0.6610239081610061,
+              "ci95": [
+                0.5817543929507877,
+                0.7394273826936932
+              ],
+              "n_items": 40,
+              "epochs": 3,
+              "consistency": 0.4
+            }
+          },
+          "failure_examples": [
+            {
+              "id": "blas-round_trip-cornish-kw-sent-tat-1830",
+              "public": true,
+              "language": "cornish",
+              "l1": "none",
+              "phenomenon": "round_trip",
+              "input": "Translate this Cornish sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nCornish: Kas yw genev an traow na.\n",
+              "expected": "Kas yw genev an traow na.",
+              "output": "Yma kas dhymm orth an taklow-na.",
+              "score": 0.16178271687489995,
+              "pivot_text": "I hate those things."
+            },
+            {
+              "id": "blas-round_trip-manx-gv-sent-parallel-4693",
+              "public": true,
+              "language": "manx",
+              "l1": "none",
+              "phenomenon": "round_trip",
+              "input": "Translate this Manx sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nManx: Va mee sheiltyn dy darragh eh.\n",
+              "expected": "Va mee sheiltyn dy darragh eh.",
+              "output": "Smooinee mee dy jig eh.",
+              "score": 0.1970889865971572,
+              "pivot_text": "I thought he would come."
+            },
+            {
+              "id": "blas-round_trip-manx-gv-sent-parallel-6412",
+              "public": true,
+              "language": "manx",
+              "l1": "none",
+              "phenomenon": "round_trip",
+              "input": "Translate this Manx sentence into English.\nReply with the English translation only, on one line, with no notes or explanation.\n\nManx: Nee eh costal queig keead stiagh as magh.\n",
+              "expected": "Nee eh costal queig keead stiagh as magh.",
+              "output": "Nee eh costal mysh queig cheead.",
+              "score": 0.43447269026336593,
+              "pivot_text": "It will cost about five hundred."
+            }
+          ]
+        },
+        "translation": {
+          "suite": "blas",
+          "test": "translation",
+          "scoring": "translation",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 360,
+          "n_errors": 0,
+          "score": 0.7311691652038222,
+          "ci95": [
+            0.7048592876968698,
+            0.7568023041433711
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.6111111111111112,
+          "cost_usd": 6.16509,
+          "cost_per_correct_usd": 0.007807244805072403,
+          "cost": {
+            "candidate": {
+              "calls": 1080,
+              "input_tokens": 87519,
+              "output_tokens": 105798,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 6.16509
+            },
+            "judge": {
+              "calls": 0,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.0
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "breton": {
+              "score": 0.7156158827654423,
+              "ci95": [
+                0.6552345471329077,
+                0.7731703320053677
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.6166666666666667
+            },
+            "cornish": {
+              "score": 0.7890131429237296,
+              "ci95": [
+                0.724956216750608,
+                0.848848099874316
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.6166666666666667
+            },
+            "irish": {
+              "score": 0.8082967436914713,
+              "ci95": [
+                0.7562341912121872,
+                0.8547532438234613
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.6666666666666666
+            },
+            "manx": {
+              "score": 0.4959842873851697,
+              "ci95": [
+                0.43970872779770126,
+                0.558444583251624
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.45
+            },
+            "scots-gaelic": {
+              "score": 0.7701960364196538,
+              "ci95": [
+                0.7088717112646714,
+                0.8316227339745409
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.7666666666666667
+            },
+            "welsh": {
+              "score": 0.8079088980374667,
+              "ci95": [
+                0.7630038472776445,
+                0.8513903625254144
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.55
+            }
+          },
+          "by_l1": {
+            "none": {
+              "score": 0.7311691652038222,
+              "ci95": [
+                0.7049963188475676,
+                0.7559918679554685
+              ],
+              "n_items": 360,
+              "epochs": 3,
+              "consistency": 0.6111111111111112
+            }
+          },
+          "by_phenomenon": {
+            "from_english": {
+              "score": 0.6689889972859602,
+              "ci95": [
+                0.6273332658976223,
+                0.7099393903296164
+              ],
+              "n_items": 150,
+              "epochs": 3,
+              "consistency": 0.54
+            },
+            "legal_or_administrative": {
+              "score": 0.7633875192845003,
+              "ci95": [
+                0.7172074259927315,
+                0.8081345934913127
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.4666666666666667
+            },
+            "to_english": {
+              "score": 0.780461991489413,
+              "ci95": [
+                0.7383218516008299,
+                0.8210246984737724
+              ],
+              "n_items": 150,
+              "epochs": 3,
+              "consistency": 0.74
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 0.7660901899900515,
+              "ci95": [
+                0.7134612989652487,
+                0.81874520311873
+              ],
+              "n_items": 112,
+              "epochs": 3,
+              "consistency": 0.7589285714285714
+            },
+            "A2": {
+              "score": 0.7041036564865065,
+              "ci95": [
+                0.6537603753717034,
+                0.7525412445420265
+              ],
+              "n_items": 91,
+              "epochs": 3,
+              "consistency": 0.6263736263736264
+            },
+            "B1": {
+              "score": 0.6586553185961329,
+              "ci95": [
+                0.5875054355024691,
+                0.7237620613178464
+              ],
+              "n_items": 47,
+              "epochs": 3,
+              "consistency": 0.5319148936170213
+            },
+            "B2": {
+              "score": 0.6511760728997475,
+              "ci95": [
+                0.5537258364879667,
+                0.7455171801324327
+              ],
+              "n_items": 30,
+              "epochs": 3,
+              "consistency": 0.5
+            },
+            "C1": {
+              "score": 0.8633512202061498,
+              "ci95": [
+                0.7863777785824325,
+                0.9330741646429941
+              ],
+              "n_items": 14,
+              "epochs": 3,
+              "consistency": 0.5714285714285714
+            },
+            "C2": {
+              "score": 0.8271858422085515,
+              "ci95": [
+                0.7535502038684775,
+                0.9060458993059887
+              ],
+              "n_items": 6,
+              "epochs": 3,
+              "consistency": 0.3333333333333333
+            },
+            "unspecified": {
+              "score": 0.7633875192845003,
+              "ci95": [
+                0.7148271830828279,
+                0.8111324057243963
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.4666666666666667
+            }
+          },
+          "by_evidence": {
+            "blas-app+kaikki": {
+              "score": 0.7235835221059514,
+              "ci95": [
+                0.6506692973961972,
+                0.8009361596498289
+              ],
+              "n_items": 44,
+              "epochs": 3,
+              "consistency": 0.7727272727272727
+            },
+            "blas-app-only": {
+              "score": 0.705301963103165,
+              "ci95": [
+                0.6691153828967982,
+                0.7427434616842039
+              ],
+              "n_items": 196,
+              "epochs": 3,
+              "consistency": 0.6173469387755102
+            },
+            "blas-app-unverified": {
+              "score": 0.7890131429237296,
+              "ci95": [
+                0.7235405692471417,
+                0.844609874803824
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.6166666666666667
+            },
+            "corpus-reference": {
+              "score": 0.7633875192845003,
+              "ci95": [
+                0.713468960628063,
+                0.8108341009514367
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.4666666666666667
+            }
+          },
+          "failure_examples": [
+            {
+              "id": "blas-translation-scots-gaelic-gd-sent-0223-from_english",
+              "public": true,
+              "language": "scots-gaelic",
+              "l1": "none",
+              "phenomenon": "from_english",
+              "input": "Translate this English sentence into Scottish Gaelic.\nReply with the Scottish Gaelic translation only, on one line, with no notes or explanation.\n\nEnglish: He is a good carpenter.\n",
+              "expected": "Tha e na dheagh shaor.",
+              "output": "’S e saor math a th’ ann.",
+              "score": 0.15126679548505226
+            },
+            {
+              "id": "blas-translation-scots-gaelic-gd-sent-0255-from_english",
+              "public": true,
+              "language": "scots-gaelic",
+              "l1": "none",
+              "phenomenon": "from_english",
+              "input": "Translate this English sentence into Scottish Gaelic.\nReply with the Scottish Gaelic translation only, on one line, with no notes or explanation.\n\nEnglish: She used to drink beer.\n",
+              "expected": "B' àbhaist dhi leann òl.",
+              "output": "Bhiodh i ag òl leann.",
+              "score": 0.25145353959452116
+            },
+            {
+              "id": "blas-translation-manx-gv-sent-parallel-15649-from_english",
+              "public": true,
+              "language": "manx",
+              "l1": "none",
+              "phenomenon": "from_english",
+              "input": "Translate this English sentence into Manx.\nReply with the Manx translation only, on one line, with no notes or explanation.\n\nEnglish: Have you made my bed?\n",
+              "expected": "Vel shiu er chiartaghey my lhiabbee?",
+              "output": "Vel oo er n'yannoo my lhiabbee?",
+              "score": 0.40779982630612965
+            }
+          ]
+        },
+        "tutor_accuracy": {
+          "suite": "blas",
+          "test": "tutor_accuracy",
+          "scoring": "tutor",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 180,
+          "n_errors": 0,
+          "score": 0.8648148148148148,
+          "ci95": [
+            0.820324074074074,
+            0.9074074074074074
+          ],
+          "n_items": 180,
+          "epochs": 3,
+          "consistency": 0.8833333333333333,
+          "cost_usd": 5.213207361,
+          "cost_per_correct_usd": 0.011163184927194862,
+          "cost": {
+            "candidate": {
+              "calls": 540,
+              "input_tokens": 96480,
+              "output_tokens": 78687,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 4.89915
+            },
+            "judge": {
+              "calls": 1255,
+              "input_tokens": 286175,
+              "output_tokens": 531369,
+              "cache_read_tokens": 73931,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.314057361
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "irish": {
+              "score": 0.8944444444444444,
+              "ci95": [
+                0.8222222222222223,
+                0.9555555555555555
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9
+            },
+            "scots-gaelic": {
+              "score": 0.8111111111111111,
+              "ci95": [
+                0.7055555555555556,
+                0.9
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9166666666666666
+            },
+            "welsh": {
+              "score": 0.888888888888889,
+              "ci95": [
+                0.8222222222222223,
+                0.95
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.8333333333333334
+            }
+          },
+          "by_l1": {
+            "none": {
+              "score": 0.8648148148148148,
+              "ci95": [
+                0.8222222222222222,
+                0.9074074074074073
+              ],
+              "n_items": 180,
+              "epochs": 3,
+              "consistency": 0.8833333333333333
+            }
+          },
+          "by_phenomenon": {
+            "application": {
+              "score": 0.6666666666666666,
+              "ci95": [
+                0.4242424242424242,
+                0.8787878787878789
+              ],
+              "n_items": 11,
+              "epochs": 3,
+              "consistency": 0.7272727272727273
+            },
+            "clean": {
+              "score": 0.8111111111111111,
+              "ci95": [
+                0.6777777777777777,
+                0.9333333333333333
+              ],
+              "n_items": 30,
+              "epochs": 3,
+              "consistency": 0.9
+            },
+            "clothing": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "communication": {
+              "score": 0.6666666666666666,
+              "ci95": [
+                0.3333333333333333,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 0.5
+            },
+            "comparison": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comprehension": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conjugation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conjunctions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conversation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "copula": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "daily_life": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "declension": {
+              "score": 0.6666666666666666,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discourse": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "grammar": {
+              "score": 0.8968253968253967,
+              "ci95": [
+                0.8253968253968254,
+                0.9523809523809523
+              ],
+              "n_items": 42,
+              "epochs": 3,
+              "consistency": 0.7857142857142857
+            },
+            "grammar_point": {
+              "score": 0.8333333333333334,
+              "ci95": [
+                0.5833333333333334,
+                1.0
+              ],
+              "n_items": 12,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "guide": {
+              "score": 0.9,
+              "ci95": [
+                0.7833333333333333,
+                1.0
+              ],
+              "n_items": 20,
+              "epochs": 3,
+              "consistency": 0.9
+            },
+            "health": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "mutation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "orthography_doubled_letter": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 7,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "passive": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "prepositions": {
+              "score": 0.5,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "questions": {
+              "score": 0.8333333333333333,
+              "ci95": [
+                0.6666666666666666,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 0.5
+            },
+            "recall": {
+              "score": 0.5,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "relative_clauses": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "subordinate_clauses": {
+              "score": 0.8888888888888888,
+              "ci95": [
+                0.6666666666666666,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 0.6666666666666666
+            },
+            "unit_focus": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 10,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verbal_noun": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "vocabulary": {
+              "score": 0.9111111111111111,
+              "ci95": [
+                0.7555555555555554,
+                1.0
+              ],
+              "n_items": 15,
+              "epochs": 3,
+              "consistency": 0.9333333333333333
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 22,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "A2": {
+              "score": 0.8518518518518519,
+              "ci95": [
+                0.7160493827160493,
+                0.9629629629629629
+              ],
+              "n_items": 27,
+              "epochs": 3,
+              "consistency": 0.8888888888888888
+            },
+            "B1": {
+              "score": 0.8571428571428571,
+              "ci95": [
+                0.753968253968254,
+                0.9365079365079364
+              ],
+              "n_items": 42,
+              "epochs": 3,
+              "consistency": 0.8571428571428571
+            },
+            "B2": {
+              "score": 0.7681159420289854,
+              "ci95": [
+                0.5942028985507246,
+                0.9275362318840579
+              ],
+              "n_items": 23,
+              "epochs": 3,
+              "consistency": 0.9130434782608695
+            },
+            "C1": {
+              "score": 0.7,
+              "ci95": [
+                0.4666666666666666,
+                0.9
+              ],
+              "n_items": 10,
+              "epochs": 3,
+              "consistency": 0.6
+            },
+            "C2": {
+              "score": 0.5,
+              "ci95": [
+                0.3333333333333333,
+                0.6666666666666666
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 0.0
+            },
+            "unspecified": {
+              "score": 0.9074074074074074,
+              "ci95": [
+                0.8333333333333334,
+                0.9691358024691357
+              ],
+              "n_items": 54,
+              "epochs": 3,
+              "consistency": 0.9259259259259259
+            }
+          },
+          "by_evidence": {
+            "blas-app-only": {
+              "score": 0.8555555555555556,
+              "ci95": [
+                0.7666666666666667,
+                0.9333333333333333
+              ],
+              "n_items": 60,
+              "epochs": 3,
+              "consistency": 0.9166666666666666
+            },
+            "distractor-derived-unverified": {
+              "score": 0.8613569321533923,
+              "ci95": [
+                0.8052359882005902,
+                0.9145280235988198
+              ],
+              "n_items": 113,
+              "epochs": 3,
+              "consistency": 0.8584070796460177
+            },
+            "planted-typo": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 7,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "tutor": {
+            "headline": "rule-only: found AND fixed AND no over-correction",
+            "judges": [
+              "deepseek/deepseek-v4.1-flash-1017",
+              "qwen/qwen3.8-flash"
+            ],
+            "components": {
+              "found": 0.8666666666666667,
+              "fixed": 0.8648148148148148,
+              "no_overcorrection": 0.8944444444444445
+            },
+            "explanation": {
+              "label": "judge-marked, not human-validated",
+              "status": "scored",
+              "score": 0.6990740740740742,
+              "ci95": [
+                0.6351851851851852,
+                0.762037037037037
+              ],
+              "n_items": 180,
+              "epochs": 3,
+              "judged_item_epochs": 523,
+              "unscored_item_epochs": 17,
+              "judge_agreement": 0.9101338432122371,
+              "judge_failures": 17
+            }
+          },
+          "failure_examples": [
+            {
+              "id": "blas-tutor-irish-exd-51c5e10877",
+              "public": true,
+              "language": "irish",
+              "l1": "none",
+              "phenomenon": "communication",
+              "input": "You are a Irish language tutor checking a sentence written by a learner.\nLanguage: Irish\nThe sentence may contain one error, or it may already be correct.\nIf it has an error, change only that one error: give the exact erroneous substring and the replacement for it. If it is correct, set has_error to false, leave error_span and correction empty and repeat the sentence as corrected_sentence.\nSentence: Fhan muid i mbrú.\nReply with one JSON object and nothing else:\n{\"has_error\": true|false, \"error_…",
+              "expected": "D'fhan muid i mbrú.",
+              "output": "{\"has_error\":false,\"error_span\":\"\",\"correction\":\"\",\"corrected_sentence\":\"Fhan muid i mbrú.\",\"explanation\":\"The sentence is correct. “Fhan” is the past tense of “fan”, and “i” correctly eclipses “brú” to “mbrú”.\"}",
+              "score": 0.0
+            },
+            {
+              "id": "blas-tutor-welsh-clean-sent-d6e9a5c833",
+              "public": true,
+              "language": "welsh",
+              "l1": "none",
+              "phenomenon": "clean",
+              "input": "You are a Welsh language tutor checking a sentence written by a learner.\nLanguage: Welsh\nThe sentence may contain one error, or it may already be correct.\nIf it has an error, change only that one error: give the exact erroneous substring and the replacement for it. If it is correct, set has_error to false, leave error_span and correction empty and repeat the sentence as corrected_sentence.\nSentence: Pleidlais, felly, ar welliant 12.\nReply with one JSON object and nothing else:\n{\"has_error\": tru…",
+              "expected": "Pleidlais, felly, ar welliant 12.",
+              "output": "{\"has_error\":true,\"error_span\":\"Pleidlais\",\"correction\":\"Pleidleisiais\",\"corrected_sentence\":\"Pleidleisiais, felly, ar welliant 12.\",\"explanation\":\"“Pleidlais” is the noun “vote”; “Pleidleisiais” is the verb form meaning “I voted”.\"}",
+              "score": 0.0
+            },
+            {
+              "id": "blas-tutor-welsh-exd-d6fa3b01fb",
+              "public": true,
+              "language": "welsh",
+              "l1": "none",
+              "phenomenon": "grammar",
+              "input": "You are a Welsh language tutor checking a sentence written by a learner.\nLanguage: Welsh\nThe sentence may contain one error, or it may already be correct.\nIf it has an error, change only that one error: give the exact erroneous substring and the replacement for it. If it is correct, set has_error to false, leave error_span and correction empty and repeat the sentence as corrected_sentence.\nSentence: Byddai yna adar y tu allan er i fyddai merlod na defaid.\nReply with one JSON object and nothing …",
+              "expected": "Byddai yna adar y tu allan er na fyddai merlod na defaid.",
+              "output": "{\"has_error\":true,\"error_span\":\"er i\",\"correction\":\"er na\",\"corrected_sentence\":\"Byddai yna adar y tu allan er na fyddai merlod na defaid.\",\"explanation\":\"Use 'er na' ('although … not') before the finite verb 'fyddai'. 'Er i' requires a different construction, with a verbal noun.\"}",
+              "score": 0.0
+            }
+          ]
+        }
+      },
+      "overall": {
+        "score": 0.8358727673679539,
+        "ci95": [
+          0.8232329640767363,
+          0.8489281128550477
+        ],
+        "n_tests": 5,
+        "n_items": 1500
+      }
+    },
+    "tonada": {
+      "tests": {
+        "exercises": {
+          "suite": "tonada",
+          "test": "exercises",
+          "scoring": "accept_list",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 400,
+          "n_errors": 0,
+          "score": 0.99,
+          "ci95": [
+            0.98,
+            0.9975
+          ],
+          "n_items": 400,
+          "epochs": 3,
+          "consistency": 1.0,
+          "cost_usd": 2.40556,
+          "cost_per_correct_usd": 0.002024882154882155,
+          "cost": {
+            "candidate": {
+              "calls": 1200,
+              "input_tokens": 170841,
+              "output_tokens": 13943,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 2.40556
+            },
+            "judge": {
+              "calls": 0,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.0
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "english": {
+              "score": 0.99,
+              "ci95": [
+                0.98,
+                0.9975
+              ],
+              "n_items": 400,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_l1": {
+            "japanese": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 100,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "portuguese": {
+              "score": 0.98,
+              "ci95": [
+                0.95,
+                1.0
+              ],
+              "n_items": 100,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "spanish": {
+              "score": 0.99,
+              "ci95": [
+                0.97,
+                1.0
+              ],
+              "n_items": 100,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "vietnamese": {
+              "score": 0.99,
+              "ci95": [
+                0.97,
+                1.0
+              ],
+              "n_items": 100,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_phenomenon": {
+            "a_balanced_view": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_competitive_interview": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_complex_phone_call": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_cultural_misunderstanding": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_customer_email": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_discursive_essay": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_formal_complaint": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_formal_enquiry": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_formal_letter_to_an_authority": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_group_discussion": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_lifestyle_change": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_note_to_the_doctor_or_the_office": {
+              "score": 0.5,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_personal_statement_or_cover_letter": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_short_presentation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_tactful_formal_email": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "a_tactful_message": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "adjective_order": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "admit_deny_suggest_accuse": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "advanced_passives_can_be_done_has_been_done_is_being_built": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "adverb_position_and_complex_comparison": {
+              "score": 0.5,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "adverb_position_where_japanese_places_modifiers_early": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "adversative_passive_had_my_phone_stolen": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "afraid_of_interested_in": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "agreeing_and_disagreeing_in_meetings": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "already_yet_just_for_and_since": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "although_and_however": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "am_is_are_negatives_and_questions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "apps_and_online_instructions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "apps_and_online_instructions_part_2": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "argue_a_position": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_and_plural_s": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_and_plurals_a_the_two_rooms": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_and_plurals_for_rooms_and_rent": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_and_plurals_in_housing_talk": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_and_subjects": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_and_subjects_when_describing_media": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_classifiers_and_plural_s_in_media_talk": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_plurals_and_he_she_it": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_plurals_and_pronouns": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_with_place_names_and_landmarks": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "articles_with_places_and_groups": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "asking_for_clarification_on_the_phone": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "asking_for_directions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "at_in_and_on_places_and_transport": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "at_the_pharmacy_dose_frequency_and_allergies": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "avoiding_the_errors_depend_of_and_discuss_about": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "b1_capstone_checkpoint": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "b2_capstone_checkpoint": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "backshift_and_question_order_in_reports": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "banks_and_payments": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "be_for_feelings_one_negative_only": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "be_ing_and_endings": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "bi_and_uoc_vs_passive_and_causative": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "bi_uoc_passives_and_ma_relatives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "bored_or_boring": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "bored_vs_boring_and_each_every_both_neither": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "both_sides_of_an_issue": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "budgets_and_decisions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "buying_tickets_and_using_public_transport": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "can_be_ing_and_false_friends_in_free_time": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "chair_a_meeting": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "challenge_a_claim_politely": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_a_day_at_work": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_a_story_in_three_tenses": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_a_trip_that_goes_wrong": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_analyse_and_pitch": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_apply_and_present": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_argue_a_case": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_argue_it": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_balance_and_mediate": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_build_and_defend_an_argument": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_choose_complain_resolve": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_critique_and_narrate": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_describing_clothes_for_the_family": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_descriptions_and_routines": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_discussing_experiences_abroad_in_detail": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_eating_out": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_explain_and_debate_technology": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_finding_a_home_and_reporting_a_problem": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_getting_things_done": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_health_in_detail": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_health_stories": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_hear_it_say_it": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_how_things_have_changed": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_jobs_and_articles": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_my_workday_yesterday": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_people_and_timetables": {
+              "score": 0.75,
+              "ci95": [
+                0.25,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_places_and_directions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_plan_your_path": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_plans_and_abilities": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_plans_health_and_work": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_prices_and_polite_requests": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_problems": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_recent_changes": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_recommend_and_review": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_reporting_and_supporting": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_run_a_project": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_settling_in": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_superlatives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_understand_and_evaluate_evidence": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_understand_and_report_the_news": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_what_might_have_been": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_who_said_what": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "checkpoint_yesterday_and_now": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "cleft_and_do_emphasis_vs_chinh_and_moi": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "clothes_and_polite_requests_in_a_shop": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "collocations_and_fixed_phrases": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "commas_and_relative_pronouns_vs_ma": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "common_irregular_past_verbs": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "compare_two_countries": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comparing_people_er_and_more": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comparison_structures_adverb_position_and_endings": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comparison_structures_and_each_person_both_people": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "complaints_and_returns": {
+              "score": 0.6666666666666666,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "complex_comparisons_by_far_the_most_and_nowhere_near_as_as": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "compound_nouns_in_tech_talk": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conditional_forms_without_neu_and_context": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "conditionals_and_articles_with_place_names": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "contrast_be_feelings_and_negatives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "contrast_because_so_and_articles": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "contrast_endings_and_plurals": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "contrast_since_for_and_do": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "countable_and_uncountable_nouns": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "countable_and_uncountable_part_2": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "counting_and_quantity_in_service_talk": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "course_and_job_descriptions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "cujo_and_em_que_vs_whose_and_in_which": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "cuyo_and_gerundio_vs_whose_and_participle_clauses": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "cv_profile_and_cover_letter": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "dates_months_and_birthdays": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "days_and_parts_of_the_day": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "days_and_routines_part_2": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "dealing_with_officials": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "debio_de_vs_must_have_and_the_mandative_subjunctive": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "deduction_modals_and_health_false_friends": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "depend_on_apologise_for": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "dependent_prepositions_and_verb_patterns": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "dependent_prepositions_vs_japanese_particles": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describe_and_recommend_a_place": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describe_data_in_detail": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describe_people": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describe_people_part_2": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describe_someone_you_know": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describe_your_job_and_week": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describing_figures_and_trends": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describing_symptoms_i_have_a_my_hurts": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "describing_things": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 4,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "descriptions_and_there_is": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "direct_answers_and_softened_disagreement": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "direct_bargaining_without_losing_politeness": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "directions_in_town": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discourse_markers_instead_of_word_by_word_fluency": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discourse_markers_particles_and_register": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discuss_a_news_story": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discuss_a_work_of_art": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discuss_decisions_and_alternatives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discuss_healthy_habits": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discuss_policy_options": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "discuss_privacy_and_ethics": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "do_and_does_questions": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "double_negatives_and_be_have_phrases": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "duration_and_completed_past_events_without_tense_endings": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "each_every_both_neither": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "emphasis_with_do_and_inversion_not_and": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "enjoy_doing_decide_to_do": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "explain_a_financial_concept": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "explain_a_health_problem_in_detail": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "explain_customs_and_etiquette": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "explain_how_it_works": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "false_friends_and_hello": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "family_and_possessives": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "final_checkpoint": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 0.9857142857142858,
+              "ci95": [
+                0.9571428571428572,
+                1.0
+              ],
+              "n_items": 70,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "A2": {
+              "score": 0.9848484848484849,
+              "ci95": [
+                0.9545454545454546,
+                1.0
+              ],
+              "n_items": 66,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "B1": {
+              "score": 0.9921875,
+              "ci95": [
+                0.9765625,
+                1.0
+              ],
+              "n_items": 128,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "B2": {
+              "score": 0.9926470588235294,
+              "ci95": [
+                0.9779411764705882,
+                1.0
+              ],
+              "n_items": 136,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_evidence": {
+            "tonada-app-machine-reviewed": {
+              "score": 0.99,
+              "ci95": [
+                0.98,
+                0.9975
+              ],
+              "n_items": 400,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "failure_examples": [
+            {
+              "id": "en-ch31-u04-complaint-return-lesson-s4@vi",
+              "public": true,
+              "language": "english",
+              "l1": "vietnamese",
+              "phenomenon": "complaints_and_returns",
+              "input": "This is an exercise from an English course for Vietnamese speakers. The learner sees the instruction in Vietnamese; the answer is in English.\n\nInstruction (Vietnamese): Chọn từ mô tả tình trạng món hàng.\n\nSentence: The item is ____, so I would like an exchange.\nChoices: opened / open / unopened\n\nGive the choice that fills the blank (____), or write out the whole completed sentence.\nReply with the answer on one line, in this exact form:\nANSWER: <answer>\n",
+              "expected": "unopened",
+              "output": "ANSWER: opened",
+              "score": 0.0
+            }
+          ]
+        },
+        "tutor_accuracy": {
+          "suite": "tonada",
+          "test": "tutor_accuracy",
+          "scoring": "tutor",
+          "dataset": "full",
+          "status": "complete",
+          "incomplete_reason": null,
+          "first_error": null,
+          "n_items_dataset": 360,
+          "n_errors": 0,
+          "score": 0.8509259259259261,
+          "ci95": [
+            0.8120370370370371,
+            0.8861111111111111
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9944444444444445,
+          "cost_usd": 7.341330898,
+          "cost_per_correct_usd": 0.007988390531011968,
+          "cost": {
+            "candidate": {
+              "calls": 1080,
+              "input_tokens": 249423,
+              "output_tokens": 86456,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 0,
+              "cost_usd": 6.81703
+            },
+            "judge": {
+              "calls": 2413,
+              "input_tokens": 552673,
+              "output_tokens": 932164,
+              "cache_read_tokens": 103734,
+              "cache_write_tokens": 0,
+              "cost_usd": 0.524300898
+            }
+          },
+          "n_human_checked": 0,
+          "by_language": {
+            "english": {
+              "score": 0.8509259259259261,
+              "ci95": [
+                0.8120370370370371,
+                0.8879629629629628
+              ],
+              "n_items": 360,
+              "epochs": 3,
+              "consistency": 0.9944444444444445
+            }
+          },
+          "by_l1": {
+            "japanese": {
+              "score": 0.8333333333333334,
+              "ci95": [
+                0.7555555555555555,
+                0.9
+              ],
+              "n_items": 90,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "portuguese": {
+              "score": 0.8407407407407407,
+              "ci95": [
+                0.7629629629629628,
+                0.9111111111111111
+              ],
+              "n_items": 90,
+              "epochs": 3,
+              "consistency": 0.9888888888888889
+            },
+            "spanish": {
+              "score": 0.8851851851851852,
+              "ci95": [
+                0.8185185185185185,
+                0.9444444444444444
+              ],
+              "n_items": 90,
+              "epochs": 3,
+              "consistency": 0.9888888888888889
+            },
+            "vietnamese": {
+              "score": 0.8444444444444444,
+              "ci95": [
+                0.7666666666666667,
+                0.9111111111111111
+              ],
+              "n_items": 90,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_phenomenon": {
+            "agreement": {
+              "score": 0.9444444444444444,
+              "ci95": [
+                0.8611111111111112,
+                1.0
+              ],
+              "n_items": 36,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "agreement_or_plural": {
+              "score": 0.9545454545454546,
+              "ci95": [
+                0.8636363636363636,
+                1.0
+              ],
+              "n_items": 22,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "article": {
+              "score": 0.2608695652173913,
+              "ci95": [
+                0.08695652173913043,
+                0.43478260869565216
+              ],
+              "n_items": 23,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "capitalisation": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "comparison": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "determiner_quantifier": {
+              "score": 0.5,
+              "ci95": [
+                0.125,
+                0.875
+              ],
+              "n_items": 8,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "function_word": {
+              "score": 0.6666666666666666,
+              "ci95": [
+                0.0,
+                1.0
+              ],
+              "n_items": 3,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "no_error": {
+              "score": 0.9805555555555555,
+              "ci95": [
+                0.9527777777777778,
+                1.0
+              ],
+              "n_items": 120,
+              "epochs": 3,
+              "consistency": 0.9916666666666667
+            },
+            "omitted_auxiliary": {
+              "score": 0.25,
+              "ci95": [
+                0.0,
+                0.625
+              ],
+              "n_items": 8,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "preposition": {
+              "score": 0.7368421052631579,
+              "ci95": [
+                0.5789473684210527,
+                0.868421052631579
+              ],
+              "n_items": 38,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "pronoun_form": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "relative_pronoun": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 13,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "spelling": {
+              "score": 0.0,
+              "ci95": [
+                0.0,
+                0.0
+              ],
+              "n_items": 1,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "verb_form": {
+              "score": 0.8703703703703703,
+              "ci95": [
+                0.7915509259259261,
+                0.9398148148148149
+              ],
+              "n_items": 72,
+              "epochs": 3,
+              "consistency": 0.9861111111111112
+            },
+            "word_class": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 2,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "word_order": {
+              "score": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "n_items": 5,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_cefr": {
+            "A1": {
+              "score": 0.9464285714285714,
+              "ci95": [
+                0.875,
+                1.0
+              ],
+              "n_items": 56,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "A2": {
+              "score": 0.8928571428571429,
+              "ci95": [
+                0.8035714285714286,
+                0.9642857142857143
+              ],
+              "n_items": 56,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "B1": {
+              "score": 0.9381443298969072,
+              "ci95": [
+                0.8865979381443299,
+                0.979381443298969
+              ],
+              "n_items": 97,
+              "epochs": 3,
+              "consistency": 1.0
+            },
+            "B2": {
+              "score": 0.8909657320872275,
+              "ci95": [
+                0.8316978193146418,
+                0.9470404984423677
+              ],
+              "n_items": 107,
+              "epochs": 3,
+              "consistency": 0.9813084112149533
+            },
+            "unspecified": {
+              "score": 0.38636363636363635,
+              "ci95": [
+                0.25,
+                0.5227272727272727
+              ],
+              "n_items": 44,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "by_evidence": {
+            "tonada-app-answer-machine-reviewed": {
+              "score": 0.9968553459119496,
+              "ci95": [
+                0.9905660377358491,
+                1.0
+              ],
+              "n_items": 106,
+              "epochs": 3,
+              "consistency": 0.9905660377358491
+            },
+            "tonada-app-distractor-machine-reviewed": {
+              "score": 0.8746031746031746,
+              "ci95": [
+                0.8301587301587301,
+                0.9142857142857143
+              ],
+              "n_items": 210,
+              "epochs": 3,
+              "consistency": 0.9952380952380953
+            },
+            "wikipedia-revision-silver-unreviewed": {
+              "score": 0.38636363636363635,
+              "ci95": [
+                0.25,
+                0.5227272727272727
+              ],
+              "n_items": 44,
+              "epochs": 3,
+              "consistency": 1.0
+            }
+          },
+          "tutor": {
+            "headline": "rule-only: found AND fixed AND no over-correction",
+            "judges": [
+              "deepseek/deepseek-v4.1-flash-1017",
+              "qwen/qwen3.8-flash"
+            ],
+            "components": {
+              "found": 0.8907407407407408,
+              "fixed": 0.8509259259259259,
+              "no_overcorrection": 0.8935185185185186
+            },
+            "explanation": {
+              "label": "judge-marked, not human-validated",
+              "status": "scored",
+              "score": 0.6375,
+              "ci95": [
+                0.5888773148148149,
+                0.6828819444444444
+              ],
+              "n_items": 360,
+              "epochs": 3,
+              "judged_item_epochs": 1063,
+              "unscored_item_epochs": 17,
+              "judge_agreement": 0.9266227657572906,
+              "judge_failures": 17
+            }
+          },
+          "failure_examples": [
+            {
+              "id": "en-ch36-r02-mgmt-recall-b-lesson-s4@vi:err",
+              "public": true,
+              "language": "english",
+              "l1": "vietnamese",
+              "phenomenon": "verb_form",
+              "input": "A learner of English whose first language is Vietnamese wrote the English sentence below. The sentence may contain one error, or it may be correct.\n\nSentence: As long as the dependencies are clear, the prototype staying on schedule.\n\nDecide whether the sentence has an error. If it does, give the exact words that are wrong (error_span), the words that should replace them (correction) and the whole corrected sentence (corrected_sentence). If the sentence is correct, set has_error to false, leave …",
+              "expected": "As long as the dependencies are clear, the prototype stays on schedule.",
+              "output": "{\"has_error\":true,\"error_span\":\"staying\",\"correction\":\"will stay\",\"corrected_sentence\":\"As long as the dependencies are clear, the prototype will stay on schedule.\",\"explanation\":\"“Staying” không thể tự làm động từ chính khi thiếu trợ động từ. Dùng “will stay” để diễn tả kết quả sẽ xảy ra nếu điều kiện được đáp ứng.\"}",
+              "score": 0.0
+            },
+            {
+              "id": "en-scr-ch05-u03-c1@vi:err",
+              "public": true,
+              "language": "english",
+              "l1": "vietnamese",
+              "phenomenon": "verb_form",
+              "input": "A learner of English whose first language is Vietnamese wrote the English sentence below. The sentence may contain one error, or it may be correct.\n\nSentence: She starting at nine.\n\nDecide whether the sentence has an error. If it does, give the exact words that are wrong (error_span), the words that should replace them (correction) and the whole corrected sentence (corrected_sentence). If the sentence is correct, set has_error to false, leave error_span and correction empty, and copy the senten…",
+              "expected": "She starts at nine.",
+              "output": "{\"has_error\":true,\"error_span\":\"starting\",\"correction\":\"is starting\",\"corrected_sentence\":\"She is starting at nine.\",\"explanation\":\"Câu thiếu trợ động từ “is” trước “starting”. Thì hiện tại tiếp diễn cần cấu trúc “be + động từ-ing”.\"}",
+              "score": 0.0
+            },
+            {
+              "id": "wikiedits-error-650a5d50ea9cc2eb3269@vi",
+              "public": true,
+              "language": "english",
+              "l1": "vietnamese",
+              "phenomenon": "preposition",
+              "input": "A learner of English whose first language is Vietnamese wrote the English sentence below. The sentence may contain one error, or it may be correct.\n\nSentence: Rice is a staple food of Mauritius.\n\nDecide whether the sentence has an error. If it does, give the exact words that are wrong (error_span), the words that should replace them (correction) and the whole corrected sentence (corrected_sentence). If the sentence is correct, set has_error to false, leave error_span and correction empty, and c…",
+              "expected": "Rice is a staple food in Mauritius.",
+              "output": "{\"has_error\":false,\"error_span\":\"\",\"correction\":\"\",\"corrected_sentence\":\"Rice is a staple food of Mauritius.\",\"explanation\":\"Câu đúng về ngữ pháp và cách dùng từ. Cụm “a staple food of Mauritius” diễn đạt rằng gạo là một loại lương thực chính của Mauritius.\"}",
+              "score": 0.0
+            }
+          ]
+        }
+      },
+      "overall": {
+        "score": 0.920462962962963,
+        "ci95": [
+          0.9006944444444445,
+          0.9391203703703703
+        ],
+        "n_tests": 2,
+        "n_items": 760
+      }
+    }
+  },
+  "tool_versions": {
+    "inspect_ai": "0.3.290"
+  },
+  "resumed": {
+    "count": 1,
+    "attempts": [
+      {
+        "started_at": "2026-11-15T23:03:37+00:00",
+        "generated_at": "2026-11-15T23:16:27+00:00",
+        "status": "incomplete",
+        "incomplete_reason": "insufficient_credit",
+        "cost_usd": 4.562955439,
+        "log_dir": "logs/openai__gpt-6-astra-20261115T230337Z",
+        "prices_retrieved_at": "2026-11-15T23:03:37+00:00"
+      },
+      {
+        "started_at": "2026-11-16T04:04:48+00:00",
+        "generated_at": "2026-11-16T05:18:41+00:00",
+        "status": "complete",
+        "incomplete_reason": null,
+        "cost_usd": 32.13810282,
+        "log_dir": "logs/openai__gpt-6-astra-20261116T040448Z",
+        "prices_retrieved_at": "2026-11-16T04:04:48+00:00",
+        "dataset_check": "item_ids_and_count",
+        "sample_epochs": {
+          "reused": 1693,
+          "rescored": 1,
+          "run": 5086
+        },
+        "tests": {
+          "blas/lesson_exercises": {
+            "reused": 254,
+            "rescored": 0,
+            "run": 826
+          },
+          "blas/morphology": {
+            "reused": 3,
+            "rescored": 0,
+            "run": 1077
+          },
+          "blas/round_trip": {
+            "reused": 0,
+            "rescored": 0,
+            "run": 720
+          },
+          "blas/translation": {
+            "reused": 0,
+            "rescored": 0,
+            "run": 1080
+          },
+          "blas/tutor_accuracy": {
+            "reused": 11,
+            "rescored": 0,
+            "run": 529
+          },
+          "tonada/exercises": {
+            "reused": 1200,
+            "rescored": 0,
+            "run": 0
+          },
+          "tonada/tutor_accuracy": {
+            "reused": 225,
+            "rescored": 1,
+            "run": 854
+          }
+        }
+      }
+    ]
+  }
+}
