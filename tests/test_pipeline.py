@@ -161,7 +161,10 @@ def test_cli_mock_run_writes_json_report_leaderboard_and_charts(fixture_root, tm
     )
     assert code == 0
     document = json.loads(output.read_text(encoding="utf-8"))
-    assert document["schema_version"] == "2.0.0" and document["status"] == "complete"
+    assert document["schema_version"] == "2.1.0" and document["status"] == "complete"
+    assert document["config"]["max_tokens"]["candidate"] == 16000
+    assert document["truncation"]["max_tokens"] == 16000
+    assert document["truncation"]["n_truncated_item_epochs"] == 0 and document["truncation"]["n_item_epochs"] > 0
     assert output.with_suffix(".md").read_text(encoding="utf-8").startswith("# Teanga Bench report")
     board = tmp_path / "out" / "board"
     assert (board / "leaderboard.json").is_file() and (board / "leaderboard.md").is_file()

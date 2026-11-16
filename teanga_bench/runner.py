@@ -22,6 +22,7 @@ from teanga_bench.context import (
     CANDIDATE_MAX_TOKENS,
     JUDGE_MAX_TOKENS,
     JUDGE_RETRIES,
+    LEGACY_CANDIDATE_MAX_TOKENS,
     JudgeSpec,
     Replay,
     RunContext,
@@ -86,6 +87,7 @@ class RunOptions:
     log_dir: Path | None = None
     mock_pricing: Pricing | None = None  # fake prices for mockllm, for tests
     resume: bool = False
+    rerun_truncated: bool = False  # with resume: ask again what stopped at a lower answer limit
     logs_root: Path = LOGS  # where the log folders of earlier attempts are looked for
 
 
@@ -138,9 +140,20 @@ class _Settings:
     limit: int | None
     tests: list[str] | None
     max_cost: Decimal
+    rerun_below: int | None = None  # rerun sample-epochs truncated under a lower answer limit
+
+
+@dataclass
+class _Attempt:
+    """What a resume did, per test, for the ``resumed`` block."""
+
+    counts: dict[str, dict[str, int]] = field(default_factory=dict)
+    rerun_limits: set[int] = field(default_factory=set)  # limits the rerun truncated sample-epochs had
 
 
 def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
+    if options.rerun_truncated and previous is None:
+        raise RunError("--rerun-truncated works only with --resume")
     if previous is None:
         return _Settings(
             epochs=DEFAULT_EPOCHS if options.epochs is None else options.epochs,
@@ -149,8 +162,11 @@ def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
             max_cost=DEFAULT_MAX_COST if options.max_cost is None else options.max_cost,
         )
     config = previous.config
-    if previous.document["status"] == STATUS_COMPLETE:
-        raise RunError(f"{previous.results_path} is already complete; there is nothing to resume")
+    if previous.document["status"] == STATUS_COMPLETE and not options.rerun_truncated:
+        raise RunError(
+            f"{previous.results_path} is already complete; there is nothing to resume "
+            "(add --rerun-truncated to ask again the answers cut off by a lower token limit)"
+        )
     saved_tests = list(config["tests"])
     conflicts = []
     if options.epochs is not None and options.epochs != config["epochs"]:
@@ -171,6 +187,7 @@ def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
         limit=config.get("limit"),
         tests=saved_tests,
         max_cost=Decimal(str(config["max_cost_usd"])) if options.max_cost is None else options.max_cost,
+        rerun_below=CANDIDATE_MAX_TOKENS if options.rerun_truncated else None,
     )
 
 
@@ -316,7 +333,9 @@ def run_benchmark(
                 "pass a higher --max-cost"
             )
         guard.carry_forward(by_test, by_model, carried_total)
-    context = RunContext(guard=guard, candidate_id=options.model, judges=judge_specs)
+    context = RunContext(
+        guard=guard, candidate_id=options.model, judges=judge_specs, max_tokens=CANDIDATE_MAX_TOKENS
+    )
     set_context(context)
 
     started_at = now_iso()
@@ -324,7 +343,7 @@ def run_benchmark(
     model_arg = inspect_model if inspect_model is not None else model_block["inspect_id"]
     outcomes: list[TestRun] = []
     not_run: list[dict[str, Any]] = []
-    attempt_counts: dict[str, dict[str, int]] = {}
+    attempt = _Attempt()
     try:
         from teanga_bench.tasks import build_task
 
@@ -336,10 +355,10 @@ def run_benchmark(
                 reason = REASON_CAP if guard.stopped else REASON_CREDIT
                 not_run.append(not_run_block(dataset, n_items, settings.epochs, reason))
                 if previous is not None:
-                    attempt_counts[dataset.name] = {"reused": 0, "rescored": 0, "run": 0}
+                    attempt.counts[dataset.name] = {"reused": 0, "rescored": 0, "run": 0, "rerun_truncated": 0}
                 continue
             log, samples = _run_test(
-                dataset, previous, context, settings, explanation_status, model_arg, log_dir, attempt_counts, build_task
+                dataset, previous, context, settings, explanation_status, model_arg, log_dir, attempt, build_task
             )
             outcome = build_test_outcome(
                 samples,
@@ -358,6 +377,14 @@ def run_benchmark(
             outcomes.append(outcome)
     finally:
         set_context(None)
+
+    if previous is not None and previous.document["status"] == STATUS_COMPLETE:
+        asked = sum(c["run"] + c["rescored"] for c in attempt.counts.values())
+        if asked == 0:
+            raise RunError(
+                f"nothing to re-run: no sample-epoch of {previous.results_path} stopped at an answer "
+                f"limit below {CANDIDATE_MAX_TOKENS} tokens"
+            )
 
     all_blocks = [o.block for o in outcomes] + not_run
     if guard.stopped:
@@ -385,23 +412,45 @@ def run_benchmark(
     if previous is not None:
         before = previous.document.get("resumed")
         attempts = list(before["attempts"]) if before else [first_attempt(previous)]
+        for earlier in attempts:
+            # Attempts that did not record their limit ran before it changed.
+            earlier.setdefault("candidate_max_tokens", LEGACY_CANDIDATE_MAX_TOKENS)
         config["log_dir"] = attempts[0]["log_dir"]
-        totals = {name: sum(c[name] for c in attempt_counts.values()) for name in ("reused", "rescored", "run")}
-        attempts.append(
-            {
-                "started_at": started_at,
-                "generated_at": None,  # set below, equal to the document's generated_at
-                "status": status,
-                "incomplete_reason": incomplete_reason,
-                "cost_usd": float(guard.spent - carried_total),
-                "log_dir": display_path(log_dir),
-                "prices_retrieved_at": catalog.retrieved_at if catalog is not None and not mock else None,
-                "dataset_check": dataset_check,
-                "sample_epochs": totals,
-                "tests": attempt_counts,
+        totals = {
+            name: sum(c[name] for c in attempt.counts.values())
+            for name in ("reused", "rescored", "run", "rerun_truncated")
+        }
+        record: dict[str, Any] = {
+            "started_at": started_at,
+            "generated_at": None,  # set below, equal to the document's generated_at
+            "status": status,
+            "incomplete_reason": incomplete_reason,
+            "cost_usd": float(guard.spent - carried_total),
+            "log_dir": display_path(log_dir),
+            "prices_retrieved_at": catalog.retrieved_at if catalog is not None and not mock else None,
+            "candidate_max_tokens": CANDIDATE_MAX_TOKENS,
+            "dataset_check": dataset_check,
+            "sample_epochs": totals,
+            "tests": attempt.counts,
+        }
+        truncation_rerun = (before or {}).get("truncation_rerun")
+        if totals["rerun_truncated"]:
+            record["truncation_rerun"] = {
+                "old_limit": min(attempt.rerun_limits),
+                "new_limit": CANDIDATE_MAX_TOKENS,
+                "n_rerun": totals["rerun_truncated"],
             }
-        )
+            # Over every attempt: a second rerun adds to the first.
+            earlier = truncation_rerun or {"old_limit": min(attempt.rerun_limits), "n_rerun": 0}
+            truncation_rerun = {
+                "old_limit": min(earlier["old_limit"], min(attempt.rerun_limits)),
+                "new_limit": CANDIDATE_MAX_TOKENS,
+                "n_rerun": earlier["n_rerun"] + totals["rerun_truncated"],
+            }
+        attempts.append(record)
         resumed = {"count": len(attempts) - 1, "attempts": attempts}
+        if truncation_rerun:
+            resumed["truncation_rerun"] = truncation_rerun
     document = build_document(
         # A run with --limit covers only part of each test. It is never ranked or published.
         run_kind="mock" if mock else ("smoke" if settings.limit is not None else "live"),
@@ -420,6 +469,8 @@ def run_benchmark(
     )
     if resumed is not None:
         resumed["attempts"][-1]["generated_at"] = document["generated_at"]
+        if "corrections" in previous.document:  # notes on hand edits stay with the file
+            document["corrections"] = previous.document["corrections"]
     return RunResult(document=document, output=output, status=status, outcomes=outcomes)
 
 
@@ -431,7 +482,7 @@ def _run_test(
     explanation_status: str,
     model_arg: str | Model,
     log_dir: Path,
-    attempt_counts: dict[str, dict[str, int]],
+    attempt: _Attempt,
     build_task: Any,
 ) -> tuple[Any, list[Any]]:
     """Run one test, or in a resumed run only its missing sample-epochs.
@@ -461,8 +512,10 @@ def _run_test(
         epochs=settings.epochs,
         limit=settings.limit,
         explanation_scored=explanation_status == EXPLANATION_SCORED,
+        rerun_below=settings.rerun_below,
     )
-    attempt_counts[dataset.name] = plan.counts()
+    attempt.counts[dataset.name] = plan.counts()
+    attempt.rerun_limits.update(plan.truncated.values())
     to_eval = plan.items_to_eval()
     if not to_eval:
         return None, _merge(plan, None)

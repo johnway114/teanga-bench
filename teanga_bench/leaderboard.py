@@ -89,6 +89,15 @@ def _explanations(document: dict[str, Any], current_pair: list[str]) -> dict[str
     return result
 
 
+def _truncated_share(document: dict[str, Any]) -> float | None:
+    """Share of scored item-epochs whose answer stopped at the token limit.
+    None for results written before truncation was recorded."""
+    truncation = document.get("truncation")
+    if not truncation or not truncation.get("n_item_epochs"):
+        return None
+    return truncation["n_truncated_item_epochs"] / truncation["n_item_epochs"]
+
+
 def summarise_run(document: dict[str, Any], current_pair: list[str]) -> dict[str, Any]:
     tests: dict[str, Any] = {}
     kinds: set[str] = set()
@@ -125,6 +134,8 @@ def summarise_run(document: dict[str, Any], current_pair: list[str]) -> dict[str
         "judges": list(document.get("judges") or []),
         "explanation_status": document.get("explanation_status"),
         "explanation": _explanations(document, current_pair),
+        "truncated_share": _truncated_share(document),
+        "truncation_rerun": (document.get("resumed") or {}).get("truncation_rerun"),
     }
 
 

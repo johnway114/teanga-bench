@@ -21,7 +21,15 @@ from inspect_ai.model import (
 from inspect_ai.scorer import Score, Target, mean, scorer
 from inspect_ai.solver import Generate, TaskState, solver
 
-from teanga_bench.context import CANDIDATE_DONE_KEY, JudgeSpec, RunContext, current
+from teanga_bench.context import (
+    CANDIDATE_DONE_KEY,
+    TOKEN_LIMIT_KEY,
+    TRUNCATED_KEY,
+    JudgeSpec,
+    RunContext,
+    current,
+    stopped_at_limit,
+)
 from teanga_bench.cost import CostCapReached, CreditExhausted
 from teanga_bench.scoring import (
     JUDGE_SYSTEM,
@@ -66,8 +74,9 @@ def _replay(state: TaskState) -> Any:
 def teanga_solver():
     """Ask the candidate. Round-trip items take two calls in two conversations.
 
-    In a resumed run, a sample-epoch whose candidate output was saved by an
-    earlier attempt is restored from it and the model is not called."""
+    The store records whether any candidate call stopped at the answer limit,
+    and the limit. In a resumed run, a sample-epoch whose candidate output was
+    saved by an earlier attempt is restored from it and the model is not called."""
 
     async def solve(state: TaskState, generate: Generate) -> TaskState:
         context = current()
@@ -83,9 +92,11 @@ def teanga_solver():
         test = spend_key(metadata)
         model = get_model()
         config = _config(context.max_tokens)
+        truncated = False
 
         async def ask(messages: list) -> Any:
-            return await context.guard.call(
+            nonlocal truncated
+            output = await context.guard.call(
                 model=model,
                 model_id=context.candidate_id,
                 role="candidate",
@@ -93,6 +104,14 @@ def teanga_solver():
                 messages=[ChatMessageSystem(content=SYSTEM), *messages],
                 config=config,
             )
+            truncated = truncated or stopped_at_limit(output)
+            return output
+
+        def done() -> TaskState:
+            state.store.set(TRUNCATED_KEY, truncated)
+            state.store.set(TOKEN_LIMIT_KEY, context.max_tokens)
+            state.store.set(CANDIDATE_DONE_KEY, True)
+            return state
 
         if metadata.get("scoring") == "round_trip":
             source = str(metadata["source_text"])
@@ -109,14 +128,12 @@ def teanga_solver():
                 second = await ask([ChatMessageUser(content=round_trip_prompt(pivot_lang, source_lang, pivot))])
                 state.store.set(BACK_KEY, extract_translation(second.completion))
                 state.output = second
-            state.store.set(CANDIDATE_DONE_KEY, True)
-            return state
+            return done()
 
         output = await ask(list(state.messages))
         state.messages.append(output.message)
         state.output = output
-        state.store.set(CANDIDATE_DONE_KEY, True)
-        return state
+        return done()
 
     return solve
 

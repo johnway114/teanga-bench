@@ -11,6 +11,11 @@ sample-epoch of the current dataset into one of three groups:
   reused and the item is scored again, judges included.
 - ``run``: everything else, asked from scratch.
 
+With ``--rerun-truncated`` (allowed on a complete run too), a sample-epoch
+whose candidate call stopped at an answer limit lower than the current one is
+put in ``run`` as well, so it is asked again under the current limit and
+scored again. Every other sample-epoch is kept.
+
 Inspect's own ``eval_retry`` is not used. It rebuilds tasks from the registry,
 which the data-driven tasks here are not in, keeps a sample whenever it has no
 error even when a judge was refused for credit, and knows nothing of the cost
@@ -33,9 +38,17 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from inspect_ai.event import ModelEvent
 from inspect_ai.log import EvalSample, read_eval_log
 
-from teanga_bench.context import CANDIDATE_DONE_KEY
+from teanga_bench.context import (
+    CANDIDATE_DONE_KEY,
+    CANDIDATE_MAX_TOKENS,
+    LEGACY_CANDIDATE_MAX_TOKENS,
+    TOKEN_LIMIT_KEY,
+    TRUNCATED_KEY,
+    stopped_at_limit,
+)
 from teanga_bench.cost import Usage
 from teanga_bench.datasets import DatasetFile, read_items
 from teanga_bench.export import EXPLANATION_SCORED, REASON_CAP, REASON_CREDIT, REASON_ERRORS, score_of
@@ -57,6 +70,9 @@ _CREDIT_TEXT = re.compile(r"Error code: (402|429)\b|CreditExhausted")
 _PROVIDER_PREFIX = "openrouter/"
 # Fewer completed sample-epochs than this in a test: estimate from the whole run instead.
 MIN_SAMPLES_FOR_ESTIMATE = 10
+# resume-plan assumes a truncated sample-epoch costs this many times the average
+# completed one when asked again: it is one of the long answers.
+TRUNCATED_COST_FACTOR = 3
 
 
 class ResumeError(RuntimeError):
@@ -253,8 +269,11 @@ class TestPlan:
     epochs: int
     reuse: dict[tuple[str, int], EvalSample | None] = field(default_factory=dict)
     rescore: dict[tuple[str, int], EvalSample | None] = field(default_factory=dict)
+    # Sample-epochs to ask again because a candidate call stopped at a lower
+    # answer limit than the current one, with that limit. They are part of ``run``.
+    truncated: dict[tuple[str, int], int] = field(default_factory=dict)
     usage: dict[str, Usage] = field(default_factory=lambda: defaultdict(Usage))
-    usage_samples: int = 0  # reused sample-epochs that called the candidate, behind ``usage``
+    usage_samples: int = 0  # scored sample-epochs that called the candidate, behind ``usage``
 
     def keys(self) -> list[tuple[str, int]]:
         return [(item, epoch) for item in self.item_ids for epoch in range(1, self.epochs + 1)]
@@ -264,15 +283,59 @@ class TestPlan:
         return [key for key in self.keys() if key not in self.reuse and key not in self.rescore]
 
     def counts(self) -> dict[str, int]:
-        return {"reused": len(self.reuse), "rescored": len(self.rescore), "run": len(self.run)}
+        return {
+            "reused": len(self.reuse),
+            "rescored": len(self.rescore),
+            "run": len(self.run),
+            "rerun_truncated": len(self.truncated),
+        }
 
     def items_to_eval(self) -> list[str]:
         pending = set(self.rescore) | set(self.run)
         return [item for item in self.item_ids if any((item, e) in pending for e in range(1, self.epochs + 1))]
 
 
-def _slim(sample: EvalSample) -> EvalSample:
-    return sample.model_copy(update={"events": [], "attachments": {}, "events_data": None})
+def candidate_truncation(sample: EvalSample, candidate_model: str) -> tuple[bool, int] | None:
+    """Whether a candidate call of the sample-epoch stopped at the answer limit, and that limit.
+
+    Read from the store the solver writes, or, in logs written before it did,
+    from the candidate's model events. None when the sample has neither: an
+    older version restored it from an earlier attempt without calling the model."""
+    store = sample.store or {}
+    if TRUNCATED_KEY in store:
+        return bool(store[TRUNCATED_KEY]), int(store.get(TOKEN_LIMIT_KEY) or LEGACY_CANDIDATE_MAX_TOKENS)
+    found: tuple[bool, int] | None = None
+    for event in sample.events or []:
+        # Candidate calls carry the system prompt; judge calls are one user message.
+        if not (isinstance(event, ModelEvent) and event.model == candidate_model):
+            continue
+        if not event.input or event.input[0].role != "system":
+            continue
+        limit = int(event.config.max_tokens or LEGACY_CANDIDATE_MAX_TOKENS)
+        truncated = stopped_at_limit(event.output) or (found is not None and found[0])
+        found = (truncated, max(limit, found[1]) if found is not None else limit)
+    return found
+
+
+def _slim(sample: EvalSample, truncated: bool, token_limit: int) -> EvalSample:
+    store = {**(sample.store or {}), TRUNCATED_KEY: truncated, TOKEN_LIMIT_KEY: token_limit}
+    return sample.model_copy(update={"events": [], "attachments": {}, "events_data": None, "store": store})
+
+
+def _add_usage(plan: TestPlan, sample: EvalSample, candidate_model: str) -> None:
+    if candidate_model not in (sample.model_usage or {}):
+        return
+    plan.usage_samples += 1
+    for model_name, usage in sample.model_usage.items():
+        plan.usage[model_name].add(
+            Usage(
+                calls=0,
+                input_tokens=int(usage.input_tokens or 0),
+                output_tokens=int(usage.output_tokens or 0),
+                cache_read_tokens=int(usage.input_tokens_cache_read or 0),
+                cache_write_tokens=int(usage.input_tokens_cache_write or 0),
+            )
+        )
 
 
 def plan_test(
@@ -283,13 +346,18 @@ def plan_test(
     limit: int | None,
     explanation_scored: bool,
     keep_samples: bool = True,
+    rerun_below: int | None = None,
 ) -> TestPlan:
     """Sort every sample-epoch of one test into reuse, rescore and run.
 
-    Later logs win over earlier ones, and a reusable sample over one to rescore."""
+    Later logs win over earlier ones, and a reusable sample over one to rescore.
+    With ``rerun_below``, a sample-epoch whose candidate call stopped at an
+    answer limit lower than it is run again, unless a later log holds a
+    version of it that did not."""
     plan = TestPlan(name=dataset.name, item_ids=item_ids(dataset, limit), epochs=epochs)
     wanted = set(plan.item_ids)
     candidate_model = previous.document["model"]["inspect_id"]
+    known: dict[tuple[str, int], tuple[bool, int]] = {}
     for ref in previous.logs.get(dataset.name, []):
         log = read_eval_log(str(ref.path), resolve_attachments="core")
         for sample in log.samples or []:
@@ -297,23 +365,28 @@ def plan_test(
             if key[0] not in wanted or not 1 <= key[1] <= epochs:
                 continue
             kind = classify(sample, explanation_scored)
-            kept = _slim(sample) if keep_samples else None
+            if kind == RUN:
+                continue
+            found = candidate_truncation(sample, candidate_model)
+            if found is None:
+                # A restored copy has the candidate output of the earlier attempt it came from.
+                found = known.get(key) or (stopped_at_limit(sample.output), LEGACY_CANDIDATE_MAX_TOKENS)
+            known[key] = found
+            truncated, token_limit = found
+            kept = _slim(sample, truncated, token_limit) if keep_samples else None
+            if kind == REUSE:
+                _add_usage(plan, sample, candidate_model)
+            if rerun_below is not None and truncated and token_limit < rerun_below:
+                if key not in plan.reuse:
+                    plan.rescore.pop(key, None)
+                    plan.truncated[key] = token_limit
+                continue
             if kind == REUSE:
                 plan.rescore.pop(key, None)
+                plan.truncated.pop(key, None)
                 plan.reuse[key] = kept
-                if candidate_model in (sample.model_usage or {}):
-                    plan.usage_samples += 1
-                    for model_name, usage in sample.model_usage.items():
-                        plan.usage[model_name].add(
-                            Usage(
-                                calls=0,
-                                input_tokens=int(usage.input_tokens or 0),
-                                output_tokens=int(usage.output_tokens or 0),
-                                cache_read_tokens=int(usage.input_tokens_cache_read or 0),
-                                cache_write_tokens=int(usage.input_tokens_cache_write or 0),
-                            )
-                        )
-            elif kind == RESCORE and key not in plan.reuse:
+            elif key not in plan.reuse:
+                plan.truncated.pop(key, None)
                 plan.rescore[key] = kept
         del log
     return plan
@@ -324,9 +397,16 @@ def carried_cost(document: dict[str, Any]) -> tuple[dict[tuple[str, str], Usage]
 
     Results written before dataset hashes were recorded booked spend under the
     bare test name, so a later test with the same name (tonada/tutor_accuracy
-    after blas/tutor_accuracy) also counted the earlier one. That is undone here."""
+    after blas/tutor_accuracy) also counted the earlier one. That is undone here,
+    unless the per-test costs already add up to the total (a file corrected by hand)."""
     config = document["config"]
-    legacy = "dataset_hashes" not in config
+    total = Decimal(str(document["cost"]["total_usd"]))
+    per_test = sum(
+        Decimal(str(block.get("cost_usd") or 0))
+        for suite in document.get("suites", {}).values()
+        for block in suite.get("tests", {}).values()
+    )
+    legacy = "dataset_hashes" not in config and per_test > total + Decimal("1e-9")
     by_test: dict[tuple[str, str], Usage] = {}
     cumulative: dict[tuple[str, str], Usage] = {}
     for name in config["tests"]:
@@ -344,7 +424,7 @@ def carried_cost(document: dict[str, Any]) -> tuple[dict[tuple[str, str], Usage]
                     usage = usage.minus(earlier)
             by_test[(name, role)] = usage
     by_model = {name: Usage.from_dict(usage) for name, usage in document["cost"].get("by_model", {}).items()}
-    return by_test, by_model, Decimal(str(document["cost"]["total_usd"]))
+    return by_test, by_model, total
 
 
 def first_attempt(previous: PreviousRun) -> dict[str, Any]:
@@ -376,6 +456,9 @@ def first_attempt(previous: PreviousRun) -> dict[str, Any]:
         "cost_usd": document["cost"]["total_usd"],
         "log_dir": log_dir,
         "prices_retrieved_at": pricing.get("retrieved_at"),
+        "candidate_max_tokens": (document["config"].get("max_tokens") or {}).get(
+            "candidate", LEGACY_CANDIDATE_MAX_TOKENS
+        ),
     }
 
 
@@ -413,20 +496,29 @@ def _usd(value: Decimal | float) -> str:
 
 
 def resume_plan_report(
-    previous: PreviousRun, datasets: list[DatasetFile], catalog: Catalog | None
+    previous: PreviousRun,
+    datasets: list[DatasetFile],
+    catalog: Catalog | None,
+    *,
+    rerun_truncated: bool = False,
+    token_limit: int = CANDIDATE_MAX_TOKENS,
 ) -> tuple[list[str], bool]:
-    """Lines describing what ``run --resume`` would do, and whether it may run."""
+    """Lines describing what ``run --resume`` would do, and whether it may run.
+
+    With ``rerun_truncated``, a complete run can be resumed too, and sample-epochs
+    that stopped at an answer limit below ``token_limit`` count as missing."""
     document = previous.document
     config = previous.config
     epochs, limit = int(config["epochs"]), config.get("limit")
     lines = [
-        f"Resume plan for {document['model']['id']}",
+        f"Resume plan for {document['model']['id']}" + (" (--rerun-truncated)" if rerun_truncated else ""),
         f"Results: {previous.results_path} (status {document['status']}, spent "
         f"{_usd(document['cost']['total_usd'])} of the {_usd(document['cost']['cap_usd'])} cap)",
     ]
     n_logs = sum(len(refs) for refs in previous.logs.values())
     lines.append(f"Logs: {n_logs} file(s) in " + (", ".join(str(d) for d in previous.log_dirs) or "no folder found"))
-    if document["status"] == "complete":
+    complete = document["status"] == "complete"
+    if complete and not rerun_truncated:
         lines.append("The run is complete. Nothing to resume.")
         return lines, False
     try:
@@ -445,7 +537,15 @@ def resume_plan_report(
     explanation_scored = document.get("explanation_status") == EXPLANATION_SCORED
     candidate_model = document["model"]["inspect_id"]
     plans = [
-        plan_test(previous, dataset, epochs=epochs, limit=limit, explanation_scored=explanation_scored, keep_samples=False)
+        plan_test(
+            previous,
+            dataset,
+            epochs=epochs,
+            limit=limit,
+            explanation_scored=explanation_scored,
+            keep_samples=False,
+            rerun_below=token_limit if rerun_truncated else None,
+        )
         for dataset in datasets
     ]
     pooled: dict[str, Usage] = defaultdict(Usage)
@@ -454,7 +554,8 @@ def resume_plan_report(
             pooled[model_name].add(usage)
     pooled_samples = sum(plan.usage_samples for plan in plans)
 
-    header = f"{'test':<26}{'reuse':>7}{'rescore':>9}{'run':>7}{'total':>7}{'est. cost':>12}"
+    trunc_col = f"{'trunc.':>8}" if rerun_truncated else ""
+    header = f"{'test':<26}{'reuse':>7}{'rescore':>9}{'run':>7}{trunc_col}{'total':>7}{'est. cost':>12}"
     lines += ["", header, "-" * len(header)]
     totals = defaultdict(int)
     estimate = Decimal(0)
@@ -466,19 +567,26 @@ def resume_plan_report(
             usage, samples, mark, fallback = pooled, pooled_samples, "*", True
         candidate, judge, gone = _price_per_sample(usage, samples, candidate_model, catalog)
         missing.update(gone)
-        cost = (candidate + judge) * len(plan.run) + judge * len(plan.rescore)
+        n_truncated = len(plan.truncated)
+        cost = (
+            (candidate + judge) * (len(plan.run) - n_truncated)
+            + (candidate + judge) * TRUNCATED_COST_FACTOR * n_truncated
+            + judge * len(plan.rescore)
+        )
         estimate += cost
         counts = plan.counts()
         for name, value in counts.items():
             totals[name] += value
         totals["total"] += len(plan.keys())
+        trunc_cell = f"{n_truncated:>8}" if rerun_truncated else ""
         lines.append(
-            f"{plan.name:<26}{counts['reused']:>7}{counts['rescored']:>9}{counts['run']:>7}"
+            f"{plan.name:<26}{counts['reused']:>7}{counts['rescored']:>9}{counts['run']:>7}{trunc_cell}"
             f"{len(plan.keys()):>7}{_usd(cost) + mark:>12}"
         )
     lines.append("-" * len(header))
+    trunc_total = f"{totals['rerun_truncated']:>8}" if rerun_truncated else ""
     lines.append(
-        f"{'all tests':<26}{totals['reused']:>7}{totals['rescored']:>9}{totals['run']:>7}"
+        f"{'all tests':<26}{totals['reused']:>7}{totals['rescored']:>9}{totals['run']:>7}{trunc_total}"
         f"{totals['total']:>7}{_usd(estimate):>12}"
     )
     lines.append("")
@@ -486,10 +594,22 @@ def resume_plan_report(
         "reuse: scored before, not called again. rescore: candidate output reused, scored again "
         "(judges included). run: asked from scratch."
     )
+    if rerun_truncated:
+        old_limits = sorted({value for plan in plans for value in plan.truncated.values()})
+        lines.append(
+            f"trunc.: part of run. The candidate stopped at a lower answer limit "
+            f"({', '.join(str(value) for value in old_limits) or 'none found'} tokens). "
+            f"They are asked again under {token_limit} and scored again; tutor items are judged again."
+        )
     lines.append(
         "est. cost: sample-epochs to run times the average candidate plus judge cost of a completed "
         "sample-epoch of that test, from its logged tokens at live prices; rescores count the judge part only."
     )
+    if rerun_truncated:
+        lines.append(
+            f"Truncated sample-epochs are assumed to cost {TRUNCATED_COST_FACTOR} times that average, "
+            "because they are the long answers."
+        )
     if fallback:
         lines.append(
             f"* fewer than {MIN_SAMPLES_FOR_ESTIMATE} completed sample-epochs in this test, so the "
@@ -497,6 +617,9 @@ def resume_plan_report(
         )
     if missing:
         lines.append(f"Not priced (missing from the live model list): {', '.join(sorted(missing))}")
+    if complete and totals["run"] + totals["rescored"] == 0:
+        lines.append(f"Nothing to re-run: no sample-epoch stopped at an answer limit below {token_limit}.")
+        return lines, False
     spent = Decimal(str(document["cost"]["total_usd"]))
     cap = Decimal(str(document["cost"]["cap_usd"]))
     lines.append(

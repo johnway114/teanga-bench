@@ -1,7 +1,8 @@
 """Command line for Teanga Bench.
 
 ``run`` benchmarks one model and writes its results, or with ``--resume``
-finishes an earlier incomplete run. ``resume-plan`` shows, read-only, what a
+finishes an earlier incomplete run (with ``--rerun-truncated``, also asks again
+the answers a lower token limit cut off). ``resume-plan`` shows, read-only, what a
 resume would reuse and run. ``leaderboard`` rebuilds the leaderboard from all
 runs. ``validate`` checks the dataset files. ``site`` builds the static research
 site, and ``publish`` commits and pushes one finished run with the rebuilt
@@ -50,6 +51,7 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
     run.add_argument("--log-dir", type=Path, default=None, help="Where Inspect writes its logs (default logs/<model>-<UTC time>/)")
     run.add_argument("--resume", action="store_true", help="Finish the earlier incomplete run in --output: reuse every scored sample-epoch, run the rest")
+    run.add_argument("--rerun-truncated", action="store_true", help="With --resume, also on a complete run: ask again every sample-epoch whose answer stopped at a lower token limit than the current one")
     run.add_argument("--publish", action="store_true", help="After a complete live run, commit and push the results and site")
 
     plan = sub.add_parser("resume-plan", help="Show what run --resume would reuse and run, and its estimated cost (read-only)")
@@ -57,6 +59,7 @@ def _build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--results-dir", type=Path, default=RESULTS, help="Folder holding runs/ (default results/)")
     plan.add_argument("--log-dir", type=Path, default=LOGS, help="Folder holding the run's log folders, or the run's log folder itself (default logs/)")
     plan.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
+    plan.add_argument("--rerun-truncated", action="store_true", help="Plan for run --resume --rerun-truncated: count answers cut off by a lower token limit as missing")
 
     board = sub.add_parser("leaderboard", help="Rebuild the leaderboard from results/runs/*.json")
     board.add_argument("--runs-dir", type=Path, default=RUNS)
@@ -147,6 +150,8 @@ def _publish(args: argparse.Namespace) -> int:
 def _resume_command(args: argparse.Namespace, document: dict) -> str:
     """The exact command that resumes this run."""
     parts = ["teanga-bench", "run", "--model", args.model, "--resume"]
+    if args.rerun_truncated:
+        parts.append("--rerun-truncated")
     if args.output is not None:
         parts += ["--output", str(args.output)]
     if args.data_root != REPO_ROOT:
@@ -174,7 +179,7 @@ def _resume_plan(args: argparse.Namespace) -> int:
     except (ResumeError, KeyError, RuntimeError) as exc:
         print(f"error: {exc.args[0] if exc.args else exc}", file=sys.stderr)
         return EXIT_USAGE
-    lines, resumable = resume_plan_report(previous, datasets, catalog)
+    lines, resumable = resume_plan_report(previous, datasets, catalog, rerun_truncated=args.rerun_truncated)
     print("\n".join(lines))
     return EXIT_OK if resumable else EXIT_INCOMPLETE
 
@@ -210,6 +215,7 @@ def _run(args: argparse.Namespace) -> int:
         root=args.data_root,
         log_dir=args.log_dir,
         resume=args.resume,
+        rerun_truncated=args.rerun_truncated,
     )
     try:
         result = run_benchmark(options)
@@ -238,7 +244,8 @@ def _run(args: argparse.Namespace) -> int:
         counts = resumed["attempts"][-1]["sample_epochs"]
         print(
             f"Resume {resumed['count']}: reused {counts['reused']} sample-epochs, rescored "
-            f"{counts['rescored']}, ran {counts['run']}."
+            f"{counts['rescored']}, ran {counts['run']} ({counts['rerun_truncated']} of them cut off "
+            "by a lower token limit)."
         )
     if result.status == STATUS_COMPLETE:
         if args.publish:

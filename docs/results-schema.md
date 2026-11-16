@@ -1,6 +1,6 @@
 # Teanga Bench results JSON
 
-Version `2.0.0`. One file per run, written by `teanga-bench run` to
+Version `2.1.0`. One file per run, written by `teanga-bench run` to
 `results/runs/<model id with / as __>.json`. `teanga-bench leaderboard` reads
 these files and writes `results/leaderboard.json`.
 
@@ -18,7 +18,7 @@ when `status` is not `"complete"`.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `schema_version` | string | `"2.0.0"` |
+| `schema_version` | string | `"2.1.0"`. `2.1.0` added `truncation`, `n_truncated_item_epochs`, and the truncation fields of `resumed`. Older files are `"2.0.0"` |
 | `benchmark`, `benchmark_name`, `benchmark_version` | string | Name and the package version that wrote the file |
 | `started_at`, `generated_at` | string | UTC ISO-8601 |
 | `run_kind` | string | `"live"`, `"mock"`, or `"smoke"` (a run with `--limit`, never ranked or published) |
@@ -32,9 +32,11 @@ when `status` is not `"complete"`.
 | `gold.note` | string | Warning that gold is sourced, not native-speaker reviewed |
 | `cost` | object | Spend. See below |
 | `overall` | object or null | Score over completed tests. See below. Null when no test completed |
+| `truncation` | object | Answers cut off by the token limit. See below. Absent before `2.1.0` |
 | `suites` | object | Map of suite name to `{overall, tests}` |
 | `tool_versions.inspect_ai` | string | Inspect version |
 | `resumed` | object | Only in a run finished with `--resume`. See below |
+| `corrections` | array of strings | Only in a file edited by hand after it was written: one note per edit. A resume keeps it |
 
 ### `model`
 
@@ -84,6 +86,20 @@ neither `dataset_hashes` nor `log_dir`.
 a map from language to the same four fields. Each completed test is weighted
 equally. The interval resamples items inside each test. Incomplete tests are left out.
 
+### `truncation`
+
+A scored item-epoch is truncated when any candidate call for it stopped at the
+answer limit (`stop_reason` `max_tokens`, or `length`). Reasoning models can
+spend the whole limit on hidden reasoning and return an empty answer. A
+truncated answer is scored by the normal rules, so an empty answer scores 0.
+
+| Field | Meaning |
+| --- | --- |
+| `max_tokens` | The current candidate limit, equal to `config.max_tokens.candidate` |
+| `n_item_epochs` | Scored item-epochs over all tests |
+| `n_truncated_item_epochs` | Of those, the truncated ones. In a run with `resumed.truncation_rerun`, answers kept from before the re-run did not reach the old limit |
+| `rule` | The definition above, in one sentence |
+
 ### `resumed`
 
 Present only when the run was finished with `teanga-bench run --resume`. The
@@ -99,9 +115,12 @@ interrupted. `started_at` is the first attempt's start.
 | `attempts[].cost_usd` | Spend in that attempt |
 | `attempts[].log_dir` | That attempt's Inspect log folder |
 | `attempts[].prices_retrieved_at` | When that attempt read live prices (null for mock runs) |
+| `attempts[].candidate_max_tokens` | The candidate answer limit of that attempt. Attempts written before it was recorded used 2048 and get that value on the next resume |
 | `attempts[].dataset_check` | Resumes only: `"dataset_hash"`, or `"item_ids_and_count"` when the first attempt predates `dataset_hashes` |
-| `attempts[].sample_epochs` | Resumes only: `reused` (scored earlier, not called again), `rescored` (candidate output reused, judges or scorer run again), `run` (asked again) |
-| `attempts[].tests` | Resumes only: the same three counts per `suite/test` |
+| `attempts[].sample_epochs` | Resumes only: `reused` (scored earlier, not called again), `rescored` (candidate output reused, judges or scorer run again), `run` (asked again), and `rerun_truncated` (the part of `run` asked again because the answer stopped at a lower token limit, with `--rerun-truncated`) |
+| `attempts[].tests` | Resumes only: the same four counts per `suite/test` |
+| `attempts[].truncation_rerun` | Only on an attempt run with `--rerun-truncated` that re-ran something: `old_limit`, `new_limit`, `n_rerun` for that attempt |
+| `truncation_rerun` | Present once any attempt re-ran truncated answers: `old_limit` (the limit those answers were first given under; the lowest if they differ), `new_limit` (the limit they were asked again under), and `n_rerun` (item-epochs asked again, over all attempts). Such a run mixes two limits: `config.max_tokens.candidate` is the new one |
 
 ## Statistics
 
@@ -120,6 +139,7 @@ every epoch (compared at 4 decimals). It is null when `epochs` is 1.
 | `status` | `"complete"` or `"incomplete"` |
 | `incomplete_reason` | Null, `"cost_cap_reached"`, `"insufficient_credit"`, `"errors"`, `"missing_samples"`, or `"eval_<status>: ..."` |
 | `n_items_dataset` | Items asked for (after `--limit`) |
+| `n_truncated_item_epochs` | Scored item-epochs where a candidate call stopped at the answer limit. See `truncation`. Absent before `2.1.0` |
 | `n_items` | Items with a score in every epoch. Only these are in the statistics |
 | `n_errors` | Item-epochs that errored |
 | `score`, `ci95`, `epochs`, `consistency` | As above |
@@ -170,7 +190,13 @@ Only items whose id is in the public `samples/` file for that test appear here.
 `models`. Each entry has `model`, `family`, `run_file`, `run_kind`, `status`,
 `ranked`, `rank`, `generated_at`, `data` (`full`, `public_sample`, or `mixed`),
 `epochs`, `overall`, `cost_usd`, `suites`, `languages`, `tests`, `judges` (the pair
-the run used), `explanation_status`, and `explanation`.
+the run used), `explanation_status`, `explanation`, `truncated_share`, and
+`truncation_rerun`.
+
+`truncated_share` is `truncation.n_truncated_item_epochs / truncation.n_item_epochs`
+of the run, or null for files without a `truncation` block. `truncation_rerun`
+copies `resumed.truncation_rerun`, or is null when the run was never re-run for
+truncation.
 
 `explanation` maps each tutor test to `score`, `ci95`, `comparable`, `reason`, and
 `judges`. `comparable` is true only when the run was scored and its judge pair equals

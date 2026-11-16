@@ -127,3 +127,72 @@ def test_a_generous_cap_lets_the_run_finish(fixture_root, tmp_path):
     assert result.status == "complete"
     assert 0 < result.document["cost"]["total_usd"] < 50
     assert result.document["cost"]["cap_reached"] is False
+
+
+class SlowModel:
+    """Answers after a pause, so calls overlap. Records the most calls in flight."""
+
+    def __init__(self, output_tokens: int):
+        self.output_tokens = output_tokens
+        self.in_flight = 0
+        self.peak = 0
+        self.calls = 0
+
+    async def generate(self, messages, config):
+        self.in_flight += 1
+        self.peak = max(self.peak, self.in_flight)
+        await asyncio.sleep(0.01)
+        self.in_flight -= 1
+        self.calls += 1
+        return _output(input_tokens=200, output_tokens=self.output_tokens)
+
+
+def _overlapping(guard, model, n, max_tokens):
+    async def run():
+        return await asyncio.gather(
+            *(
+                guard.call(
+                    model=model, model_id="cand", role="candidate", test="t", messages="hello",
+                    config=GenerateConfig(max_tokens=max_tokens),
+                )
+                for _ in range(n)
+            ),
+            return_exceptions=True,
+        )
+
+    return asyncio.run(run())
+
+
+def test_the_new_limit_does_not_stop_an_expensive_model_under_the_default_cap():
+    """GPT-6 Astra prices with the 16000-token limit: one call's worst case is
+    about $0.80, so eight in flight would be $6.40, more than the default $5 cap.
+    The calls that do not fit wait for room; none is refused and the run goes on."""
+    from teanga_bench.context import CANDIDATE_MAX_TOKENS
+    from teanga_bench.runner import DEFAULT_MAX_COST
+
+    astra = Pricing(Decimal("0.00001"), Decimal("0.00005"))
+    guard = CostGuard(max_cost=DEFAULT_MAX_COST, prices={"cand": astra})
+    model = SlowModel(output_tokens=600)  # a realistic answer: about $0.03
+    results = _overlapping(guard, model, 8, CANDIDATE_MAX_TOKENS)
+    assert not any(isinstance(result, Exception) for result in results)
+    assert model.calls == 8 and not guard.stopped
+    worst = guard.worst_case("cand", "hello", CANDIDATE_MAX_TOKENS)
+    assert model.peak == int(DEFAULT_MAX_COST / worst) == 6  # never more in flight than the cap covers
+    assert guard.reserved == 0 and guard.in_flight == 0
+    assert guard.spent == 8 * astra.cost(200, 600)
+
+
+def test_waiting_calls_stop_when_even_one_call_no_longer_fits():
+    """Spend stays under the cap: near the end calls run one at a time, and the
+    run stops once a single worst case no longer fits."""
+    cap = Decimal("1.00")
+    price = Pricing(Decimal("0"), Decimal("0.00005"))
+    guard = CostGuard(max_cost=cap, prices={"cand": price})
+    model = SlowModel(output_tokens=4000)  # $0.20 a call; worst case $0.80
+    results = _overlapping(guard, model, 6, 16000)
+    # $0.80 fits alone; the second call fits once the first settles at $0.20;
+    # after it, $0.40 + $0.80 does not, so the four waiting calls are refused.
+    assert sum(isinstance(result, CostCapReached) for result in results) == 4
+    assert guard.stopped and model.calls == 2 and model.peak == 1
+    assert guard.spent == Decimal("0.40") <= cap
+    assert guard.reserved == 0 and guard.in_flight == 0

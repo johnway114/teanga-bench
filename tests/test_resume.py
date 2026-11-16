@@ -238,7 +238,7 @@ def test_resume_reuses_good_samples_and_matches_an_uninterrupted_run(data_root, 
 
     counts = attempts[1]["sample_epochs"]
     total = sum(block["n_items_dataset"] * EPOCHS for block in _tests(document).values())
-    assert counts == {"reused": total - len(FLAKY), "rescored": 0, "run": len(FLAKY)}
+    assert counts == {"reused": total - len(FLAKY), "rescored": 0, "run": len(FLAKY), "rerun_truncated": 0}
     assert attempts[1]["dataset_check"] == "dataset_hash"
     assert attempts[0]["log_dir"] == document["config"]["log_dir"]
     assert document["started_at"] == first.document["started_at"]
@@ -322,6 +322,25 @@ def test_resume_of_a_results_file_without_dataset_hashes(data_root, tmp_path, ju
         sum(block["cost_usd"] for block in _tests(resumed).values())
     )
     assert legacy["cost"]["total_usd"] < sum(block.get("cost_usd", 0) for block in _tests(legacy).values())
+
+
+def test_a_legacy_file_corrected_by_hand_is_not_corrected_twice():
+    from teanga_bench.resume import carried_cost
+
+    def block(calls, cost):
+        return {"cost_usd": cost, "cost": {"candidate": {"calls": calls, "cost_usd": cost}, "judge": {}}}
+
+    document = {
+        "config": {"tests": ["blas/tutor", "tonada/tutor"]},
+        "cost": {"total_usd": 3.0, "by_model": {}},
+        "suites": {"blas": {"tests": {"tutor": block(10, 1.0)}}, "tonada": {"tests": {"tutor": block(20, 2.0)}}},
+    }
+    by_test, _, total = carried_cost(document)  # per-test costs add up to the total: kept
+    assert by_test[("tonada/tutor", "candidate")].calls == 20 and total == Decimal("3.0")
+    document["suites"]["tonada"]["tests"]["tutor"] = block(30, 3.0)  # double-booked: undone
+    by_test, _, _ = carried_cost(document)
+    assert by_test[("tonada/tutor", "candidate")].calls == 20
+    assert by_test[("tonada/tutor", "candidate")].cost_usd == Decimal("2.0")
 
 
 def test_legacy_resume_refuses_changed_item_ids(data_root, tmp_path, judges):
@@ -469,7 +488,7 @@ def test_exhausted_credit_stops_the_run_and_resume_finishes_it(data_root, tmp_pa
     assert document["status"] == "complete"
     counts = document["resumed"]["attempts"][1]["tests"]
     assert counts["blas/tutor"]["rescored"] >= 1 and counts["blas/tutor"]["run"] == 0
-    assert counts["tonada/tutor"] == {"reused": 0, "rescored": 0, "run": 2}
+    assert counts["tonada/tutor"] == {"reused": 0, "rescored": 0, "run": 2, "rerun_truncated": 0}
     blas_tutor_prompts = {p for p in candidate.calls if "Sentence: CCosna" in p or "Mae'r ci yn yn" in p or "Sentence: Tá an cat" in p}
     assert all(candidate.calls[p] == 1 for p in blas_tutor_prompts)  # not asked again
     assert sum(candidate.calls.values()) == asked + 2 + 4  # tonada/tutor and blas/mutations only
@@ -498,4 +517,137 @@ def test_resume_plan_counts_without_running_anything(data_root, tmp_path, judges
     assert rows["blas/tutor"] == ["5", "0", "1"]
     all_tests = next(line for line in out.splitlines() if line.startswith("all tests")).split()
     assert all_tests[2:5] == ["21", "0", str(len(FLAKY))]
+    assert first.output.read_text(encoding="utf-8") == before  # read-only
+
+
+# --- answers cut off by the token limit ------------------------------------------
+
+# One item each in blas/mutations, blas/tutor and blas/round_trip (the first,
+# Irish-to-English call) has a long answer that a small limit cuts off.
+LONG = ("Eclipse 'cat'", "Mae'r ci yn yn y ty", "Translate the following Irish text into English")
+LONG_TESTS = ("blas/mutations", "blas/tutor", "blas/round_trip")
+OLD_LIMIT = 512
+
+
+class Wordy(Candidate):
+    """Like ``Candidate``, but under a limit below 1000 tokens a LONG prompt
+    gets an empty reply that stopped at the limit, as a reasoning model does."""
+
+    def __call__(self, messages, tools, tool_choice, config):
+        prompt = _prompt(messages)
+        if config.max_tokens < 1000 and any(marker in prompt for marker in LONG):
+            self.calls[prompt] += 1
+            return ModelOutput.from_content(model="mockllm/model", content="", stop_reason="max_tokens")
+        return super().__call__(messages, tools, tool_choice, config)
+
+
+def _old_limit_run(data_root, tmp_path, name, monkeypatch):
+    import teanga_bench.runner as runner_module
+
+    monkeypatch.setattr(runner_module, "CANDIDATE_MAX_TOKENS", OLD_LIMIT)
+    first = _run(data_root, tmp_path, name, Wordy())
+    monkeypatch.setattr(runner_module, "CANDIDATE_MAX_TOKENS", 16000)
+    return first
+
+
+def test_truncated_answers_are_counted_and_scored_normally(data_root, tmp_path, judges, monkeypatch):
+    from teanga_bench.leaderboard import build_leaderboard
+
+    straight = _run(data_root, tmp_path, "straight", Candidate())
+    first = _old_limit_run(data_root, tmp_path, "cut", monkeypatch)
+    document = first.document
+    assert first.status == "complete"
+    assert document["config"]["max_tokens"]["candidate"] == OLD_LIMIT
+    tests = _tests(document)
+    for name, block in tests.items():
+        assert block["n_truncated_item_epochs"] == (EPOCHS if name in LONG_TESTS else 0), name
+    # The empty answers are scored by the normal rules, so they score 0.
+    assert tests["blas/round_trip"]["score"] < _tests(straight.document)["blas/round_trip"]["score"]
+    assert document["overall"]["score"] < straight.document["overall"]["score"]
+    truncation = document["truncation"]
+    total = sum(block["n_items_dataset"] * EPOCHS for block in tests.values())
+    assert truncation["max_tokens"] == OLD_LIMIT
+    assert truncation["n_truncated_item_epochs"] == 3 * EPOCHS and truncation["n_item_epochs"] == total
+    assert straight.document["truncation"]["n_truncated_item_epochs"] == 0
+
+    board = build_leaderboard([{**document, "_file": "cut.json"}, {**straight.document, "_file": "straight.json"}], [], [])
+    share = {entry["run_file"]: entry["truncated_share"] for entry in board["models"]}
+    assert share == {"cut.json": pytest.approx(3 * EPOCHS / total), "straight.json": 0.0}
+
+
+def test_rerun_truncated_asks_again_only_the_cut_off_answers(data_root, tmp_path, judges, monkeypatch):
+    straight = _run(data_root, tmp_path, "straight", Candidate())
+    first = _old_limit_run(data_root, tmp_path, "rerun", monkeypatch)
+    assert first.status == "complete"
+    # A note on a hand edit stays with the file.
+    write_results({**first.document, "corrections": ["a hand edit"]}, first.output)
+
+    # A complete run is still refused without the flag, and the flag needs --resume.
+    with pytest.raises(RunError, match="already complete"):
+        _resume(data_root, tmp_path, "rerun", Wordy())
+    with pytest.raises(RunError, match="only with --resume"):
+        run_benchmark(_options(data_root, tmp_path / "x.json", tmp_path / "x", rerun_truncated=True))
+
+    judges["judge"] = Judge()
+    again = Wordy()
+    resumed = _resume(data_root, tmp_path, "rerun", again, rerun_truncated=True)
+    document = resumed.document
+    assert resumed.status == "complete"
+
+    # Only the cut-off sample-epochs were asked again: one call each for the
+    # mutation and tutor item, two for the round trip (pivot and back).
+    assert sum(again.calls.values()) == EPOCHS * (1 + 1 + 2)
+    assert all(any(marker in prompt for marker in LONG) or "English text into Irish" in prompt for prompt in again.calls)
+    # The re-run tutor answers were judged: two sample-epochs, two judges (one mock).
+    assert judges["judge"].calls == EPOCHS * 2
+
+    # The statistics are those of a run that was never cut off.
+    assert _statistics(document) == _statistics(straight.document)
+    assert document["overall"] == straight.document["overall"]
+    assert document["truncation"] == {**straight.document["truncation"], "max_tokens": 16000}
+    assert document["config"]["max_tokens"]["candidate"] == 16000
+
+    resumed_block = document["resumed"]
+    assert resumed_block["truncation_rerun"] == {"old_limit": OLD_LIMIT, "new_limit": 16000, "n_rerun": 3 * EPOCHS}
+    assert document["corrections"] == ["a hand edit"]
+    attempts = resumed_block["attempts"]
+    assert [a["candidate_max_tokens"] for a in attempts] == [OLD_LIMIT, 16000]
+    total = sum(block["n_items_dataset"] * EPOCHS for block in _tests(document).values())
+    assert attempts[1]["sample_epochs"] == {
+        "reused": total - 3 * EPOCHS, "rescored": 0, "run": 3 * EPOCHS, "rerun_truncated": 3 * EPOCHS
+    }
+    assert attempts[1]["tests"]["blas/translation"] == {"reused": 2 * EPOCHS, "rescored": 0, "run": 0, "rerun_truncated": 0}
+
+    # Cost is carried forward: the first attempt plus what the re-run spent.
+    assert attempts[0]["cost_usd"] == pytest.approx(first.document["cost"]["total_usd"])
+    assert attempts[1]["cost_usd"] > 0
+    assert document["cost"]["total_usd"] == pytest.approx(attempts[0]["cost_usd"] + attempts[1]["cost_usd"])
+    for name, block in _tests(document).items():
+        before = _tests(first.document)[name]["cost_usd"]
+        assert block["cost_usd"] > before if name in LONG_TESTS else block["cost_usd"] == pytest.approx(before), name
+
+    # Nothing is left to re-run.
+    with pytest.raises(RunError, match="nothing to re-run"):
+        _resume(data_root, tmp_path, "rerun", Wordy(), logs="third-logs", rerun_truncated=True)
+
+
+def test_resume_plan_with_rerun_truncated(data_root, tmp_path, judges, monkeypatch, capsys):
+    first = _old_limit_run(data_root, tmp_path, "plan-cut", monkeypatch)
+    results = tmp_path / "plan-cut-results"
+    (results / "runs").mkdir(parents=True)
+    shutil.copy(first.output, results / "runs" / "mockllm__model.json")
+    before = first.output.read_text(encoding="utf-8")
+    args = ["resume-plan", "--model", "mockllm/model", "--results-dir", str(results),
+            "--log-dir", str(tmp_path / "plan-cut" / "logs"), "--data-root", str(data_root)]
+
+    assert cli.main(args) == cli.EXIT_INCOMPLETE
+    assert "The run is complete. Nothing to resume." in capsys.readouterr().out
+
+    assert cli.main(args + ["--rerun-truncated"]) == cli.EXIT_OK
+    out = capsys.readouterr().out
+    rows = {line.split()[0]: line.split()[1:6] for line in out.splitlines() if line.startswith(("blas/", "tonada/"))}
+    assert rows["blas/mutations"] == ["6", "0", "2", "2", "8"]
+    assert rows["blas/tutor"] == ["4", "0", "2", "2", "6"]
+    assert rows["blas/translation"] == ["4", "0", "0", "0", "4"]
+    assert "cost 3 times that average" in out and f"lower answer limit ({OLD_LIMIT} tokens)" in out
     assert first.output.read_text(encoding="utf-8") == before  # read-only

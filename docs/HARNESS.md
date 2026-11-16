@@ -25,6 +25,7 @@ model id. Tests and the mock path make no paid call.
 | `--data-root` | repo root | Folder holding `data/private/` and `samples/` |
 | `--log-dir` | `logs/<id with / as __>-<UTC time>/` | Inspect logs. The folder is recorded in the results as `config.log_dir` |
 | `--resume` | off | Finish the incomplete run in `--output`. See [Resuming a run](#resuming-a-run) |
+| `--rerun-truncated` | off | With `--resume`: also ask again every answer that stopped at a lower token limit than the current one. Works on a complete run. See [Answers cut off by the token limit](#answers-cut-off-by-the-token-limit) |
 | `--publish` | off | After a complete live run, run `publish` for it. Refused up front for mock models and for `--output` outside `results/runs/`. Works with `--resume` |
 
 `run` writes the results JSON, a Markdown report next to it (`.md`), and then
@@ -46,9 +47,10 @@ cost cap it adds a doubled `--max-cost`; raise it as you see fit.
 would do: per test, the sample-epochs it would reuse, rescore and run, and an
 estimated remaining cost. Options: `--results-dir` (folder holding `runs/`,
 default `results/`), `--log-dir` (folder holding the run's log folders, or the
-log folder itself, default `logs/`), `--data-root`. Exit code 0 means the run
-can be resumed, 1 that it cannot (complete, or a dataset changed), 2 that the
-files could not be read.
+log folder itself, default `logs/`), `--data-root`, and `--rerun-truncated`
+(plan for `run --resume --rerun-truncated`). Exit code 0 means the run can be
+resumed, 1 that it cannot (complete with nothing to re-run, or a dataset
+changed), 2 that the files could not be read.
 
 `teanga-bench leaderboard` reads every `results/runs/*.json` and writes
 `results/leaderboard.json`, `results/leaderboard.md`, and SVG charts in
@@ -142,10 +144,19 @@ refused because it cannot be capped.
 Every call, candidate or judge, goes through one guard in `teanga_bench/cost.py`.
 Before a call it reserves the worst case: the prompt bytes counted as tokens, plus
 `max_tokens` at the completion price. If spend so far, plus all reserved calls in
-flight, plus that worst case would pass `--max-cost`, the call is not made and
-the run stops. After a call the reservation is replaced by the cost of the usage
-the provider reported. `max_tokens` is set on every call: 2048 for the candidate
-and 1024 for judges.
+flight, plus that worst case would pass `--max-cost`, the call waits until a call
+in flight settles, then checks again. When no call is in flight and the worst
+case still does not fit, the call is not made and the run stops. After a call
+the reservation is replaced by the cost of the usage the provider reported.
+`max_tokens` is set on every call: 16000 for the candidate and 1024 for judges.
+
+The wait matters because the candidate limit is large. For the most expensive
+model so far (completion $50 per million tokens), one call's worst case is
+about $0.80, so eight calls in flight would reserve $6.40, more than the
+default $5 cap. Without the wait, the run would stop after six calls. With it,
+fewer calls run at once as the cap gets close, and the run stops at most one
+worst case short of the cap. A smaller, guessed reservation was not used: it
+would let spend pass the cap when several long answers arrive together.
 
 When the cap is reached, the run writes its results with
 `status: "cost_cap_reached"`. Tests that did not finish are marked
@@ -159,7 +170,7 @@ Known gaps:
   the listed prices, or tiered prices for very long prompts, is not modelled.
 - Output tokens are billed at the higher of the completion and reasoning price.
 - The worst-case reservation means a run can stop a little before it reaches
-  the cap, by up to about eight calls' worst case.
+  the cap, by up to one call's worst case. Near the cap, calls run one at a time.
 - If a provider returns no usage, the call is billed at its worst case.
 
 Inspect's own `cost_limit` is per sample, not per run, so it is not used.
@@ -168,7 +179,10 @@ Spend is booked per `suite/test`. Results files without `config.dataset_hashes`
 (written before resume support) booked it per bare test name, so their
 `tonada/tutor_accuracy` cost also counted the spend of `blas/tutor_accuracy`.
 `cost.total_usd` and `cost.by_model` were always right. A resume undoes the
-double count when it carries those per-test costs forward.
+double count when it carries those per-test costs forward, but only when the
+per-test costs add up to more than the total. The `openai/gpt-6-luna` file was
+corrected by hand, so its costs are carried as they are. A resume keeps the
+file's `corrections` notes.
 
 ## Out of credit and rate limits
 
@@ -192,6 +206,50 @@ retries transient errors (5xx, timeouts) and 429 inside each call, up to
 is set to 0, because rerunning a whole sample would repeat calls that already
 succeeded. A judge refused for credit is not counted as a judge failure: the
 sample stops with an error, keeps its candidate output, and is judged on resume.
+
+## Answers cut off by the token limit
+
+A model that reasons before it answers spends output tokens on hidden
+reasoning. If it reaches `max_tokens` first, the reply stops there and is often
+empty. That answer is scored by the normal rules, so an empty answer scores 0.
+The solver records in each sample's store whether any candidate call stopped
+at the limit (`stop_reason` `max_tokens`, or `length` from some providers) and
+the limit used. Results count these per test as `n_truncated_item_epochs`, and
+in total in the top-level `truncation` block.
+
+The first runs used a 2048-token limit. The limit is now 16000. To ask the cut
+off answers again under the new limit:
+
+```bash
+teanga-bench resume-plan --model qwen/qwen3.8-flash --rerun-truncated   # read-only
+teanga-bench run --model qwen/qwen3.8-flash --resume --rerun-truncated [--max-cost 10]
+```
+
+`--rerun-truncated` treats every sample-epoch whose candidate call stopped at a
+lower limit than the current one as missing. It runs exactly those again,
+scores them again (tutor items are judged again), and keeps everything else.
+Other epochs of the same items are restored, not asked. Logs written before the
+solver recorded truncation are read from the candidate's model events, which
+carry the stop reason and the limit. Spend is carried forward as in any resume.
+The `resumed` block records `truncation_rerun` (`old_limit`, `new_limit`,
+`n_rerun`), and each attempt records its `candidate_max_tokens`.
+`config.max_tokens.candidate` is the current limit, so a run with a
+`truncation_rerun` block mixes answers given under two limits: those that did
+not reach the old limit, and the rest under the new one.
+
+Without the flag, a complete run is refused as before. With the flag and
+nothing to re-run, `run` refuses too. `resume-plan --rerun-truncated` shows the
+count per test in a `trunc.` column. Its estimate assumes a re-run sample-epoch
+costs 3 times the average completed sample-epoch of that test, because these
+are the long answers; it says so in its output.
+
+Known gaps: results files written before truncation was recorded have no
+`truncation` block, so their leaderboard `truncated_share` is null until they
+are resumed with `--rerun-truncated`. A run with nothing to re-run is refused,
+so it keeps a null share. In old logs, a sample-epoch an older resume restored
+without calling the model takes its truncation from the attempt it came from;
+if that log is missing, only the final reply's stop reason is read, which can
+miss a cut-off first call of a round trip.
 
 ## Resuming a run
 
@@ -233,7 +291,8 @@ by item ids (from the first attempt's logs) and item counts instead, and the
 resume records `dataset_check: "item_ids_and_count"`. Prices are read live
 again. The spend of the earlier attempts is carried forward from the results
 file, so `cost.total_usd` is the true total and `--max-cost` (default: the
-earlier cap) caps that total. A complete run cannot be resumed.
+earlier cap) caps that total. A complete run cannot be resumed, except with
+`--rerun-truncated`.
 
 Known gaps: a run killed before it writes its results (Ctrl-C, a crash) leaves
 no results file, so it cannot be resumed. A resumed run is ranked like any

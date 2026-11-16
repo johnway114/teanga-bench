@@ -221,3 +221,10 @@ item is labelled `private` or `public-source`.
   subtracted the duplicate amount in that one file. The file was not
   regenerated from the run logs. Its scores and its total cost did not
   change, and its `corrections` field records the edit.
+- **Answer length limit.** The first runs gave each answer at most 2048
+  tokens. Four models reason before they answer, and the reasoning counts
+  towards that limit. They often used it all up and returned nothing, which
+  scored 0. Two other models did this a few times. The limit is now 16000
+  tokens. The answers that hit the old limit were asked again under the new
+  one. Models that never hit the limit were not re-run. Each results file
+  records how many answers were asked again, under which limits.

@@ -16,11 +16,12 @@ from typing import Any, Iterable
 import inspect_ai
 
 from teanga_bench import BENCHMARK, BENCHMARK_NAME, __version__
+from teanga_bench.context import TRUNCATED_KEY, stopped_at_limit
 from teanga_bench.cost import CostGuard
 from teanga_bench.datasets import DatasetFile
 from teanga_bench.stats import ItemResult, breakdown, group_stats, pooled
 
-SCHEMA_VERSION = "2.0.0"
+SCHEMA_VERSION = "2.1.0"
 FAILURE_LIMIT = 3
 TEXT_LIMIT = 500
 ATTRIBUTES = ("language", "l1", "phenomenon", "cefr", "evidence")
@@ -49,6 +50,8 @@ class TestRun:
     block: dict[str, Any]
     items: list[ItemResult]
     cap_hit: bool
+    n_item_epochs: int = 0  # scored sample-epochs
+    n_truncated: int = 0  # of those, where a candidate call stopped at the answer limit
 
 
 def now_iso() -> str:
@@ -67,6 +70,14 @@ def _attribute(value: Any) -> str:
 def score_of(sample: Any) -> Any:
     scores = sample.scores or {}
     return scores.get("teanga_scorer") or (next(iter(scores.values())) if scores else None)
+
+
+def is_truncated(sample: Any) -> bool:
+    """True when a candidate call of the sample-epoch stopped at the answer limit."""
+    store = getattr(sample, "store", None) or {}
+    if TRUNCATED_KEY in store:
+        return bool(store[TRUNCATED_KEY])
+    return stopped_at_limit(getattr(sample, "output", None))
 
 
 def _error_text(sample: Any) -> str:
@@ -91,6 +102,7 @@ def not_run_block(dataset: DatasetFile, n_items: int, epochs: int, reason: str) 
         "consistency": None,
         "cost_usd": 0.0,
         "cost_per_correct_usd": None,
+        "n_truncated_item_epochs": 0,
     }
 
 
@@ -133,6 +145,7 @@ def build_test_outcome(
             continue
         per_item[item_id][int(sample.epoch)] = score
         sample_of[(item_id, int(sample.epoch))] = sample
+    n_truncated = sum(1 for sample in sample_of.values() if is_truncated(sample))
 
     items: list[ItemResult] = []
     for item_id, by_epoch in sorted(per_item.items()):
@@ -173,6 +186,7 @@ def build_test_outcome(
         "first_error": first_error,
         "n_items_dataset": n_items_dataset,
         "n_errors": n_errors,
+        "n_truncated_item_epochs": n_truncated,
         **stats,
         "cost_usd": float(cost),
         "cost_per_correct_usd": cost_per_correct,
@@ -187,7 +201,9 @@ def build_test_outcome(
     if scoring == "tutor":
         block["tutor"] = _tutor_block(items, per_item, key, epochs, judges, explanation_status)
     block["failure_examples"] = _failure_examples(items, per_item, sample_of, meta_of, public)
-    return TestRun(block=block, items=items, cap_hit=cap_hit)
+    return TestRun(
+        block=block, items=items, cap_hit=cap_hit, n_item_epochs=len(sample_of), n_truncated=n_truncated
+    )
 
 
 def _tutor_block(
@@ -367,6 +383,15 @@ def build_document(
             "by_model": {name: usage.as_dict() for name, usage in sorted(guard.by_model().items())},
         },
         "overall": pool_overall(outcomes),
+        "truncation": {
+            "max_tokens": config["max_tokens"]["candidate"],
+            "n_item_epochs": sum(outcome.n_item_epochs for outcome in outcomes),
+            "n_truncated_item_epochs": sum(outcome.n_truncated for outcome in outcomes),
+            "rule": (
+                "A scored item-epoch is truncated when a candidate call stopped at the answer "
+                "limit. It is scored by the normal rules, so an empty answer scores 0."
+            ),
+        },
         "suites": suites,
         "tool_versions": {"inspect_ai": inspect_ai.__version__},
     }

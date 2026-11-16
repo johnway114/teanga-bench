@@ -4,10 +4,16 @@ Every model call, candidate or judge, goes through ``CostGuard.call``. The
 guard keeps one running total in USD. Before a call it reserves the worst-case
 cost (input bytes as tokens, plus ``max_tokens`` at the completion price). If
 the total spent, plus everything reserved by calls in flight, plus that worst
-case would pass the cap, the call is not made and the run is stopped for good.
-After a call the reservation is replaced by the cost of the usage the provider
-reported. So spend cannot pass the cap unless a provider bills more than the
-live per-token prices say.
+case would pass the cap, the call waits for calls in flight to settle and
+checks again. Only when no call is in flight and the worst case still does not
+fit is the call not made and the run stopped for good. After a call the
+reservation is replaced by the cost of the usage the provider reported. So
+spend cannot pass the cap unless a provider bills more than the live per-token
+prices say, and the run stops at most one call's worst case short of the cap.
+
+Waiting matters because the candidate answer limit is large: with eight calls
+in flight, eight full worst cases can be more than a small cap. Stopping at the
+first refusal would end such a run after a handful of calls.
 
 A resumed run carries the spend of its earlier attempts forward, so the cap is
 a cap on the true total.
@@ -197,6 +203,8 @@ class CostGuard:
     reserved: Decimal = Decimal(0)
     stopped: bool = False
     backoff: CreditBackoff = field(default_factory=CreditBackoff)
+    in_flight: int = 0
+    _waiters: list[anyio.Event] = field(default_factory=list)
     _ledger: dict[tuple[str, str, str], Usage] = field(default_factory=lambda: defaultdict(Usage))
     _carried: dict[tuple[str, str], Usage] = field(default_factory=dict)
     _carried_models: dict[str, Usage] = field(default_factory=dict)
@@ -218,24 +226,45 @@ class CostGuard:
     def price_of(self, model_id: str) -> Pricing:
         return self.prices.get(model_id, ZERO_PRICE)
 
-    def _reserve(self, model_id: str, messages: str | list[ChatMessage], max_tokens: int) -> Decimal:
+    def worst_case(self, model_id: str, messages: str | list[ChatMessage], max_tokens: int) -> Decimal:
         price = self.price_of(model_id)
-        worst = price.prompt * _input_size_tokens(messages) + price.completion * max_tokens
-        with self._lock:
-            if self.stopped or self.spent + self.reserved + worst > self.max_cost:
-                self.stopped = True
-                raise CostCapReached(
-                    f"cost cap ${self.max_cost} reached (spent ${self.spent:.6f}, "
-                    f"in flight ${self.reserved:.6f}, next call could cost ${worst:.6f})"
-                )
-            self.reserved += worst
-        return worst
+        return price.prompt * _input_size_tokens(messages) + price.completion * max_tokens
+
+    def _wake_waiters(self) -> None:
+        """Call with the lock held."""
+        waiters, self._waiters = self._waiters, []
+        for event in waiters:
+            event.set()
+
+    async def _reserve(self, model_id: str, messages: str | list[ChatMessage], max_tokens: int) -> Decimal:
+        """Reserve the call's worst case. Waits while other calls in flight hold
+        the room it needs; stops the run when it cannot fit even alone."""
+        worst = self.worst_case(model_id, messages, max_tokens)
+        while True:
+            with self._lock:
+                fits = self.spent + self.reserved + worst <= self.max_cost
+                if not self.stopped and fits:
+                    self.reserved += worst
+                    self.in_flight += 1
+                    return worst
+                if self.stopped or self.in_flight == 0:
+                    self.stopped = True
+                    self._wake_waiters()
+                    raise CostCapReached(
+                        f"cost cap ${self.max_cost} reached (spent ${self.spent:.6f}, "
+                        f"in flight ${self.reserved:.6f}, next call could cost ${worst:.6f})"
+                    )
+                settled = anyio.Event()
+                self._waiters.append(settled)
+            await settled.wait()
 
     def _settle(self, worst: Decimal, model_id: str, role: str, test: str, usage: Usage) -> None:
         with self._lock:
             self.reserved -= worst
+            self.in_flight -= 1
             self.spent += usage.cost_usd
             self._ledger[(test, role, model_id)].add(usage)
+            self._wake_waiters()
 
     async def call(
         self,
@@ -254,7 +283,7 @@ class CostGuard:
             raise ValueError("every guarded call needs max_tokens")
         while True:
             await self.backoff.ready()
-            worst = self._reserve(model_id, messages, config.max_tokens)
+            worst = await self._reserve(model_id, messages, config.max_tokens)
             try:
                 output = await model.generate(messages, config=config)
             except Exception as exc:

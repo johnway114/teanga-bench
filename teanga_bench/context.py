@@ -14,13 +14,27 @@ from inspect_ai.model import Model
 
 from teanga_bench.cost import CostGuard
 
-CANDIDATE_MAX_TOKENS = 2048
+CANDIDATE_MAX_TOKENS = 16000
 JUDGE_MAX_TOKENS = 1024
 JUDGE_RETRIES = 3
 
 # Store key the solver sets once every candidate call of a sample has returned.
 # A resumed run reuses the candidate output of an errored sample only when it is set.
 CANDIDATE_DONE_KEY = "teanga_candidate_done"
+# Store keys the solver sets with it: whether any candidate call of the sample
+# stopped at the answer limit, and the limit the calls were made with.
+TRUNCATED_KEY = "teanga_candidate_truncated"
+TOKEN_LIMIT_KEY = "teanga_candidate_max_tokens"
+# Stop reasons that mean the answer limit cut the reply short. Inspect reports
+# "max_tokens"; "length" is the OpenAI-style name some providers pass through.
+TRUNCATION_STOP_REASONS = frozenset({"max_tokens", "length"})
+# The candidate limit of every run before the limit was recorded per sample-epoch.
+LEGACY_CANDIDATE_MAX_TOKENS = 2048
+
+
+def stopped_at_limit(output: Any) -> bool:
+    """True when a model output stopped because it reached its max_tokens."""
+    return output is not None and output.stop_reason in TRUNCATION_STOP_REASONS
 
 
 @dataclass
