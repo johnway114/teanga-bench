@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Sequence
 
-MIN_ITEMS = 20  # no point is plotted from fewer items
+MIN_ITEMS = 20  # minimum for marginal breakdown charts; joint topic cells use 5
 
 
 @dataclass(frozen=True)
@@ -333,3 +333,57 @@ def value_sentence(items: Sequence[tuple[str, Est, float]]) -> str:
         f"{name} is the cheapest model tied with the leader (95% ranges overlap): {pct(est.score)} for ${cost:,.2f}, "
         f"against {pct(lead_est.score)} for ${lead_cost:,.2f} from {lead}."
     )
+
+
+def correlation_sentence(pairs: Sequence[tuple[float, float]]) -> str:
+    """Spearman rank correlation, with average ranks for tied values.
+
+    Strength is descriptive, not a significance test: |rho| >= .7 strong,
+    >= .4 moderate, >= .2 weak; below .2 no clear link.
+    """
+    n = len(pairs)
+    if n < 5:
+        return f"There are too few models ({n}; at least 5 needed) to describe a link between score and consistency."
+
+    def ranks(values: Sequence[float]) -> list[float]:
+        return [1 + sum(other < value for other in values) + (sum(other == value for other in values) - 1) / 2 for value in values]
+
+    xs = ranks([x for x, _ in pairs])
+    ys = ranks([y for _, y in pairs])
+    mx, my = _mean(xs), _mean(ys)
+    covariance = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    denominator = (sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys)) ** 0.5
+    if not denominator:
+        return f"Across {n} models there is no clear link between score and consistency: rank correlation is undefined because one measure does not vary."
+    rho = covariance / denominator
+    strength = "strong" if abs(rho) >= 0.7 else "moderate" if abs(rho) >= 0.4 else "weak" if abs(rho) >= 0.2 else ""
+    if not strength:
+        return f"Across {n} models there is no clear link between score and consistency (Spearman rank correlation {rho:.2f})."
+    direction = "more" if rho > 0 else "less"
+    return f"Across {n} models, higher-scoring models tend to be {direction} consistent: a {strength} link (Spearman rank correlation {rho:.2f}); this is descriptive, not causal."
+
+
+def topic_language_sentence(cells: Sequence[tuple[str, str, float]]) -> str:
+    """Describe point estimates only; these averages have no pooled interval."""
+    if not cells:
+        return "No topic–language pair has at least 5 dataset items yet."
+    topic, language, score = min(cells, key=lambda cell: (cell[2], cell[0], cell[1]))
+    by_topic: dict[str, list[tuple[str, float]]] = {}
+    languages = {language for _, language, _ in cells}
+    for t, lang, value in cells:
+        by_topic.setdefault(t, []).append((lang, value))
+    comparable = [values for values in by_topic.values() if len(values) == len(languages) and len(languages) > 1]
+    wins: dict[str, int] = {}
+    for values in comparable:
+        low = min(value for _, value in values)
+        lowest = [lang for lang, value in values if value == low]
+        if len(lowest) == 1:
+            wins[lowest[0]] = wins.get(lowest[0], 0) + 1
+    head = f"The lowest observed model-average score is {topic} for {language} ({pct(score)})"
+    if not comparable:
+        return f"{head}; there are too few fully represented topics to compare languages."
+    if wins:
+        lang = min(wins, key=lambda key: (-wins[key], key))
+        if wins[lang] > len(comparable) / 2:
+            return f"{head}; {lang} is lowest on {wins[lang]} of {len(comparable)} topics with every language represented (point estimates, not clear differences)."
+    return f"{head}; no single language is uniquely lowest on most fully represented topics (point estimates, not clear differences)."

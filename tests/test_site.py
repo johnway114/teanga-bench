@@ -14,6 +14,7 @@ from teanga_bench.site import SUITES, SiteError, build_site, display_name
 from teanga_bench.site_findings import (
     Est,
     compare_sentence,
+    correlation_sentence,
     direction_sentence,
     leader_sentence,
     level_sentence,
@@ -23,13 +24,14 @@ from teanga_bench.site_findings import (
     spread_sentence,
     tie_groups,
     value_sentence,
+    topic_language_sentence,
 )
 
 LINK = re.compile(r'(?:href|src|data-local)="([^"]+)"')
 NAV = re.compile(r'<nav class="site-nav" aria-label="Main">(.*?)</nav>', re.S)
 SUITE_PAGES = ("index.html", "tests.html", "findings.html", "models.html", "methodology.html")
 VIZ = re.compile(r'<figure class="viz[^"]*">(.*?)</figure>', re.S)
-CHART_SVG = re.compile(r'<svg class="(?:dtrack|lines|scatter)"')
+CHART_SVG = re.compile(r'<svg class="(?:dtrack|lines|scatter|radar)"')
 
 
 def _results(tmp_path: Path, documents: dict[str, dict]) -> Path:
@@ -484,3 +486,119 @@ def test_cost_and_value_sentences():
         "B is the cheapest model tied with the leader (95% ranges overlap)"
     )
     assert "also the cheapest" in value_sentence([("A", A, 1.0), ("C", C, 0.5)])
+
+
+def test_topic_language_view_and_legacy_note(tmp_path):
+    from bs4 import BeautifulSoup
+
+    documents = nine_models()
+    assert any("by_language_phenomenon" not in d["suites"]["blas"]["tests"]["morphology"] for d in documents.values())
+    out = tmp_path / "new"
+    build_site(_results(tmp_path / "new", documents), out, repo_root=_repo(tmp_path / "new"))
+    page = BeautifulSoup(_read(out / "blas" / "findings.html"), "html.parser")
+    figure = page.select_one(".viz-topic-language")
+    assert figure.select_one(".takeaway") and figure.select_one(".viz-cap") and figure.select_one(".as-table table")
+    assert "5 dataset items" in figure.get_text()
+    assert "Show all 15 topics" in figure.get_text()
+    rows = figure.select(".viz-body table tbody tr")
+    assert len(rows) == 15 and len(figure.select(".viz-body tr.more")) == 3
+    assert "dataset items per model; 6 models" in figure.select_one("td[title]")["title"]
+    assert figure.select_one("td.empty").get_text() == "—"
+    assert "items per model; 6 models" in figure.select_one(".as-table").get_text()
+    assert "first languages" in _read(out / "tonada" / "findings.html")
+    legacy = tmp_path / "legacy"
+    build_site(_results(tmp_path / "old", {"old": fake_document("a/old", .7, topic_language=False)}),
+               legacy, repo_root=_repo(tmp_path / "old"))
+    for suite in ("blas", "tonada"):
+        text = _read(legacy / suite / "findings.html")
+        assert "This view needs results files written by a newer version." in text
+        assert "viz-topic-language" not in text
+
+
+def test_joint_cells_use_dataset_threshold_not_pooled_results(tmp_path):
+    from bs4 import BeautifulSoup
+
+    docs = {str(i): fake_document(f"a/model-{i}", .7) for i in range(5)}
+    for i, document in enumerate(docs.values()):
+        stat = {"score": .2 + i * .1, "n_items": 5, "ci95": [.1, .9], "epochs": 3, "consistency": .8}
+        document["suites"]["blas"]["tests"]["morphology"]["by_language_phenomenon"] = {
+            "irish": {"five": stat, "four": {**stat, "score": .01, "n_items": 4}},
+            "welsh": {"five": {**stat, "score": .8}},
+        }
+    out = tmp_path / "site"
+    build_site(_results(tmp_path, docs), out, repo_root=_repo(tmp_path))
+    soup = BeautifulSoup(_read(out / "blas" / "findings.html"), "html.parser")
+    chart = soup.select_one("#topic-language-morphology").parent
+    assert "40.0%" in chart.get_text()  # equal-model mean, five dataset items suffice
+    assert "1.0%" not in chart.get_text()  # 4 * 5 pooled results do not qualify
+    assert chart.select_one("td.empty")
+    assert "hardest in this column" in chart.get_text()
+
+
+def test_radars_match_suite_size_and_grid_folds_at_twelve(tmp_path):
+    from bs4 import BeautifulSoup
+
+    out = tmp_path / "site"
+    build_site(_results(tmp_path, twenty_models()), out, repo_root=_repo(tmp_path))
+    blas = BeautifulSoup(_read(out / "blas" / "models.html"), "html.parser")
+    grid = blas.select_one(".viz-radar-grid")
+    assert len(grid.select(".radar-card")) == 22
+    assert len(grid.select("li.more")) == 10
+    assert grid.select_one("button")["data-more"] == "Show all 22 models"
+    assert all(link["href"].startswith("models/") for link in grid.select(".radar-card"))
+    for path in (out / "blas" / "models").glob("*.html"):
+        soup = BeautifulSoup(_read(path), "html.parser")
+        radar = soup.select_one(".viz-radar")
+        assert radar and len(radar.select(".radar-label")) == 5
+        assert len(radar.select(".radar-value")) == 5
+        assert "0% at the centre to 100%" in radar.get_text()
+        assert radar.select_one(".as-table table")
+    assert 'class="radar"' not in _read(out / "tonada" / "models.html")
+    for path in (out / "tonada" / "models").glob("*.html"):
+        text = _read(path)
+        assert 'class="radar"' not in text and 'class="dtrack"' in text
+
+
+@pytest.mark.parametrize(("ys", "word"), [
+    ([0, 1, 2, 3, 4], "strong"),
+    ([4, 3, 2, 1, 0], "less consistent: a strong"),
+    ([0, 1, 4, 3, 2], "moderate"),
+    ([0, 3, 4, 1, 2], "weak"),
+    ([0, 4, 3, 2, 1], "no clear link"),
+    ([1, 1, 1, 1, 1], "undefined"),
+])
+def test_correlation_wording(ys, word):
+    text = correlation_sentence(list(zip(range(5), ys)))
+    assert word in text and "5 models" in text
+
+
+def test_correlation_ties_and_too_few_models():
+    assert "too few models (4" in correlation_sentence([(1, 1)] * 4)
+    assert "too few models (0" in correlation_sentence([])
+    assert "rank correlation 1.00" in correlation_sentence([(0, 0), (1, 1), (1, 1), (3, 3), (4, 4)])
+
+
+def test_topic_language_takeaway_is_descriptive():
+    text = topic_language_sentence([("past", "Irish", .2), ("past", "Welsh", .5), ("plural", "Irish", .3), ("plural", "Welsh", .7)])
+    assert "past for Irish (20.0%)" in text and "Irish is lowest on 2 of 2" in text
+    assert "not clear differences" in text
+    assert "no single language" in topic_language_sentence([("past", "Irish", .2), ("past", "Welsh", .2)])
+
+
+def test_consistency_scatter_has_both_scopes_and_excludes_non_three_ask_runs(tmp_path):
+    from bs4 import BeautifulSoup
+
+    documents = nine_models()
+    documents["one_ask"] = fake_document("a/one-ask", .5, epochs=1)
+    out = tmp_path / "site"
+    build_site(_results(tmp_path, documents), out, repo_root=_repo(tmp_path))
+    soup = BeautifulSoup(_read(out / "blas" / "findings.html"), "html.parser")
+    figures = soup.select(".viz-consistency-scatter")
+    assert len(figures) == 2
+    for figure in figures:
+        assert "9 models" in figure.select_one(".takeaway").get_text()
+        assert "lower there by construction" in figure.select_one(".viz-cap").get_text()
+        assert len(figure.select(".as-table tbody tr")) == 9
+        assert "One Ask" not in figure.get_text()
+        assert "Mean consistency" in figure.select_one("svg").get_text()
+    assert "Consistency uses accept-list tests only" in figures[1].get_text()

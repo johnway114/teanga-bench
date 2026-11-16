@@ -181,18 +181,18 @@ def _score_axis(points: list[ScatterPoint]) -> tuple[float, float, float]:
     return lo, hi, step
 
 
-def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
+def scatter(points: list[ScatterPoint], chart_id: str, title: str, *, consistency: bool = False) -> str:
     """Score (y) against cost (x). Markers carry the leaderboard rank; the
     legend beside the chart names each one. The x axis is logarithmic when
-    costs span ten times or more."""
+    costs span ten times or more. With ``consistency``, x is a share on 0..100%."""
     if not points:
         return '<p class="empty-note">No complete runs yet.</p>'
-    width, height = 560, 400
+    width, height = (420 if consistency else 560), 400
     left, right, top, bottom = 60, 24, 20, 66
     plot_w, plot_h = width - left - right, height - top - bottom
     costs = [p.cost for p in points]
     low, high = min(costs), max(costs)
-    log_scale = low > 0 and high / low >= 10
+    log_scale = not consistency and low > 0 and high / low >= 10
     if log_scale:
         lo_axis = 10.0 ** math.floor(math.log10(low))
         hi_axis = 10.0 ** math.ceil(math.log10(high))
@@ -202,20 +202,20 @@ def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
             span = math.log10(hi_axis) - math.log10(lo_axis)
             return left + (math.log10(value) - math.log10(lo_axis)) / span * plot_w
     else:
-        ticks = _ticks_linear(high * 1.08)
+        ticks = [0.0, 0.25, 0.5, 0.75, 1.0] if consistency else _ticks_linear(high * 1.08)
         hi_axis = ticks[-1]
 
         def x_of(value: float) -> float:
             return left + (value / hi_axis) * plot_w
 
     y_lo, y_hi, y_step = _score_axis(points)
-
     def y_of(value: float) -> float:
         return top + (1 - (_clamp(value) - y_lo) / (y_hi - y_lo)) * plot_h
 
     title_id, desc_id = f"{chart_id}-title", f"{chart_id}-desc"
     description = "; ".join(
-        f"{p.number}. {p.label}: {pct(p.score)} for {money(p.cost)}"
+        (f"{p.number}. {p.label}: {pct(p.score)}, consistency {pct(p.cost)}" if consistency
+         else f"{p.number}. {p.label}: {pct(p.score)} for {money(p.cost)}")
         for p in sorted(points, key=lambda p: p.number)
     )
     body = [
@@ -230,14 +230,31 @@ def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
         y = y_of(tick)
         body.append(f'<line class="sc-grid" x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}"/>')
         body.append(f'<text class="sc-tick" x="{left - 8}" y="{y + 4:.1f}" text-anchor="end">{tick * 100:.0f}%</text>')
-    for tick, tick_label in zip(ticks, _money_ticks(ticks)):
+    for tick, tick_label in zip(ticks, [pct(t, 0) for t in ticks] if consistency else _money_ticks(ticks)):
         x = x_of(tick)
         body.append(f'<line class="sc-grid" x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{top + plot_h}"/>')
         body.append(f'<text class="sc-tick" x="{x:.1f}" y="{top + plot_h + 22}" text-anchor="middle">{tick_label}</text>')
-    axis_title = "Cost of one run of this suite (USD" + (", log scale)" if log_scale else ")")
+    axis_title = "Mean consistency" if consistency else "Cost of one run of this suite (USD" + (", log scale)" if log_scale else ")")
     body.append(f'<text class="sc-axis" x="{left + plot_w / 2:.1f}" y="{height - 12}" text-anchor="middle">{axis_title}</text>')
     mid = top + plot_h / 2
     body.append(f'<text class="sc-axis" x="18" y="{mid:.1f}" text-anchor="middle" transform="rotate(-90 18 {mid:.1f})">Score</text>')
+    label_positions: dict[int, tuple[float, float]] = {}
+    if consistency:
+        # Keep every rank readable in tight clusters without moving its data
+        # point. Displaced labels get a leader line back to the true position.
+        offsets = [(0.0, 0.0)] + [
+            (distance * math.cos(angle * math.pi / 4), distance * math.sin(angle * math.pi / 4))
+            for distance in range(28, 281, 28) for angle in range(8)
+        ]
+        for point in sorted(points, key=lambda p: p.number):
+            cx, cy = x_of(point.cost), y_of(point.score)
+            for dx, dy in offsets:
+                x, y = cx + dx, cy + dy
+                if not (left + 11 <= x <= left + plot_w - 11 and top + 11 <= y <= top + plot_h - 11):
+                    continue
+                if all(math.hypot(x - px, y - py) >= 26 for px, py in label_positions.values()):
+                    label_positions[point.number] = (x, y)
+                    break
     # Draw low ranks last so the best model sits on top where markers overlap.
     for point in sorted(points, key=lambda p: -p.number):
         cx, cy = x_of(point.cost), y_of(point.score)
@@ -246,8 +263,13 @@ def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
             body.append(f'<line class="sc-whisker" x1="{cx:.1f}" y1="{y1:.1f}" x2="{cx:.1f}" y2="{y2:.1f}"/>')
             for y in (y1, y2):
                 body.append(f'<line class="sc-whisker" x1="{cx - 5:.1f}" y1="{y:.1f}" x2="{cx + 5:.1f}" y2="{y:.1f}"/>')
-        body.append(f'<circle class="sc-point" cx="{cx:.1f}" cy="{cy:.1f}" r="13"/>')
-        body.append(f'<text class="sc-num" x="{cx:.1f}" y="{cy + 5:.1f}" text-anchor="middle">{point.number}</text>')
+        lx, ly = label_positions.get(point.number, (cx, cy))
+        if (lx, ly) != (cx, cy):
+            body.append(f'<line class="sc-whisker" x1="{cx:.1f}" y1="{cy:.1f}" x2="{lx:.1f}" y2="{ly:.1f}"/>')
+            body.append(f'<circle class="sc-point" cx="{cx:.1f}" cy="{cy:.1f}" r="4"/>')
+        radius = 11 if consistency else 13
+        body.append(f'<circle class="sc-point" cx="{lx:.1f}" cy="{ly:.1f}" r="{radius}"><title>{escape(point.label)}</title></circle>')
+        body.append(f'<text class="sc-num" x="{lx:.1f}" y="{ly + 5:.1f}" text-anchor="middle">{point.number}</text>')
     body.append("</svg>")
     return "".join(body)
 
@@ -519,5 +541,48 @@ def line_chart(
                 out.append(
                     f'<text class="ln-label" x="{x_of(last) + 8:.1f}" y="{y_of(s.values[last]) + 4:.1f}">{escape(s.label)}</text>'
                 )
+    out.append("</svg>")
+    return "".join(out)
+
+
+def radar(labels: Sequence[str], values: Sequence[float], medians: Sequence[float], best: Sequence[float], title: str) -> str:
+    """A shared 0..100% radial scale; values and wrapped labels at each vertex."""
+    cx, cy, radius = 200, 175, 105
+    angles = [-math.pi / 2 + i * 2 * math.pi / len(labels) for i in range(len(labels))]
+
+    def point(i: int, distance: float) -> tuple[float, float]:
+        return cx + math.cos(angles[i]) * distance, cy + math.sin(angles[i]) * distance
+
+    def polygon(scores: Sequence[float]) -> str:
+        return " ".join(f"{x:.2f},{y:.2f}" for i, value in enumerate(scores) for x, y in [point(i, radius * _clamp(value))])
+
+    out = [
+        '<svg class="radar" viewBox="0 0 400 350" role="img" '
+        f'aria-label="{escape(title)}"><title>{escape(title)}</title>',
+        '<desc>Scale: 0% at the centre to 100% at the outer ring. '
+        + escape("; ".join(f"{label}: {pct(value)}, median {pct(median)}, best {pct(high)}" for label, value, median, high in zip(labels, values, medians, best)))
+        + "</desc>",
+    ]
+    for fraction in (0.25, 0.5, 0.75, 1.0):
+        out.append(f'<polygon class="radar-grid" points="{polygon([fraction] * len(labels))}"/>')
+    for i in range(len(labels)):
+        x, y = point(i, radius)
+        out.append(f'<line class="radar-grid" x1="{cx}" y1="{cy}" x2="{x:.2f}" y2="{y:.2f}"/>')
+    for tone, scores in (("best", best), ("median", medians), ("own", values)):
+        out.append(f'<polygon class="radar-{tone}" points="{polygon(scores)}"/>')
+    for i, (label, value) in enumerate(zip(labels, values)):
+        x, y = point(i, radius * value)
+        out.append(f'<circle class="radar-dot" cx="{x:.2f}" cy="{y:.2f}" r="3"/>')
+        # Values sit outside the plotting ring, so a low score cannot collide
+        # with a neighbour near the centre.
+        tx, ty = point(i, radius + 20)
+        out.append(f'<text class="radar-value" x="{tx:.2f}" y="{ty + 4:.2f}" text-anchor="middle">{pct(value)}</text>')
+        lx, ly = point(i, radius + 48)
+        words = label.split()
+        midpoint = max(1, len(words) // 2)
+        lines = [" ".join(words[:midpoint]), " ".join(words[midpoint:])] if len(label) > 14 else [label]
+        out.append(f'<text class="radar-label" x="{lx:.2f}" y="{ly - 5:.2f}" text-anchor="middle">')
+        out.extend(f'<tspan x="{lx:.2f}" dy="{0 if j == 0 else 14}">{escape(line)}</tspan>' for j, line in enumerate(lines))
+        out.append("</text>")
     out.append("</svg>")
     return "".join(out)

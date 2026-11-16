@@ -130,6 +130,7 @@ def fake_document(
     epochs: int = 3,
     cost_scale: float = 1.0,
     dataset: str = "full",
+    topic_language: bool = True,
 ) -> dict[str, Any]:
     rng = random.Random(f"{model}-{seed}")
     suites = {}
@@ -142,6 +143,20 @@ def fake_document(
             )
             for test, scoring in tests.items()
         }
+        if topic_language:
+            # Independent seed keeps the legacy marginal scores unchanged.
+            joint_rng = random.Random(f"{model}-{seed}-{suite}-joint")
+            groups = BLAS_LANGUAGES if suite == "blas" else L1S
+            field = "by_language_phenomenon" if suite == "blas" else "by_l1_phenomenon"
+            for block in blocks.values():
+                block[field] = {
+                    group: {
+                        topic: _stat(joint_rng, centre - 0.03 * i - 0.01 * j, 5 + j % 3, epochs)
+                        for j, topic in enumerate(TOPICS + ["adverbs", "adjectives", "relative_clauses"])
+                        if not (i == 0 and j == 1)  # an omitted, below-threshold cell
+                    }
+                    for i, group in enumerate(groups)
+                }
         mean = sum(b["score"] for b in blocks.values()) / len(blocks)
         suites[suite] = {
             "overall": {"score": round(mean, 4), "ci95": [round(mean - 0.03, 4), round(mean + 0.03, 4)], "n_tests": len(blocks), "n_items": sum(b["n_items"] for b in blocks.values())},
@@ -195,7 +210,8 @@ def nine_models() -> dict[str, dict[str, Any]]:
     documents = {}
     for day, (model, centre, scale) in enumerate(NINE_MODELS):
         documents[model.replace("/", "__")] = fake_document(
-            model, centre, cost_scale=scale, generated_at=f"2026-11-{10 + day:02d}T09:00:00+00:00"
+            model, centre, cost_scale=scale, generated_at=f"2026-11-{10 + day:02d}T09:00:00+00:00",
+            topic_language=day % 3 != 2,
         )
     documents["z-ai__glm-5"] = fake_document("z-ai/glm-5", 0.7, status="cost_cap_reached")
     return documents

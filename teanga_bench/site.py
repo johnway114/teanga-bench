@@ -64,6 +64,7 @@ from teanga_bench.site_charts import (
     money_axis,
     nice_domain,
     pct,
+    radar,
     ranked_bars,
     scatter,
     score_ticks,
@@ -74,6 +75,7 @@ from teanga_bench.site_findings import (
     MIN_ITEMS,
     Est,
     compare_sentence,
+    correlation_sentence,
     direction_sentence,
     group_sentence,
     leader_sentence,
@@ -86,6 +88,7 @@ from teanga_bench.site_findings import (
     tie_groups,
     tied_with,
     tutor_sentence,
+    topic_language_sentence,
     value_sentence,
 )
 
@@ -1069,6 +1072,7 @@ def _findings_present(ranked: list[Entry], tests: list[str]) -> list[str]:
         "ties": bool(ranked),
         "levels": any(_level_plan(ranked, t) for t in with_tests),
         "topics": any(_topic_plan(ranked, t) for t in with_tests),
+        "topic-language": bool(with_tests),
         "directions": any(_direction_plan(ranked, t) for t in with_tests),
         "tutor": any(_has_tutor_steps(ranked, t) for t in with_tests),
         "evidence": any(_evidence_plan(ranked, t) for t in with_tests),
@@ -1464,6 +1468,17 @@ def _groups_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str
 # Charts with takeaways, shared by the Findings page and the other pages
 
 
+def _fold(content: str, count: int, top: int, noun: str) -> str:
+    """Use the site's existing progressive-enhancement Show all control."""
+    if count <= top:
+        return content
+    more, less = f"Show all {count} {noun}", f"Show the first {top}"
+    return (
+        f'<div class="collapsible" data-collapsible>{content}<button type="button" class="show-all" '
+        f'aria-expanded="false" data-show-all data-more="{more}" data-less="{less}">{more}</button></div>'
+    )
+
+
 def _viz(chart: str, *, takeaway: str, caption: str, table: str, css: str = "") -> str:
     """A chart as a figure: the computed takeaway and what is plotted first,
     then the graphic, then the exact numbers behind 'View as table'."""
@@ -1709,6 +1724,11 @@ FINDINGS: tuple[tuple[str, str, str], ...] = (
         "Each item records its grammar topic, error type or course category. Which are hardest across models?",
     ),
     (
+        "topic-language",
+        "Grammar topic by language",
+        "Where each topic is hardest, averaged over the models with a recorded topic–language breakdown.",
+    ),
+    (
         "directions",
         "Translation directions",
         "Translation items go into English or out of English, or come from legal and administrative parallel text.",
@@ -1737,6 +1757,7 @@ FINDINGS_TEASERS = {
     "ties": "which gaps may be chance",
     "levels": "do models drop as items get harder?",
     "topics": "the hardest grammar points and error types",
+    "topic-language": "which topics are hardest in each language?",
     "directions": "into English against out of English",
     "tutor": "which check fails most",
     "evidence": "does weaker gold change the picture?",
@@ -2029,10 +2050,78 @@ def _topics_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> 
     if not plans:
         return ""
     note = (
-        '<p class="muted">The topic labels come from the item sources. Results files hold topic and language '
-        "separately, so a topic cannot be split by language here.</p>"
+        '<p class="muted">Topic labels come from the item sources. Where results include a joint breakdown, '
+        '<a href="#topic-language">grammar topic by language</a> shows how these averages differ by language.</p>'
     )
     return _lead_first(suite, plans, "topics") + note
+
+
+def _topic_language_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    field = "by_l1_phenomenon" if suite.key == "tonada" else "by_language_phenomenon"
+    present = [test for test in tests if any(field in en.tests[test] for en, _ in _test_ests(ranked, test))]
+    if not present:
+        return '<p class="empty-note">This view needs results files written by a newer version.</p>'
+    return "".join(_subsection(_finding_anchor("topic-language", test), _test_title(suite.key, test),
+                              _topic_language_viz(suite, ranked, test, field)) for test in present)
+
+
+def _topic_language_viz(suite: SuiteInfo, ranked: list[Entry], test: str, field: str) -> str:
+    by: dict[tuple[str, str], list[Est]] = {}
+    groups, topics = set(), set()
+    for en, _ in _test_ests(ranked, test):
+        for group, values in (en.tests[test].get(field) or {}).items():
+            groups.add(group)
+            for topic, stat in values.items():
+                topics.add(topic)
+                est = _est(stat)
+                if est and (est.n or 0) >= MIN_TOPIC_ITEMS:
+                    by.setdefault((topic, group), []).append(est)
+    columns = _ordered_groups(groups, suite.group_order)
+    means = {key: _mean([est.score for est in values]) for key, values in by.items()}
+    ordered = sorted(topics, key=lambda topic: (
+        _mean([value for (t, _), value in means.items() if t == topic])
+        if any(t == topic for t, _ in means) else 2, topic))
+    lows = {group: min(value for (t, g), value in means.items() if g == group)
+            for group in columns if any(g == group for _, g in means)}
+    rows, plain = [], []
+    for i, topic in enumerate(ordered):
+        cells, text = [], []
+        for group in columns:
+            key = (topic, group)
+            if key not in means:
+                cells.append('<td class="empty">—</td>')
+                text.append('<td>—</td>')
+                continue
+            score, values = means[key], by[key]
+            count = min(est.n or 0 for est in values)
+            high_count = max(est.n or 0 for est in values)
+            count_text = str(count) if count == high_count else f"{count}–{high_count}"
+            tip = f"{_topic_name(topic)}, {_group_name(group)}: {pct(score)}; {count_text} dataset items per model; {len(values)} models"
+            mark = '<span class="mk" aria-hidden="true">▼</span><span class="sr-only"> (hardest in this column)</span>' if score == lows[group] else ""
+            cells.append(f'<td title="{e(tip)}"{heat_style(score)}>{pct(score)}{mark}</td>')
+            text.append(f'<td class="num">{pct(score)}; {count_text} items per model; {len(values)} models</td>')
+        more = ' class="more"' if i >= 12 else ""
+        heading = f'<th scope="row">{e(_topic_name(topic))}</th>'
+        rows.append(f'<tr{more}>{heading}{"".join(cells)}</tr>')
+        plain.append(f'<tr>{heading}{"".join(text)}</tr>')
+    head = [_th("Topic")] + [_th(e(_group_name(group))) for group in columns]
+    chart = _table(head, rows, css="heat topic-language", label="Topic scores by first language" if suite.key == "tonada" else "Topic scores by language")
+    chart = _fold(chart, len(ordered), 12, "topics")
+    note = (
+        "Minimum: 5 dataset items per topic–language pair in each contributing model result. "
+        "A dash means no qualifying result. Counts are dataset items, not repeated asks or sums across models."
+    )
+    chart += f'<p class="table-note">{note}</p>'
+    return _viz(
+        chart,
+        takeaway=topic_language_sentence([(_topic_name(t), _group_name(g), value) for (t, g), value in means.items()]),
+        caption=("Mean score across available models, each model weighted equally; topics sorted by mean, hardest first. "
+                 "Darker cells mean higher scores (0–100%). ▼ marks every tied hardest cell in each column. "
+                 + ("Columns are learners’ first languages. " if suite.key == "tonada" else "")
+                 + "Model coverage can differ between cells; averages have no pooled confidence interval."),
+        table=_table(head, plain, label="Topic scores, dataset item counts and contributing models"),
+        css="viz-topic-language",
+    )
 
 
 def _direction_plan(ranked: list[Entry], test: str) -> list[tuple[str, str, str, str]] | None:
@@ -2327,6 +2416,57 @@ def _consistency_viz(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) ->
     )
 
 
+def _consistency_scatter(suite: SuiteInfo, ranked: list[Entry], tests: list[str], *, accept_only: bool = False) -> str:
+    names = _labels(ranked)
+    # Require the same tests for every point; do not silently average whatever
+    # happens to be available for an individual model.
+    selected = [t for t in tests if not accept_only or _scoring(ranked, t) == "accept_list"]
+    points, rows, legend = [], [], []
+    for entry in ranked:
+        blocks = [entry.tests.get(t, {}) for t in selected]
+        if not blocks or entry.score is None or any(
+            b.get("status") != "complete" or b.get("consistency") is None or b.get("epochs") != 3 for b in blocks
+        ):
+            continue
+        mean = _mean([float(b["consistency"]) for b in blocks])
+        points.append(ScatterPoint(entry.rank or 0, names[entry.slug], mean, entry.score, entry.ci95))
+        rows.append(f'<tr><th scope="row">{_model_link(entry)}</th><td>{pct(mean)}</td><td>{pct(entry.score)}</td></tr>')
+        legend.append(f'<li value="{entry.rank}">{_model_link(entry)} <span class="num">{pct(mean)} consistency; {pct(entry.score)} score</span></li>')
+    if not points:
+        return ""
+    chart_id = f"{suite.key}-consistency-{'accept' if accept_only else 'all'}"
+    caption = (
+        "Points are models, labelled by suite rank; whiskers are 95% score ranges. Crowded labels link back to their dots. "
+        "x: share of items with the same score on all three asks, averaged equally over tests; "
+        "y: overall suite score. Translation tests rarely repeat exactly, so consistency is lower there by construction. "
+        + ("Consistency uses accept-list tests only; y still uses the overall suite score. " if accept_only else "Consistency uses all suite tests. ")
+        + "Models need three-ask consistency on every included test."
+    )
+    return _viz(
+        '<div class="scatter-split">' + scatter(points, chart_id, "Score against consistency", consistency=True)
+        + f'<ol class="legend">{"".join(legend)}</ol></div>',
+        takeaway=correlation_sentence([(p.cost, p.score) for p in points]),
+        caption=e(caption),
+        table=_table(
+            [_th("Model"), _th("Mean consistency"), _th("Overall suite score")], rows,
+            label="Score against consistency",
+            caption="Link strength uses |Spearman rho|: ≥0.7 strong, ≥0.4 moderate, ≥0.2 weak; otherwise no clear link. Descriptive, not a significance test.",
+        ),
+        css="viz-consistency-scatter",
+    )
+
+
+def _consistency_scatter_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    main = _consistency_scatter(suite, ranked, tests)
+    if not main:
+        return ""
+    accept = [t for t in tests if _scoring(ranked, t) == "accept_list"]
+    restricted = _consistency_scatter(suite, ranked, tests, accept_only=True) if accept and len(accept) < len(tests) else ""
+    return _heading("score-consistency", "Score against consistency", 3) + main + (
+        _subsection("consistency-accept-list", "Accept-list tests only", restricted, open_=False) if restricted else ""
+    )
+
+
 def _findings_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str], current_pair: set[str]) -> str:
     parts = [
         _page_head(
@@ -2347,11 +2487,12 @@ def _findings_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str], curr
         "ties": _ties_viz(ranked),
         "levels": _levels_section(suite, ranked, tests),
         "topics": _topics_section(suite, ranked, tests),
+        "topic-language": _topic_language_section(suite, ranked, tests),
         "directions": _directions_section(suite, ranked, tests),
         "tutor": _tutor_section(suite, ranked, tests, current_pair),
         "evidence": _evidence_section(suite, ranked, tests),
         "cost": _cost_viz(ranked),
-        "consistency": _consistency_viz(suite, ranked, tests),
+        "consistency": _consistency_viz(suite, ranked, tests) + _consistency_scatter_section(suite, ranked, tests),
     }
     present = [(key, title, intro) for key, title, intro in FINDINGS if bodies.get(key)]
     parts.append(
@@ -2387,6 +2528,64 @@ def _findings_links(ranked: list[Entry], test: str) -> list[tuple[str, str]]:
 # Models index
 
 
+def _radar_data(suite: SuiteInfo, entry: Entry, tests: list[str], ranked: list[Entry]) -> tuple[list[str], list[float], list[float], list[float]]:
+    labels, own, medians, best = [], [], [], []
+    for test in tests:
+        value = _complete_score(entry, test)
+        scores = [est.score for _, est in _test_ests(ranked, test)]
+        if value is None or not scores:
+            continue
+        labels.append(_test_title(suite.key, test))
+        own.append(value)
+        medians.append(statistics.median(scores))
+        best.append(max(scores))
+    return labels, own, medians, best
+
+
+RADAR_CAPTION = (
+    "One axis per test, with the same scale on every profile: 0% at the centre to 100% at the outer ring. "
+    "Solid accent: this model; faint dashed polygon: median model score on each test; faint dotted outer "
+    "polygon: best score on each test (not necessarily one model). Vertex labels show this model’s scores. "
+    "Compare scores, not polygon area; no confidence intervals are shown."
+)
+
+
+def _radar_viz(suite: SuiteInfo, entry: Entry, tests: list[str], ranked: list[Entry]) -> str:
+    labels, own, medians, best = _radar_data(suite, entry, tests, ranked)
+    if len(labels) < 3:
+        return ""
+    names = _labels(ranked)
+    sentence = profile_sentence(names[entry.slug], [(_test_title(suite.key, test), _ranking_rows(ranked, test)) for test in tests])
+    rows = [f'<tr><th scope="row">{e(label)}</th><td>{pct(value)}</td><td>{pct(median)}</td><td>{pct(high)}</td></tr>'
+            for label, value, median, high in zip(labels, own, medians, best)]
+    return _viz(
+        radar(labels, own, medians, best, f"{names[entry.slug]} test profile"),
+        takeaway=sentence, caption=RADAR_CAPTION,
+        table=_table([_th("Test"), _th("This model"), _th("Median"), _th("Best")], rows, label="Radar profile scores"),
+        css="viz-radar",
+    )
+
+
+def _radar_grid(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    cards, rows = [], []
+    names = _labels(ranked)
+    for entry in ranked:
+        labels, own, medians, best = _radar_data(suite, entry, tests, ranked)
+        if len(labels) < 3:
+            continue
+        more = ' class="more"' if len(cards) >= MODEL_ROWS_TOP else ""
+        cards.append(f'<li{more}><a class="radar-card" href="models/{entry.slug}.html"><strong>{e(names[entry.slug])}</strong>'
+                     + radar(labels, own, medians, best, f"{names[entry.slug]} test profile") + "</a></li>")
+        rows.append(f'<tr><th scope="row">{_model_link(entry)}</th>' + "".join(f'<td>{pct(_complete_score(entry, t))}</td>' for t in tests) + "</tr>")
+    return _viz(
+        _fold(f'<ol class="radar-grid-cards">{"".join(cards)}</ol>', len(cards), MODEL_ROWS_TOP, "models"),
+        takeaway=matrix_sentence([(_test_title(suite.key, test), _ranking_rows(ranked, test)) for test in tests]),
+        caption=RADAR_CAPTION + " Select a profile to open the model page; ordered by suite rank.",
+        table=_table([_th("Model")] + [_th(e(_test_title(suite.key, t))) for t in tests], rows, label="Model profile scores"),
+        css="viz-radar-grid",
+    )
+
+
 def _models_page(suite: SuiteInfo, entries: list[Entry]) -> str:
     ranked = [entry for entry in entries if entry.ranked]
     unranked = [entry for entry in entries if not entry.ranked]
@@ -2412,6 +2611,10 @@ def _models_page(suite: SuiteInfo, entries: list[Entry]) -> str:
                 "</a></li>"
             )
         parts.append(f'<ol class="model-cards">{"".join(cards)}</ol>')
+        tests = _test_order(suite.key, {t for en in ranked for t in en.tests})
+        if len(tests) >= 3:
+            parts.append(_heading("radar-profiles", "Model profiles"))
+            parts.append(_radar_grid(suite, ranked, tests))
     parts.append(_unranked_notice(unranked))
     if ranked:
         parts.append(_heading("cost", "Score against cost"))
@@ -2738,6 +2941,7 @@ def _model_page(suite: SuiteInfo, entry: Entry, tests: list[str], ranked: list[E
         _honesty("../"),
         _heading("tests", "Scores by test"),
         _profile_viz(suite, entry, tests, ranked),
+        _radar_viz(suite, entry, tests, ranked) if len(tests) >= 3 else "",
         _drill("test-details", "Items, consistency and cost by test", _tests_table(suite, entry, tests)),
     ]
     group_table = _breakdown_table(suite, entry, tests, suite.group_field, suite.group_label, suite.group_order)
@@ -3045,3 +3249,5 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
         )
         summary["suites"][suite.key] = {"ranked": len(ranked), "runs": len(entries)}
     return summary
+
+

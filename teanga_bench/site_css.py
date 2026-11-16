@@ -423,6 +423,24 @@ hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
 .matrix td:not(:has(.mk))::after { content: ""; display: inline-block; width: 1.15rem; }
 .viz-cap .mk { width: auto; margin: 0 0.1rem 0 0; }
 
+/* Radial model profiles share a zero baseline and a single suite-wide scale. */
+.radar { display: block; width: 100%; max-width: 32rem; height: auto; margin: 0 auto; font-family: var(--font); }
+.radar-grid { fill: none; stroke: var(--rule); stroke-width: 1; }
+.radar-best { fill: var(--ink-2); fill-opacity: 0.04; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 2 4; }
+.radar-median { fill: var(--ink-2); fill-opacity: 0.07; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.radar-own { fill: var(--accent); fill-opacity: 0.2; stroke: var(--accent-edge); stroke-width: 2.5; }
+.radar-dot { fill: var(--accent-edge); }
+.radar-label { fill: var(--ink-2); font-size: 15px; font-weight: 600; }
+.radar-value { fill: var(--accent-ink); font-size: 16px; font-weight: 700; }
+.radar-grid-cards { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 0.75rem; }
+.radar-grid-cards li { min-width: 0; }
+.radar-card { display: block; height: 100%; padding: 0.75rem 0.3rem 0; border: 1px solid var(--rule); border-radius: var(--radius-sm); color: var(--ink); text-decoration: none; }
+.radar-card > strong { display: block; padding: 0 0.7rem; }
+.radar-card:hover { border-color: var(--accent-edge); }
+.radar-card:hover > strong { text-decoration: underline; }
+.topic-language th:first-child { min-width: 10rem; max-width: 13rem; }
+.topic-language td { min-width: 6rem; white-space: nowrap; }
+
 /* Tutor steps: a table with bars */
 .steps { min-width: 44rem; }
 .steps td.step { white-space: nowrap; }
