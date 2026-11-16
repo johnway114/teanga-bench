@@ -1,9 +1,9 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
-  "generated_at": "2026-11-16T06:52:30+00:00",
+  "generated_at": "2026-11-16T18:11:46+00:00",
   "note": "Only runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval. Runs on public samples and runs on full sets are not comparable; the data column says which. Explanation scores are judge-marked, not human-validated, and shown only for runs that used the current judge pair.",
   "current_judges": [
     "deepseek/deepseek-v4.1-flash-1017",
@@ -234,6 +234,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 1
     },
     {
@@ -460,6 +462,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 2
     },
     {
@@ -686,6 +690,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 3
     },
     {
@@ -912,6 +918,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 4
     },
     {
@@ -921,34 +929,34 @@
       "run_kind": "live",
       "status": "complete",
       "ranked": true,
-      "generated_at": "2026-11-16T01:31:57+00:00",
+      "generated_at": "2026-11-16T13:54:33+00:00",
       "data": "full",
       "epochs": 3,
       "overall": {
-        "score": 0.7847015789480378,
+        "score": 0.8100263331374072,
         "ci95": [
-          0.7716427331117832,
-          0.7976095644182953
+          0.7979757897348762,
+          0.8225596709386789
         ],
         "n_tests": 7,
         "n_items": 2260
       },
-      "cost_usd": 0.767537792,
+      "cost_usd": 1.137427688,
       "suites": {
         "blas": {
-          "score": 0.758304432749475,
+          "score": 0.7919442737997777,
           "ci95": [
-            0.7419389730366531,
-            0.7742822742024658
+            0.7769041605176766,
+            0.806786403817296
           ],
           "n_tests": 5,
           "n_items": 1500
         },
         "tonada": {
-          "score": 0.8506944444444444,
+          "score": 0.8552314814814814,
           "ci95": [
-            0.8275925925925925,
-            0.8726875000000002
+            0.8325439814814813,
+            0.8763437499999999
           ],
           "n_tests": 2,
           "n_items": 760
@@ -956,64 +964,64 @@
       },
       "languages": {
         "breton": {
-          "score": 0.7371856414335552,
+          "score": 0.7716088610671085,
           "ci95": [
-            0.7023989382248019,
-            0.7702236517172044
+            0.7408333870505818,
+            0.8036357327557042
           ],
           "n_tests": 4,
           "n_items": 220
         },
         "cornish": {
-          "score": 0.7645482927772997,
+          "score": 0.7885777954979141,
           "ci95": [
-            0.7249160655263037,
-            0.8005045481491715
+            0.7519129792251315,
+            0.8216428146240117
           ],
           "n_tests": 4,
           "n_items": 220
         },
         "english": {
-          "score": 0.8506944444444444,
+          "score": 0.8552314814814814,
           "ci95": [
-            0.8280092592592593,
-            0.8720393518518518
+            0.8328680555555555,
+            0.8764363425925926
           ],
           "n_tests": 2,
           "n_items": 760
         },
         "irish": {
-          "score": 0.7893153499913854,
+          "score": 0.8130219102828551,
           "ci95": [
-            0.7544914627956869,
-            0.8215431741925413
+            0.7811236555179336,
+            0.8424184913949377
           ],
           "n_tests": 5,
           "n_items": 280
         },
         "manx": {
-          "score": 0.6423757291746874,
+          "score": 0.6860819602200809,
           "ci95": [
-            0.6060253133402412,
-            0.6782673309370717
+            0.6531677818097549,
+            0.7182944043635102
           ],
           "n_tests": 4,
           "n_items": 220
         },
         "scots-gaelic": {
-          "score": 0.7828079564082818,
+          "score": 0.8181021685878671,
           "ci95": [
-            0.7485931541783231,
-            0.8138806095989993
+            0.7864940351098687,
+            0.8465254220308656
           ],
           "n_tests": 5,
           "n_items": 280
         },
         "welsh": {
-          "score": 0.8457488927220828,
+          "score": 0.8668600038331938,
           "ci95": [
-            0.8164225575629543,
-            0.8726551019396314
+            0.8411567801807168,
+            0.8911172113021909
           ],
           "n_tests": 5,
           "n_items": 280
@@ -1021,88 +1029,88 @@
       },
       "tests": {
         "blas/lesson_exercises": {
-          "score": 0.9416666666666667,
+          "score": 0.9555555555555556,
           "ci95": [
-            0.9185185185185186,
-            0.9602083333333332
+            0.9361111111111111,
+            0.9722222222222222
           ],
           "n_items": 360,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.9472222222222222,
-          "cost_usd": 0.151457993
+          "consistency": 0.9527777777777777,
+          "cost_usd": 0.194731785
         },
         "blas/morphology": {
-          "score": 0.8064814814814815,
+          "score": 0.8703703703703703,
           "ci95": [
-            0.7712962962962964,
-            0.8416666666666667
+            0.8388888888888889,
+            0.900925925925926
           ],
           "n_items": 360,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.8305555555555556,
-          "cost_usd": 0.173974612
+          "consistency": 0.9083333333333333,
+          "cost_usd": 0.342682396
         },
         "blas/round_trip": {
-          "score": 0.6672926915621851,
+          "score": 0.6848613533709577,
           "ci95": [
-            0.6373314274335242,
-            0.6960603884977394
+            0.656780741818983,
+            0.7109860902948362
           ],
           "n_items": 240,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.2875,
-          "cost_usd": 0.299452765
+          "consistency": 0.275,
+          "cost_usd": 0.338432277
         },
         "blas/translation": {
-          "score": 0.6816368795925977,
+          "score": 0.6878229785908936,
           "ci95": [
-            0.6556641755085771,
-            0.7087569312518085
+            0.6624036028026515,
+            0.7139373250277669
           ],
           "n_items": 360,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.4666666666666667,
-          "cost_usd": 0.041729234
+          "consistency": 0.46944444444444444,
+          "cost_usd": 0.05573585
         },
         "blas/tutor_accuracy": {
-          "score": 0.6944444444444444,
+          "score": 0.7611111111111111,
           "ci95": [
-            0.6333333333333333,
-            0.750046296296296
+            0.7055555555555555,
+            0.812962962962963
           ],
           "n_items": 180,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.7833333333333333,
-          "cost_usd": 0.037960164
+          "consistency": 0.8166666666666667,
+          "cost_usd": 0.107260528
         },
         "tonada/exercises": {
-          "score": 0.9791666666666667,
+          "score": 0.9808333333333333,
           "ci95": [
-            0.9641666666666666,
-            0.9916666666666666
+            0.9666666666666667,
+            0.9925
           ],
           "n_items": 400,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.9975,
-          "cost_usd": 0.014475936
+          "consistency": 0.9925,
+          "cost_usd": 0.022843204
         },
         "tonada/tutor_accuracy": {
-          "score": 0.7222222222222222,
+          "score": 0.7296296296296296,
           "ci95": [
-            0.6777777777777778,
-            0.7629629629629628
+            0.6851851851851852,
+            0.7703703703703704
           ],
           "n_items": 360,
           "status": "complete",
           "dataset": "full",
-          "consistency": 0.8472222222222222,
-          "cost_usd": 0.048487088
+          "consistency": 0.85,
+          "cost_usd": 0.075741648
         }
       },
       "judges": [
@@ -1131,6 +1139,12 @@
             "qwen/qwen3.8-flash"
           ]
         }
+      },
+      "truncated_share": 0.0002949852507374631,
+      "truncation_rerun": {
+        "old_limit": 2048,
+        "new_limit": 16000,
+        "n_rerun": 268
       },
       "rank": 5
     },
@@ -1358,6 +1372,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 6
     },
     {
@@ -1584,6 +1600,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 7
     },
     {
@@ -1810,6 +1828,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 8
     },
     {
@@ -2030,6 +2050,8 @@
           ]
         }
       },
+      "truncated_share": null,
+      "truncation_rerun": null,
       "rank": 9
     }
   ],

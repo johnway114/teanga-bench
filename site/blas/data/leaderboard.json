@@ -1,10 +1,10 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
   "suite": "blas",
-  "generated_at": "2026-11-16T06:51:49+00:00",
+  "generated_at": "2026-11-16T13:54:33+00:00",
   "note": "Only live runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval; the suite score weights every test equally. cost_usd is the spend on this suite's tests. by_language gives the mean of per-test scores.",
   "models": [
     {
@@ -322,6 +322,110 @@
     {
       "rank": 4,
       "ranked": true,
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "family": "deepseek",
+      "page": "models/deepseek-deepseek-v4-1-flash-1017.html",
+      "run_file": "deepseek__deepseek-v4.1-flash-1017.json",
+      "run_kind": "live",
+      "status": "complete",
+      "generated_at": "2026-11-16T13:54:33+00:00",
+      "data": "full",
+      "epochs": 3,
+      "overall": {
+        "score": 0.7919442737997777,
+        "ci95": [
+          0.7769041605176766,
+          0.806786403817296
+        ],
+        "n_tests": 5,
+        "n_items": 1500
+      },
+      "cost_usd": 1.038842836,
+      "cost_per_correct_usd": 0.0002870565013477347,
+      "by_language": {
+        "breton": 0.7716088610671085,
+        "cornish": 0.7885777954979142,
+        "irish": 0.8130219102828551,
+        "manx": 0.6860819602200809,
+        "scots-gaelic": 0.8181021685878672,
+        "welsh": 0.8668600038331938
+      },
+      "tests": {
+        "lesson_exercises": {
+          "score": 0.9555555555555556,
+          "ci95": [
+            0.9361111111111111,
+            0.9722222222222222
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9527777777777777,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 0.194731785,
+          "cost_per_correct_usd": 0.00018869359011627906
+        },
+        "morphology": {
+          "score": 0.8703703703703703,
+          "ci95": [
+            0.8388888888888889,
+            0.900925925925926
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.9083333333333333,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 0.342682396,
+          "cost_per_correct_usd": 0.0003645557404255319
+        },
+        "round_trip": {
+          "score": 0.6848613533709577,
+          "ci95": [
+            0.656780741818983,
+            0.7109860902948362
+          ],
+          "n_items": 240,
+          "epochs": 3,
+          "consistency": 0.275,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 0.338432277,
+          "cost_per_correct_usd": 0.0006863357478897851
+        },
+        "translation": {
+          "score": 0.6878229785908936,
+          "ci95": [
+            0.6624036028026515,
+            0.7139373250277669
+          ],
+          "n_items": 360,
+          "epochs": 3,
+          "consistency": 0.46944444444444444,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 0.05573585,
+          "cost_per_correct_usd": 7.502986978458264e-05
+        },
+        "tutor_accuracy": {
+          "score": 0.7611111111111111,
+          "ci95": [
+            0.7055555555555555,
+            0.812962962962963
+          ],
+          "n_items": 180,
+          "epochs": 3,
+          "consistency": 0.8166666666666667,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 0.107260528,
+          "cost_per_correct_usd": 0.00026097452068126517
+        }
+      }
+    },
+    {
+      "rank": 5,
+      "ranked": true,
       "model": "google/gemini-4-hydrogen",
       "family": "google",
       "page": "models/google-gemini-4-hydrogen.html",
@@ -420,110 +524,6 @@
           "dataset": "full",
           "cost_usd": 3.838939857,
           "cost_per_correct_usd": 0.00838196475327511
-        }
-      }
-    },
-    {
-      "rank": 5,
-      "ranked": true,
-      "model": "deepseek/deepseek-v4.1-flash-1017",
-      "family": "deepseek",
-      "page": "models/deepseek-deepseek-v4-1-flash-1017.html",
-      "run_file": "deepseek__deepseek-v4.1-flash-1017.json",
-      "run_kind": "live",
-      "status": "complete",
-      "generated_at": "2026-11-16T01:31:57+00:00",
-      "data": "full",
-      "epochs": 3,
-      "overall": {
-        "score": 0.758304432749475,
-        "ci95": [
-          0.7419389730366531,
-          0.7742822742024658
-        ],
-        "n_tests": 5,
-        "n_items": 1500
-      },
-      "cost_usd": 0.7045747680000001,
-      "cost_per_correct_usd": 0.00020248620768462653,
-      "by_language": {
-        "breton": 0.7371856414335551,
-        "cornish": 0.7645482927772996,
-        "irish": 0.7893153499913853,
-        "manx": 0.6423757291746874,
-        "scots-gaelic": 0.7828079564082818,
-        "welsh": 0.8457488927220828
-      },
-      "tests": {
-        "lesson_exercises": {
-          "score": 0.9416666666666667,
-          "ci95": [
-            0.9185185185185186,
-            0.9602083333333332
-          ],
-          "n_items": 360,
-          "epochs": 3,
-          "consistency": 0.9472222222222222,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 0.151457993,
-          "cost_per_correct_usd": 0.00014892624680432645
-        },
-        "morphology": {
-          "score": 0.8064814814814815,
-          "ci95": [
-            0.7712962962962964,
-            0.8416666666666667
-          ],
-          "n_items": 360,
-          "epochs": 3,
-          "consistency": 0.8305555555555556,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 0.173974612,
-          "cost_per_correct_usd": 0.00019974123076923076
-        },
-        "round_trip": {
-          "score": 0.6672926915621851,
-          "ci95": [
-            0.6373314274335242,
-            0.6960603884977394
-          ],
-          "n_items": 240,
-          "epochs": 3,
-          "consistency": 0.2875,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 0.299452765,
-          "cost_per_correct_usd": 0.0006232746489128859
-        },
-        "translation": {
-          "score": 0.6816368795925977,
-          "ci95": [
-            0.6556641755085771,
-            0.7087569312518085
-          ],
-          "n_items": 360,
-          "epochs": 3,
-          "consistency": 0.4666666666666667,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 0.041729234,
-          "cost_per_correct_usd": 5.668440306915756e-05
-        },
-        "tutor_accuracy": {
-          "score": 0.6944444444444444,
-          "ci95": [
-            0.6333333333333333,
-            0.750046296296296
-          ],
-          "n_items": 180,
-          "epochs": 3,
-          "consistency": 0.7833333333333333,
-          "status": "complete",
-          "dataset": "full",
-          "cost_usd": 0.037960164,
-          "cost_per_correct_usd": 0.00010122710399999999
         }
       }
     },

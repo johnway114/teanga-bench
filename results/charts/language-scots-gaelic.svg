@@ -36,24 +36,24 @@
 <line x1="619.1" y1="164.0" x2="619.1" y2="174.0" stroke="#1a1a1a" stroke-width="1.5"/>
 <line x1="646.0" y1="164.0" x2="646.0" y2="174.0" stroke="#1a1a1a" stroke-width="1.5"/>
 <text x="652.0" y="173.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">82.5%</text>
-<text x="262.0" y="203.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">moonshotai/kimi-k3.1-pro</text>
-<rect x="270" y="189" width="350.3" height="20" fill="#4c78a8"/>
-<line x1="606.6" y1="199.0" x2="633.8" y2="199.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="606.6" y1="194.0" x2="606.6" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="633.8" y1="194.0" x2="633.8" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<text x="639.8" y="203.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">79.6%</text>
-<text x="262.0" y="233.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
-<rect x="270" y="219" width="344.9" height="20" fill="#4c78a8"/>
-<line x1="600.1" y1="229.0" x2="629.8" y2="229.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="600.1" y1="224.0" x2="600.1" y2="234.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="629.8" y1="224.0" x2="629.8" y2="234.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<text x="635.8" y="233.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">78.4%</text>
-<text x="262.0" y="263.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
-<rect x="270" y="249" width="344.4" height="20" fill="#4c78a8"/>
-<line x1="599.4" y1="259.0" x2="628.1" y2="259.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="599.4" y1="254.0" x2="599.4" y2="264.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="628.1" y1="254.0" x2="628.1" y2="264.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<text x="634.1" y="263.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">78.3%</text>
+<text x="262.0" y="203.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
+<rect x="270" y="189" width="360.0" height="20" fill="#4c78a8"/>
+<line x1="616.1" y1="199.0" x2="642.5" y2="199.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="616.1" y1="194.0" x2="616.1" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="642.5" y1="194.0" x2="642.5" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="648.5" y="203.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">81.8%</text>
+<text x="262.0" y="233.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">moonshotai/kimi-k3.1-pro</text>
+<rect x="270" y="219" width="350.3" height="20" fill="#4c78a8"/>
+<line x1="606.6" y1="229.0" x2="633.8" y2="229.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="606.6" y1="224.0" x2="606.6" y2="234.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="633.8" y1="224.0" x2="633.8" y2="234.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="639.8" y="233.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">79.6%</text>
+<text x="262.0" y="263.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
+<rect x="270" y="249" width="344.9" height="20" fill="#4c78a8"/>
+<line x1="600.1" y1="259.0" x2="629.8" y2="259.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="600.1" y1="254.0" x2="600.1" y2="264.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="629.8" y1="254.0" x2="629.8" y2="264.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="635.8" y="263.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">78.4%</text>
 <text x="262.0" y="293.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">anthropic/claude-haiku-5.5</text>
 <rect x="270" y="279" width="322.2" height="20" fill="#4c78a8"/>
 <line x1="576.6" y1="289.0" x2="607.4" y2="289.0" stroke="#1a1a1a" stroke-width="1.5"/>

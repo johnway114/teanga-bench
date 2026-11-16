@@ -23,8 +23,8 @@
 <text x="590.0" y="382.0" font-size="11" text-anchor="middle" fill="#555555" font-weight="normal" font-family="Helvetica, Arial, sans-serif">$50</text>
 <text x="330.0" y="406.0" font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Run cost (USD, candidate plus judges)</text>
 <text transform="rotate(-90 16 214.0)" x="16.0" y="214.0" font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">Overall score</text>
-<circle cx="78.0" cy="128.6" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
-<text x="86.0" y="132.6" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
+<circle cx="81.8" cy="121.0" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="89.8" y="125.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
 <circle cx="83.5" cy="130.1" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
 <text x="91.5" y="134.1" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
 <circle cx="89.7" cy="147.6" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>

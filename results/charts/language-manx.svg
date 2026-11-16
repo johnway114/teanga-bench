@@ -30,18 +30,18 @@
 <line x1="573.4" y1="134.0" x2="573.4" y2="144.0" stroke="#1a1a1a" stroke-width="1.5"/>
 <line x1="596.6" y1="134.0" x2="596.6" y2="144.0" stroke="#1a1a1a" stroke-width="1.5"/>
 <text x="602.6" y="143.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">71.6%</text>
-<text x="262.0" y="173.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
-<rect x="270" y="159" width="294.5" height="20" fill="#4c78a8"/>
-<line x1="549.6" y1="169.0" x2="578.1" y2="169.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="549.6" y1="164.0" x2="549.6" y2="174.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="578.1" y1="164.0" x2="578.1" y2="174.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<text x="584.1" y="173.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">66.9%</text>
-<text x="262.0" y="203.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
-<rect x="270" y="189" width="282.6" height="20" fill="#4c78a8"/>
-<line x1="536.7" y1="199.0" x2="568.4" y2="199.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="536.7" y1="194.0" x2="536.7" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<line x1="568.4" y1="194.0" x2="568.4" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
-<text x="574.4" y="203.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">64.2%</text>
+<text x="262.0" y="173.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">deepseek/deepseek-v4.1-flash-1017</text>
+<rect x="270" y="159" width="301.9" height="20" fill="#4c78a8"/>
+<line x1="557.4" y1="169.0" x2="586.0" y2="169.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="557.4" y1="164.0" x2="557.4" y2="174.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="586.0" y1="164.0" x2="586.0" y2="174.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="592.0" y="173.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">68.6%</text>
+<text x="262.0" y="203.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
+<rect x="270" y="189" width="294.5" height="20" fill="#4c78a8"/>
+<line x1="549.6" y1="199.0" x2="578.1" y2="199.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="549.6" y1="194.0" x2="549.6" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<line x1="578.1" y1="194.0" x2="578.1" y2="204.0" stroke="#1a1a1a" stroke-width="1.5"/>
+<text x="584.1" y="203.0" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">66.9%</text>
 <text x="262.0" y="233.0" font-size="12" text-anchor="end" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">google/gemini-4-hydrogen</text>
 <rect x="270" y="219" width="271.7" height="20" fill="#4c78a8"/>
 <line x1="525.4" y1="229.0" x2="559.1" y2="229.0" stroke="#1a1a1a" stroke-width="1.5"/>
