@@ -27,11 +27,24 @@ TEST_OFFSET = {
 }
 BLAS_LANGUAGES = ["irish", "welsh", "scots-gaelic", "manx", "breton", "cornish"]
 L1S = ["portuguese", "spanish", "vietnamese", "japanese"]
-CEFR = ["A1", "A2", "B1", "B2", "unspecified"]
+# Item counts per level and topic are the same for every model, as in real runs.
+# C1 has too few items to plot; "unspecified" is not a level.
+CEFR_ITEMS = {"A1": 60, "A2": 60, "B1": 50, "B2": 40, "C1": 12, "unspecified": 18}
 TOPICS = [
     "verb_present", "verb_past", "verb_future", "noun_plural", "copula", "prepositions",
     "mutations", "articles", "word_order", "numbers", "pronouns", "negation",
 ]
+TOPIC_ITEMS = [30, 31, 23, 22, 40, 8, 4, 25, 30, 12, 50, 20]
+DIRECTIONS = {"to_english": (100, 0.05), "from_english": (100, -0.06), "legal_or_administrative": (40, -0.02)}
+# Evidence label: (items, score offset). Weaker gold scores a little lower here.
+EVIDENCE = {
+    "blas": {"blas-app+kaikki": (70, 0.03), "blas-app-only": (130, 0.0), "blas-app-unverified": (33, -0.05), "blas-app+bunamo": (7, 0.0)},
+    "tonada": {
+        "tonada-app-answer-machine-reviewed": (70, 0.08),
+        "tonada-app-distractor-machine-reviewed": (130, 0.0),
+        "wikipedia-revision-silver-unreviewed": (40, -0.35),
+    },
+}
 JUDGES = [judge.id for judge in configured_judges()]
 
 
@@ -69,11 +82,14 @@ def _block(rng, suite, test, scoring, centre, epochs, output_text, cost_scale, d
         block["by_l1"] = {"none": _stat(rng, centre, n_items, epochs)}
     else:
         block["by_language"] = {"english": _stat(rng, centre, n_items, epochs)}
-    block["by_cefr"] = {c: _stat(rng, centre + 0.05 - 0.03 * i, n_items // len(CEFR), epochs) for i, c in enumerate(CEFR)}
-    block["by_phenomenon"] = {
-        t: _stat(rng, centre, rng.choice([2, 4, 8, 15, 30]), epochs) for t in TOPICS
-    }
-    block["by_evidence"] = {"blas-app-only": _stat(rng, centre, n_items, epochs)}
+    block["by_cefr"] = {c: _stat(rng, centre + 0.05 - 0.03 * i, n, epochs) for i, (c, n) in enumerate(CEFR_ITEMS.items())}
+    if scoring == "translation":
+        block["by_phenomenon"] = {d: _stat(rng, centre + shift, n, epochs) for d, (n, shift) in DIRECTIONS.items()}
+    else:
+        block["by_phenomenon"] = {
+            t: _stat(rng, centre + 0.1 - 0.02 * i, n, epochs) for i, (t, n) in enumerate(zip(TOPICS, TOPIC_ITEMS))
+        }
+    block["by_evidence"] = {label: _stat(rng, centre + shift, n, epochs) for label, (n, shift) in EVIDENCE[suite].items()}
     if scoring == "tutor":
         block["tutor"] = {
             "headline": "rule-only: found AND fixed AND no over-correction",
@@ -182,4 +198,15 @@ def nine_models() -> dict[str, dict[str, Any]]:
             model, centre, cost_scale=scale, generated_at=f"2026-11-{10 + day:02d}T09:00:00+00:00"
         )
     documents["z-ai__glm-5"] = fake_document("z-ai/glm-5", 0.7, status="cost_cap_reached")
+    return documents
+
+
+def twenty_models() -> dict[str, dict[str, Any]]:
+    """File stem to results document: twenty-two complete runs, for layout at scale."""
+    makers = ("openai", "anthropic", "google", "deepseek", "qwen", "mistralai", "x-ai", "moonshotai", "z-ai", "meta-llama", "cohere")
+    documents = {}
+    for i in range(22):
+        model = f"{makers[i % len(makers)]}/model-{i + 1:02d}"
+        centre = 0.9 - i * 0.02
+        documents[model.replace("/", "__")] = fake_document(model, centre, cost_scale=8.0 / (1 + i * 0.6))
     return documents

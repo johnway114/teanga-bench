@@ -345,13 +345,15 @@ there, so it never reaches the real leaderboard.
 
 `teanga-bench site` writes static HTML, one stylesheet and inline SVG charts to
 `site/`, which is committed. Code: `teanga_bench/site.py`, with
-`site_charts.py`, `site_css.py` and `markdown_lite.py`.
+`site_charts.py`, `site_css.py`, `site_findings.py` (the computed takeaway
+sentence that opens every chart) and `markdown_lite.py`.
 
 ```
 site/suites.html                       Index of both suites (preview hosts only)
 site/assets/site.css
-site/<suite>/index.html                Leaderboard, headline facts, cards that link onward
-site/<suite>/tests.html                Every test, one tab each
+site/<suite>/index.html                Leaderboard, model x test table, cards that link onward
+site/<suite>/tests.html                Every test, one tab each: the task, a public sample item, marking, results
+site/<suite>/findings.html             Ties, CEFR levels, topics, directions, tutor steps, evidence, cost, consistency
 site/<suite>/languages.html            Blas: scores by language
 site/<suite>/learners.html             Tonada: scores by the learner's first language
 site/<suite>/models.html               Every ranked model as a card, score against cost

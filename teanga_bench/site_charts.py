@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from html import escape
+from typing import Callable, Sequence
 
 
 @dataclass(frozen=True)
@@ -76,17 +77,20 @@ def interval_bar(score: float | None, ci: list[float] | None, label: str, *, dec
     return "".join(parts)
 
 
-def _axis() -> str:
-    ticks = "".join(
-        f'<span style="left:{tick}%">{tick}%</span>' for tick in (0, 25, 50, 75, 100)
-    )
-    return f'<li class="bars-axis" aria-hidden="true"><span></span><span class="axis-ticks">{ticks}</span><span></span></li>'
+PERCENT_TICKS = tuple((tick / 100, f"{tick}%") for tick in (0, 25, 50, 75, 100))
 
 
-def ranked_bars(rows: list[BarRow], caption_html: str, *, sort: bool = True) -> str:
-    """Horizontal bars, highest first unless ``sort`` is off. Text holds every number."""
+def _axis(ticks: Sequence[tuple[float, str]] = PERCENT_TICKS) -> str:
+    """The tick row under a list of bars; positions run 0..1 along the track."""
+    spans = "".join(f'<span style="left:{_clamp(pos) * 100:.2f}%">{escape(label)}</span>' for pos, label in ticks)
+    return f'<li class="bars-axis" aria-hidden="true"><span></span><span class="axis-ticks">{spans}</span><span></span></li>'
+
+
+def ranked_bars(rows: list[BarRow], *, sort: bool = True) -> str:
+    """Horizontal bars, highest first unless ``sort`` is off. Text holds every
+    number. The caller wraps the list in a figure with its takeaway."""
     if not rows:
-        return f'<p class="empty-note">{caption_html} No complete runs yet.</p>'
+        return '<p class="empty-note">No complete runs yet.</p>'
     if sort:
         rows = sorted(rows, key=lambda row: (-row.score, row.label_text))
     items = []
@@ -99,8 +103,7 @@ def ranked_bars(rows: list[BarRow], caption_html: str, *, sort: bool = True) -> 
             + (f' <span class="ci">{interval_short(row.ci95)}</span>' if row.ci95 else "")
             + "</span></li>"
         )
-    caption = f"<figcaption>{caption_html}</figcaption>" if caption_html else ""
-    return f'<figure class="chart">{caption}<ol class="bars">{"".join(items)}{_axis()}</ol></figure>'
+    return f'<ol class="bars">{"".join(items)}{_axis()}</ol>'
 
 
 def mini_bar(score: float | None) -> str:
@@ -121,17 +124,21 @@ def _ticks_linear(maximum: float) -> list[float]:
     return [top * i / 4 for i in range(5)]
 
 
-def _ticks_log(low: float, high: float) -> list[float]:
+def _ticks_log(low: float, high: float, *, most: int = 7) -> list[float]:
+    """1-2-5 ticks from low to high; the 2s, then the 5s, go when there are too many to read."""
     ticks = []
     exponent = math.floor(math.log10(low))
-    while True:
+    while exponent <= math.ceil(math.log10(high)):
         for step in (1, 2, 5):
             value = step * 10.0**exponent
-            if value > high * 1.0001:
-                return ticks
-            if value >= low * 0.9999:
+            if low * 0.9999 <= value <= high * 1.0001:
                 ticks.append(value)
         exponent += 1
+    for keep in ((1, 5), (1,)):
+        if len(ticks) <= most:
+            break
+        ticks = [t for t in ticks if round(t / 10.0 ** math.floor(math.log10(t) + 1e-9)) in keep]
+    return ticks
 
 
 def money(value: float | None) -> str:
@@ -146,12 +153,16 @@ def money(value: float | None) -> str:
 
 
 def _money_ticks(ticks: list[float]) -> list[str]:
-    """Tick labels in one style: whole dollars when every tick is whole."""
-    if all(t == int(t) for t in ticks):
-        return [f"${int(t)}" for t in ticks]
-    if all(t == 0 or t >= 0.01 for t in ticks):
-        return ["$0" if t == 0 else f"${t:.2f}" for t in ticks]
-    return ["$0" if t == 0 else f"${t:.2g}" for t in ticks]
+    """Tick labels in one style: whole dollars without cents, cents from $0.01 up."""
+    labels = []
+    for t in ticks:
+        if t == int(t):
+            labels.append(f"${int(t)}")
+        elif t >= 0.01:
+            labels.append(f"${t:.2f}")
+        else:
+            labels.append(f"${t:.2g}")
+    return labels
 
 
 def _score_axis(points: list[ScatterPoint]) -> tuple[float, float, float]:
@@ -241,11 +252,272 @@ def scatter(points: list[ScatterPoint], chart_id: str, title: str) -> str:
     return "".join(body)
 
 
-def heat_style(score: float | None) -> str:
+def heat_style(score: float | None, lo: float = 0.0, hi: float = 1.0) -> str:
     """How strongly a grid cell mixes the accent into the card colour. The
-    stylesheet does the mixing, so the cell reads in both themes. The curve
-    spreads the common 40-90% range."""
+    stylesheet does the mixing, so the cell reads in both themes. ``lo`` and
+    ``hi`` stretch the scale over the scores on show; the curve spreads the
+    upper part of the range, where most scores sit."""
     if score is None:
         return ""
-    weight = 0.04 + 0.64 * _clamp(score) ** 1.5
+    t = _clamp((score - lo) / (hi - lo)) if hi > lo else 1.0
+    weight = 0.04 + 0.64 * t**1.5
     return f' style="--h:{weight * 100:.0f}%"'
+
+
+# ---------------------------------------------------------------------------
+# Dot rows: one HTML row per category, the graphic in a stretched SVG track.
+# Markers are zero-length lines with round or square caps and a non-scaling
+# stroke, so they stay round when the track stretches to any width.
+
+
+@dataclass(frozen=True)
+class Mark:
+    x: float  # position along the track, 0..1
+    shape: str = "dot"  # dot, square, ring, tick, bar
+    tone: str = "hl"  # hl (accent), a, b, c (palette), muted, mean
+    lo: float | None = None  # whisker ends, 0..1
+    hi: float | None = None
+    title: str = ""
+
+
+@dataclass(frozen=True)
+class DotRow:
+    label_html: str
+    aria: str  # plain-text description of the row for screen readers
+    marks: tuple[Mark, ...]
+    value_html: str = ""
+    band: tuple[float, float] | None = None
+    note_html: str = ""
+
+
+def _p(value: float) -> str:
+    return f"{_clamp(value) * 100:.2f}"
+
+
+def _mark(mark: Mark) -> str:
+    x = _p(mark.x)
+    tone = f"tone-{mark.tone}"
+    title = f"<title>{escape(mark.title)}</title>" if mark.title else ""
+    parts = []
+    if mark.shape == "bar":
+        parts.append(f'<rect class="dt-bar {tone}" x="0" y="6" width="{x}" height="8"/>')
+    if mark.lo is not None and mark.hi is not None:
+        lo, hi = _p(mark.lo), _p(mark.hi)
+        parts.append(f'<line class="dt-whisker" x1="{lo}" y1="10" x2="{hi}" y2="10" vector-effect="non-scaling-stroke"/>')
+        for end in (lo, hi):
+            parts.append(f'<line class="dt-whisker" x1="{end}" y1="6" x2="{end}" y2="14" vector-effect="non-scaling-stroke"/>')
+    line = f'x1="{x}" y1="10" x2="{x}" y2="10" vector-effect="non-scaling-stroke"'
+    if mark.shape == "dot":
+        parts.append(f'<line class="dt-dot {tone}" {line}/>')
+    elif mark.shape == "square":
+        parts.append(f'<line class="dt-square {tone}" {line}/>')
+    elif mark.shape == "ring":
+        parts.append(f'<line class="dt-ring {tone}" {line}/><line class="dt-hole" {line}/>')
+    elif mark.shape == "tick":
+        parts.append(f'<line class="dt-tick {tone}" x1="{x}" y1="3" x2="{x}" y2="17" vector-effect="non-scaling-stroke"/>')
+    return f"<g>{title}{''.join(parts)}</g>"
+
+
+def dot_track(row: DotRow, grid: Sequence[float]) -> str:
+    parts = [
+        f'<svg class="dtrack" viewBox="0 0 100 20" preserveAspectRatio="none" role="img" aria-label="{escape(row.aria)}" focusable="false">',
+        '<rect class="dt-base" x="0" y="9" width="100" height="2"/>',
+    ]
+    for pos in grid:
+        parts.append(f'<line class="dt-grid" x1="{_p(pos)}" y1="1" x2="{_p(pos)}" y2="19" vector-effect="non-scaling-stroke"/>')
+    if row.band:
+        lo, hi = sorted(row.band)
+        parts.append(f'<rect class="dt-band" x="{_p(lo)}" y="0" width="{(_clamp(hi) - _clamp(lo)) * 100:.2f}" height="20"/>')
+    # Background marks first, so the marks that carry the reading sit on top.
+    # Rings are wider than dots and drawn first, so a dot at the same value shows inside the ring.
+    order = {"bar": 0, "muted": 1, "ring": 2}
+    for mark in sorted(row.marks, key=lambda m: order.get(m.tone, order.get(m.shape, 3))):
+        parts.append(_mark(mark))
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+def dot_rows(rows: Sequence[DotRow | str], ticks: Sequence[tuple[float, str]], *, top: int = 0, more_label: str = "rows") -> str:
+    """A list of labelled tracks with a shared axis. A string in ``rows`` is a
+    group heading. With ``top``, rows after the first ``top`` hide behind a
+    'Show all' button (shown only when the script runs)."""
+    grid = [pos for pos, _ in ticks]
+    items = []
+    counted = 0
+    for row in rows:
+        if isinstance(row, str):
+            items.append(f'<li class="bars-group">{row}</li>')
+            continue
+        counted += 1
+        more = ' class="more"' if top and counted > top else ""
+        note = f'<span class="bar-note">{row.note_html}</span>' if row.note_html else ""
+        items.append(
+            f"<li{more}>"
+            f'<span class="bar-label">{row.label_html}{note}</span>'
+            f'<span class="bar-track">{dot_track(row, grid)}</span>'
+            f'<span class="bar-value" aria-hidden="true">{row.value_html}</span></li>'
+        )
+    body = f'<ol class="bars dots">{"".join(items)}{_axis(ticks)}</ol>'
+    if not top or counted <= top:
+        return body
+    more = f"Show all {counted} {more_label}"
+    less = f"Show the first {top}"
+    return (
+        f'<div class="collapsible" data-collapsible>{body}<button type="button" class="show-all" data-show-all '
+        f'aria-expanded="false" data-more="{escape(more)}" data-less="{escape(less)}">{escape(more)}</button></div>'
+    )
+
+
+def swatch(shape: str, tone: str) -> str:
+    """A legend key drawn like the chart's marker."""
+    if shape == "square":
+        inner = f'<rect class="sw-fill tone-{tone}" x="2" y="2" width="10" height="10"/>'
+    elif shape == "ring":
+        inner = f'<circle class="sw-ring tone-{tone}" cx="7" cy="7" r="4"/>'
+    elif shape == "tick":
+        inner = f'<line class="sw-tick tone-{tone}" x1="7" y1="1" x2="7" y2="13"/>'
+    elif shape == "band":
+        inner = '<rect class="sw-band" x="0" y="1" width="14" height="12"/>'
+    elif shape == "line":
+        inner = f'<line class="sw-line tone-{tone}" x1="0" y1="7" x2="14" y2="7"/>'
+    else:
+        inner = f'<circle class="sw-fill tone-{tone}" cx="7" cy="7" r="5.5"/>'
+    return f'<svg class="swatch" viewBox="0 0 14 14" aria-hidden="true" focusable="false">{inner}</svg>'
+
+
+def nice_domain(values: Sequence[float], *, pad: float = 0.02, max_ticks: int = 6) -> tuple[float, float, float]:
+    """A zoomed 0..1 score axis that holds every value: (low, high, step)."""
+    lo_v, hi_v = max(0.0, min(values) - pad), min(1.0, max(values) + pad)
+    for step in (0.05, 0.1, 0.2, 0.25):
+        lo = math.floor(lo_v / step + 1e-9) * step
+        hi = min(1.0, math.ceil(hi_v / step - 1e-9) * step)
+        if hi <= lo:
+            hi = min(1.0, lo + step)
+            lo = hi - step
+        if round((hi - lo) / step) + 1 <= max_ticks:
+            return max(0.0, lo), hi, step
+    return 0.0, 1.0, 0.25
+
+
+def score_ticks(lo: float, hi: float, step: float) -> list[tuple[float, str]]:
+    """Tick positions (0..1 along the track) and labels for a score axis."""
+    count = int(round((hi - lo) / step))
+    return [((i * step) / (hi - lo), f"{(lo + i * step) * 100:.0f}%") for i in range(count + 1)]
+
+
+def log_axis(values: Sequence[float]) -> tuple[float, float, list[float]]:
+    """Bounds and 1-2-5 ticks for a log axis that holds every positive value."""
+    low, high = min(values), max(values)
+    lo = 10.0 ** math.floor(math.log10(low))
+    hi = 10.0 ** math.ceil(math.log10(high))
+    if hi <= lo:
+        hi = lo * 10
+    return lo, hi, _ticks_log(lo, hi)
+
+
+def money_axis(values: Sequence[float]) -> tuple[Callable[[float], float], list[tuple[float, str]], bool]:
+    """A position function (0..1), labelled ticks, and whether the axis is
+    logarithmic: it is when the values span ten times or more."""
+    low, high = min(values), max(values)
+    if low > 0 and high / low >= 10:
+        lo, hi, ticks = log_axis(values)
+        span = math.log10(hi) - math.log10(lo)
+
+        def pos(value: float) -> float:
+            return (math.log10(value) - math.log10(lo)) / span
+    else:
+        ticks = _ticks_linear(high * 1.05)
+        top = ticks[-1]
+
+        def pos(value: float) -> float:
+            return value / top
+    return pos, list(zip((pos(t) if t > 0 else 0.0 for t in ticks), _money_ticks(ticks))), low > 0 and high / low >= 10
+
+
+# ---------------------------------------------------------------------------
+# Line chart for small multiples: one category axis, one score axis.
+
+
+@dataclass(frozen=True)
+class Series:
+    label: str
+    values: tuple[float | None, ...]  # one per category; None leaves a gap
+    tone: str = "model"  # model (thin, one per model) or median (bold, labelled)
+
+
+def line_chart(
+    categories: Sequence[str],
+    notes: Sequence[str],
+    series: Sequence[Series],
+    *,
+    band: Sequence[tuple[float, float] | None] = (),
+    chart_id: str,
+    title: str,
+    desc: str,
+) -> str:
+    """Scores across ordered categories. Thin lines are single models, the
+    bold line is labelled at its end, and the band spans lowest to highest."""
+    values = [v for s in series for v in s.values if v is not None]
+    values += [v for b in band if b for v in b]
+    if not values or not categories:
+        return '<p class="empty-note">Nothing to plot.</p>'
+    width, height = 360, 236
+    left, right, top, bottom = 42, 62, 12, 48
+    plot_w, plot_h = width - left - right, height - top - bottom
+    lo, hi, step = nice_domain(values, max_ticks=5)
+    k = len(categories)
+
+    def x_of(i: int) -> float:
+        return left + (plot_w / 2 if k == 1 else i * plot_w / (k - 1))
+
+    def y_of(v: float) -> float:
+        return top + (1 - (_clamp(v) - lo) / (hi - lo)) * plot_h
+
+    title_id, desc_id = f"{chart_id}-title", f"{chart_id}-desc"
+    out = [
+        f'<svg class="lines" viewBox="0 0 {width} {height}" role="img" aria-labelledby="{title_id} {desc_id}">',
+        f'<title id="{title_id}">{escape(title)}</title><desc id="{desc_id}">{escape(desc)}</desc>',
+    ]
+    for i in range(int(round((hi - lo) / step)) + 1):
+        tick = lo + i * step
+        y = y_of(tick)
+        out.append(f'<line class="ln-grid" x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}"/>')
+        out.append(f'<text class="ln-tick" x="{left - 6}" y="{y + 4:.1f}" text-anchor="end">{tick * 100:.0f}%</text>')
+    for i, (cat, note) in enumerate(zip(categories, notes)):
+        x = x_of(i)
+        out.append(f'<text class="ln-cat" x="{x:.1f}" y="{top + plot_h + 19}" text-anchor="middle">{escape(cat)}</text>')
+        out.append(f'<text class="ln-note" x="{x:.1f}" y="{top + plot_h + 36}" text-anchor="middle">{escape(note)}</text>')
+    spans = [(i, b) for i, b in enumerate(band) if b]
+    if len(spans) >= 2:
+        upper = " ".join(f"{x_of(i):.1f},{y_of(b[1]):.1f}" for i, b in spans)
+        lower = " ".join(f"{x_of(i):.1f},{y_of(b[0]):.1f}" for i, b in reversed(spans))
+        out.append(f'<polygon class="ln-band" points="{upper} {lower}"/>')
+
+    def segments(s: Series) -> list[list[tuple[float, float]]]:
+        runs: list[list[tuple[float, float]]] = [[]]
+        for i, v in enumerate(s.values):
+            if v is None:
+                runs.append([])
+            else:
+                runs[-1].append((x_of(i), y_of(v)))
+        return [r for r in runs if r]
+
+    for s in sorted(series, key=lambda s: s.tone == "median"):
+        tip = "; ".join(f"{c} {v * 100:.1f}%" for c, v in zip(categories, s.values) if v is not None)
+        cls = "ln-median" if s.tone == "median" else "ln-model"
+        group = [f'<g class="ln-g {cls}-g"><title>{escape(s.label)}: {escape(tip)}</title>']
+        for run in segments(s):
+            pts = " ".join(f"{x:.1f},{y:.1f}" for x, y in run)
+            group.append(f'<polyline class="ln-hit" points="{pts}"/><polyline class="{cls}" points="{pts}"/>')
+            radius = 3.5 if s.tone == "median" else 2
+            group.extend(f'<circle class="{cls}-pt" cx="{x:.1f}" cy="{y:.1f}" r="{radius}"/>' for x, y in run)
+        group.append("</g>")
+        out.append("".join(group))
+        if s.tone == "median":
+            last = max((i for i, v in enumerate(s.values) if v is not None), default=None)
+            if last is not None:
+                out.append(
+                    f'<text class="ln-label" x="{x_of(last) + 8:.1f}" y="{y_of(s.values[last]) + 4:.1f}">{escape(s.label)}</text>'
+                )
+    out.append("</svg>")
+    return "".join(out)

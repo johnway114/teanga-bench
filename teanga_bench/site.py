@@ -5,8 +5,9 @@ writes plain HTML, one stylesheet and inline SVG charts:
 
     site/suites.html                       index of both suites (preview host only)
     site/assets/site.css
-    site/<suite>/index.html                leaderboard, headline facts, cards that link onward
-    site/<suite>/tests.html                every test, one tab each
+    site/<suite>/index.html                leaderboard, model x test table, cards that link onward
+    site/<suite>/tests.html                every test, one tab each: the task, a real item, marking, results
+    site/<suite>/findings.html             charts of what the results show, each with a computed takeaway
     site/<suite>/languages.html            Blas: scores by language
     site/<suite>/learners.html             Tonada: scores by the learner's first language
     site/<suite>/models.html               every ranked model as a card, score against cost
@@ -21,19 +22,23 @@ a small script points it at the local copy on any other host. The build is
 deterministic: the only date on the pages is the newest run's
 ``generated_at``. Model output is untrusted and is always escaped as text.
 Every page reads fully with JavaScript off: the script only adds sorting,
-'Show all', tabs and copy-link.
+'Show all', tabs and copy-link. Every chart opens with a takeaway sentence
+computed in ``site_findings`` and keeps its exact numbers in a 'View as
+table' disclosure.
 """
 
 from __future__ import annotations
 
 import json
+import math
 import re
 import shutil
+import statistics
 from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from teanga_bench import BENCHMARK, BENCHMARK_NAME, __version__
 from teanga_bench.export import EXPLANATION_SCORED, SCHEMA_VERSION
@@ -42,18 +47,47 @@ from teanga_bench.markdown_lite import markdown_to_html
 from teanga_bench.models_config import configured_judges
 from teanga_bench.paths import REPO_ROOT
 from teanga_bench.site_charts import (
+    PERCENT_TICKS,
     BarRow,
+    DotRow,
+    Mark,
     ScatterPoint,
+    Series,
+    dot_rows,
     heat_style,
     interval_bar,
     interval_short,
+    interval_words,
+    line_chart,
     mini_bar,
     money,
+    money_axis,
+    nice_domain,
     pct,
     ranked_bars,
     scatter,
+    score_ticks,
+    swatch,
 )
 from teanga_bench.site_css import SITE_CSS
+from teanga_bench.site_findings import (
+    MIN_ITEMS,
+    Est,
+    compare_sentence,
+    direction_sentence,
+    group_sentence,
+    leader_sentence,
+    level_sentence,
+    matrix_sentence,
+    ordinal,
+    overlaps,
+    profile_sentence,
+    spread_sentence,
+    tie_groups,
+    tied_with,
+    tutor_sentence,
+    value_sentence,
+)
 
 SITE = REPO_ROOT / "site"
 REPO_URL = "https://github.com/johnway114/teanga-bench"
@@ -199,6 +233,68 @@ SCORING_INFO = {
     "tutor": "Find and fix an error, or leave a correct sentence alone.",
     "translation": "Translation scored by chrF++ similarity to reference translations.",
     "round_trip": "Translation there and back, scored by chrF++ similarity to the original.",
+}
+
+# For the Tests page: what the model is asked to do, how the answer is marked,
+# and what the item's topic label means. Consistent with docs/methodology.md.
+TEST_EXPLAIN: dict[tuple[str, str], tuple[str, str, str]] = {
+    ("blas", "lesson_exercises"): (
+        "Answer one exercise from the Blas course: pick the right option, put words in order or fill a gap.",
+        "By rule: the answer must match one of the course's accepted answers; case, apostrophe style and outer "
+        "spaces do not matter.",
+        "course category",
+    ),
+    ("blas", "morphology"): (
+        "Give one word form, such as a verb in a given tense, a plural, a number or a preposition fused with a pronoun.",
+        "By rule: the form must match one of the accepted forms from the course tables.",
+        "grammar topic",
+    ),
+    ("blas", "translation"): (
+        "Translate one sentence into English or out of English, or a sentence of legal or administrative text "
+        "(paired with French for Breton).",
+        "By rule: chrF++, the overlap of characters and words with a reference translation, from 0 to 100%, so "
+        "close translations get partial credit.",
+        "direction",
+    ),
+    ("blas", "round_trip"): (
+        "Translate a sentence into English, then, in a new conversation, translate that English back.",
+        "By rule: chrF++ overlap between the sentence that comes back and the original.",
+        "topic",
+    ),
+    ("blas", "tutor_accuracy"): (
+        "Check a learner's sentence: say whether it has an error, give the wrong words and the correction, and explain.",
+        "By rule: an item counts only when the error is found and fixed and nothing else changes, or a correct "
+        "sentence is left alone. Two judge models mark the explanation separately.",
+        "course category",
+    ),
+    ("tonada", "exercises"): (
+        "Answer one closed exercise from the Tonada English course, with the instruction in the learner's first language.",
+        "By rule: the answer must match one of the course's accepted answers.",
+        "lesson topic",
+    ),
+    ("tonada", "tutor_accuracy"): (
+        "Check an English sentence written by a learner: say whether it has an error, give the wrong words and the "
+        "correction, and explain in the learner's language.",
+        "By rule: an item counts only when the error is found and fixed and nothing else changes, or a correct "
+        "sentence is left alone. Two judge models mark the explanation separately.",
+        "error type",
+    ),
+}
+DEFAULT_EXPLAIN = ("", "", "topic")
+
+# Plain names for the evidence labels in docs/methodology.md.
+EVIDENCE_NAMES = {
+    "blas-app+bunamo": "Course, form listed in BÚNaMo",
+    "blas-app+kaikki": "Course, form listed in Kaikki",
+    "blas-app-only": "Course only",
+    "blas-app-unverified": "Course, marked unverified",
+    "corpus-reference": "Parallel corpus",
+    "distractor-derived-unverified": "Built from exercise options",
+    "planted-typo": "Planted typo",
+    "tonada-app-machine-reviewed": "Course, machine-reviewed",
+    "tonada-app-distractor-machine-reviewed": "Built from exercise options",
+    "tonada-app-answer-machine-reviewed": "Correct course sentence",
+    "wikipedia-revision-silver-unreviewed": "Wikipedia edit, unreviewed",
 }
 
 GROUP_NAMES = {
@@ -474,6 +570,9 @@ def _group_name(value: str) -> str:
 
 
 def _topic_name(value: str) -> str:
+    """Topic labels as recorded on items; the two labels for sentences with no error read the same."""
+    if value in ("clean", "no_error"):
+        return "no error"
     return value.replace("_", " ")
 
 
@@ -759,6 +858,7 @@ def _page(
     for key, label, href in (
         ("home", "Leaderboard", home),
         ("tests", "Tests", f"{home}tests.html"),
+        ("findings", "Findings", f"{home}findings.html"),
         ("groups", suite.group_nav, f"{home}{suite.group_page}.html"),
         ("models", "Models", f"{home}models.html"),
         ("methodology", "Methodology", f"{home}methodology.html"),
@@ -910,56 +1010,72 @@ def _model_link(entry: Entry, prefix: str = "models/") -> str:
     return f'<a href="{prefix}{entry.slug}.html">{e(entry.display)}</a>'
 
 
+MATRIX_TOP = 10  # rows of the model x test table shown on the home page before 'Show all'
+
+
 def _home_cards(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
-    winners = []
-    for test in tests:
-        scored = [(s, en) for en in ranked if (s := _complete_score(en, test)) is not None]
-        if not scored:
-            continue
-        score, winner = max(scored, key=lambda pair: (pair[0], -(pair[1].rank or 0)))
-        winners.append(
-            f'<li><a class="w-test" href="tests.html#{_test_anchor(test)}">{e(_test_title(suite.key, test))}</a>'
-            f'<span class="w-model">{e(winner.display)}</span><span class="w-score num">{pct(score)}</span></li>'
-        )
-    groups = _group_averages(suite, ranked)
-    group_rows = "".join(
-        f'<li><span class="g-name">{e(_group_name(g))}</span>{mini_bar(s)}<span class="g-score num">{pct(s)}</span></li>'
-        for g, s in groups.items()
-    )
     cards = [
-        '<section class="card" aria-labelledby="card-tests"><h2 id="card-tests">Best model per test</h2>'
-        f'<ul class="winners">{"".join(winners)}</ul>'
-        '<p class="card-foot"><a href="tests.html">All test results</a></p></section>'
+        '<section class="card card-wide" aria-labelledby="card-matrix"><h2 id="card-matrix">Every model on every test</h2>'
+        f"{_matrix_viz(suite, ranked, tests, top=MATRIX_TOP)}"
+        '<p class="card-foot"><a href="tests.html">What each test asks, with a real example</a></p></section>'
     ]
-    if group_rows:
-        cards.append(
-            f'<section class="card" aria-labelledby="card-groups"><h2 id="card-groups">By {e(suite.group_label.lower())}</h2>'
-            f'<p class="card-note">Average score across {_plural(len(ranked), "model")}.</p>'
-            f'<ul class="group-bars">{group_rows}</ul>'
-            f'<p class="card-foot"><a href="{suite.group_page}.html">Every model, {e(suite.group_label.lower())} by {e(suite.group_label.lower())}</a></p></section>'
+    groups = _group_averages(suite, ranked)
+    if groups:
+        noun = suite.group_label.lower()
+        group_rows = "".join(
+            f'<li><span class="g-name">{e(_group_name(g))}</span>{mini_bar(s)}<span class="g-score num">{pct(s)}</span></li>'
+            for g, s in groups.items()
         )
+        table_rows = [f'<tr><th scope="row">{e(_group_name(g))}</th><td class="r num">{pct(s)}</td></tr>' for g, s in groups.items()]
+        cards.append(
+            f'<section class="card" aria-labelledby="card-groups"><h2 id="card-groups">By {e(noun)}</h2>'
+            + _viz(
+                f'<ul class="group-bars">{group_rows}</ul>',
+                takeaway=group_sentence([(_group_name(g), s) for g, s in groups.items()], len(ranked), noun),
+                caption=f"Average score across {_plural(len(ranked), 'model')}, every test counted equally.",
+                table=_table([_th(e(suite.group_label)), _th("Average", True)], table_rows, label=f"Average by {noun}"),
+                css="viz-plain",
+            )
+            + f'<p class="card-foot"><a href="{suite.group_page}.html">Every model, {e(noun)} by {e(noun)}</a></p></section>'
+        )
+    present = set(_findings_present(ranked, tests))
+    links = "".join(
+        f'<li><a href="findings.html#{key}">{e(title)}</a> <span class="muted">{e(FINDINGS_TEASERS.get(key, ""))}</span></li>'
+        for key, title, _ in FINDINGS
+        if key in present and key != "profile"
+    )
+    cards.append(
+        '<section class="card" aria-labelledby="card-findings"><h2 id="card-findings">More findings</h2>'
+        f'<ul class="finding-links">{links}</ul>'
+        '<p class="card-foot"><a href="findings.html">All findings</a></p></section>'
+    )
     cards.append(
         '<section class="card card-wide" aria-labelledby="card-cost"><h2 id="card-cost">Score against cost</h2>'
-        f'<div class="cost-split">{_scatter_figure(suite, ranked)}</div>'
+        f"{_scatter_viz(suite, ranked)}"
         '<p class="card-foot"><a href="models.html">Compare every model</a></p></section>'
     )
     return f'<div class="cards">{"".join(cards)}</div>'
 
 
-def _scatter_figure(suite: SuiteInfo, entries: list[Entry], prefix: str = "models/") -> str:
-    points = [ScatterPoint(entry.rank or 0, entry.display, entry.cost_usd, entry.score or 0.0, entry.ci95) for entry in entries]
-    chart = scatter(points, f"scatter-{suite.key}", f"Overall score against cost, {suite.name}")
-    legend = "".join(
-        f'<li value="{entry.rank}"><a href="{prefix}{entry.slug}.html">{e(entry.display)}</a> '
-        f'<span class="num">{pct(entry.score)} · {_usd(entry.cost_usd)}</span></li>'
-        for entry in entries
-    )
-    return (
-        f'<figure class="scatter-fig">{chart}<figcaption>'
-        "<p>Each circle is a model, numbered by rank. Higher is better; further left is cheaper. "
-        "The vertical line is the 95% range.</p>"
-        f'<ol class="legend">{legend}</ol></figcaption></figure>'
-    )
+def _has_tutor_steps(ranked: list[Entry], test: str) -> bool:
+    return any((en.tests[test].get("tutor") or {}).get("components") for en, _ in _test_ests(ranked, test))
+
+
+def _findings_present(ranked: list[Entry], tests: list[str]) -> list[str]:
+    """Keys of the Findings sections that have something to show, in page order."""
+    with_tests = [t for t in tests if _test_ests(ranked, t)]
+    has = {
+        "profile": bool(with_tests),
+        "ties": bool(ranked),
+        "levels": any(_level_plan(ranked, t) for t in with_tests),
+        "topics": any(_topic_plan(ranked, t) for t in with_tests),
+        "directions": any(_direction_plan(ranked, t) for t in with_tests),
+        "tutor": any(_has_tutor_steps(ranked, t) for t in with_tests),
+        "evidence": any(_evidence_plan(ranked, t) for t in with_tests),
+        "cost": any(en.cost_per_correct_usd for en in ranked),
+        "consistency": any(en.tests[t].get("consistency") is not None for t in with_tests for en, _ in _test_ests(ranked, t)),
+    }
+    return [key for key, _, _ in FINDINGS if has[key]]
 
 
 def _howto(home: str) -> str:
@@ -1082,59 +1198,169 @@ def _explanation_table(suite: SuiteInfo, test: str, ranked: list[Entry], current
     return _drill(f"{_test_anchor(test)}-explanations", "Tutor explanations", body, note="judge-marked, secondary")
 
 
-def _tests_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str], reports: dict[str, dict[str, Any]], current_pair: set[str]) -> str:
-    lede = f"{_plural(len(tests), 'test')}, each a few hundred items. Pick a test to compare every model." if tests else ""
-    parts = [
-        _page_head("Tests", lede),
-        _honesty("./"),
-        _drill("about", "What the tests measure", f'<p class="section-intro">{e(suite.statement)}</p>' + _tests_summary(suite, tests, reports)),
-    ]
+# How each scorer marks, as chips on the structure diagram: (kind, text).
+MARKING_CHIPS = {
+    "accept_list": (("rule", "Rule: accepted answers"),),
+    "translation": (("rule", "Rule: chrF++ overlap with a reference"),),
+    "round_trip": (("rule", "Rule: chrF++ overlap with the original"),),
+    "tutor": (("rule", "Rule: found, fixed, nothing else changed"), ("judge", "Judges: the explanation, secondary")),
+}
+
+
+def _structure(suite: SuiteInfo, tests: list[str], reports: dict[str, dict[str, Any]], ranked: list[Entry]) -> str:
+    """The suite, its tests, and what in each is marked by rule or by judge."""
+    items, total = [], 0
+    for test in tests:
+        report = reports.get(test) or {}
+        n = report.get("n_items")
+        total += n or 0
+        chips = "".join(
+            f'<span class="chip chip-{kind}">{e(text)}</span>' for kind, text in MARKING_CHIPS.get(_scoring(ranked, test, reports) or "", ())
+        )
+        size = f'<span class="st-n">{n} items</span>' if n else ""
+        items.append(f'<li><a class="st-test" href="#{_test_anchor(test)}">{e(_test_title(suite.key, test))}</a>{size}<span class="chips">{chips}</span></li>')
+    epochs = sorted({en.epochs for en in ranked if en.epochs})
+    facts = [_plural(len(tests), "test")]
+    if total:
+        facts.append(f"{total:,} items")
+    if len(epochs) == 1:
+        facts.append(f"each item asked {epochs[0]} times")
+    return (
+        '<figure class="structure"><figcaption class="st-suite">'
+        f'<strong>{e(suite.name)}</strong> <span class="muted">{e(" · ".join(facts))}</span></figcaption>'
+        f'<ol class="st-tests">{"".join(items)}</ol>'
+        '<p class="st-key"><span class="chip chip-rule">Rule</span> marked by a fixed rule; no model is involved. '
+        '<span class="chip chip-judge">Judges</span> marked by two judge models; reported apart and not part of the score.</p>'
+        "</figure>"
+    )
+
+
+@dataclass(frozen=True)
+class Example:
+    id: str
+    prompt: str
+    answer_label: str
+    answer: str
+
+
+def _example_answer(meta: dict[str, Any], target: Any) -> tuple[str, str]:
+    scoring = meta.get("scoring")
+    accept = [str(a) for a in meta.get("accept") or [] if str(a).strip()]
+    if scoring == "accept_list" and accept:
+        return ("Accepted answer" if len(accept) == 1 else "Accepted answers"), " · ".join(accept)
+    references = [str(r) for r in meta.get("references") or [] if str(r).strip()]
+    if scoring == "translation" and references:
+        return "Reference translation", references[0]
+    if scoring == "round_trip" and meta.get("source_text"):
+        return "Marked against the original sentence", str(meta["source_text"])
+    if scoring == "tutor" and isinstance(target, str):
+        if meta.get("has_error"):
+            return "Expected correction", f"{meta.get('error_span', '')} → {meta.get('correction', '')}\nCorrected sentence: {target}"
+        return "Expected answer", f"No error: the sentence stays as it is.\n{target}"
+    return "Expected answer", str(target) if isinstance(target, str) else ""
+
+
+def _example_item(repo_root: Path, suite: str, test: str) -> Example | None:
+    """One short, clear item from the public sample, chosen the same way on
+    every build: tutor items with an error first, then the shortest."""
+    path = repo_root / "samples" / suite / f"{test}.jsonl"
+    if not path.exists():
+        return None
+    candidates = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        meta = item.get("metadata") or {}
+        prompt = item.get("input")
+        if not isinstance(prompt, str) or not prompt.strip():
+            continue
+        label, answer = _example_answer(meta, item.get("target"))
+        if not answer.strip():
+            continue
+        plain = 1 if meta.get("scoring") == "tutor" and not meta.get("has_error") else 0
+        candidates.append(((plain, len(prompt) + len(answer), str(item.get("id"))), Example(str(item.get("id")), prompt.strip(), label, answer)))
+    return min(candidates, key=lambda c: c[0])[1] if candidates else None
+
+
+def _example_html(example: Example | None) -> str:
+    if example is None:
+        return ""
+    return (
+        '<div class="example example-item">'
+        f'<p class="ex-title">Example item from the public sample <code>{e(example.id)}</code></p>'
+        f'<p class="label">Prompt</p><pre>{e(example.prompt)}</pre>'
+        f'<p class="label">{e(example.answer_label)}</p><pre>{e(example.answer)}</pre>'
+        "</div>"
+    )
+
+
+def _tests_page(
+    suite: SuiteInfo,
+    ranked: list[Entry],
+    tests: list[str],
+    reports: dict[str, dict[str, Any]],
+    current_pair: set[str],
+    repo_root: Path,
+) -> str:
+    lede = (
+        f"{_plural(len(tests), 'test')}, each a few hundred items. Each test says what the model is asked to do, "
+        "shows a real item and how it is marked, then compares every model."
+        if tests
+        else ""
+    )
+    parts = [_page_head("Tests", lede), _honesty("./")]
     if not tests:
+        parts.append(_drill("about", "What the tests measure", f'<p class="section-intro">{e(suite.statement)}</p>'))
         parts.append('<p class="empty-note">No test sets are built yet.</p>')
         return "\n".join(parts)
-    tabs = "".join(
-        f'<a href="#{_test_anchor(test)}">{e(_test_title(suite.key, test))}</a>' for test in tests
-    )
+    parts.append(_structure(suite, tests, reports, ranked))
+    tabs = "".join(f'<a href="#{_test_anchor(test)}">{e(_test_title(suite.key, test))}</a>' for test in tests)
     panels = []
     for test in tests:
         report = reports.get(test) or {}
-        scoring = next((en.tests[test].get("scoring") for en in ranked if test in en.tests), None) or report.get("scoring")
-        rows, epochs, n_items = [], set(), set()
-        for entry in ranked:
-            block = entry.tests.get(test)
-            score = _complete_score(entry, test)
-            if score is None:
-                continue
-            epochs.add(block.get("epochs"))
-            n_items.add(block.get("n_items"))
-            rows.append(
-                BarRow(
-                    label_html=_model_label(entry),
-                    label_text=entry.display,
-                    score=score,
-                    ci95=block.get("ci95"),
-                )
-            )
+        scoring = _scoring(ranked, test, reports)
+        pairs = _test_ests(ranked, test)
+        ask, marking, _ = TEST_EXPLAIN.get((suite.key, test), (_test_description(suite.key, test, scoring), "", ""))
+        n_items = {est.n for _, est in pairs}
+        epochs = {entry.tests[test].get("epochs") for entry, _ in pairs}
+        groups = [g for g in (report.get(suite.group_field) or {}) if g not in ("none", "None", "unspecified")]
         facts = []
-        if len(n_items) == 1:
+        if report.get("n_items"):
+            facts.append(f"{report['n_items']} items")
+        elif len(n_items) == 1:
             facts.append(f"{n_items.pop()} items")
-        elif report.get("n_items"):
-            facts.append(f"{report.get('n_items')} items in the full set")
-        if len(epochs) == 1:
+        if groups:
+            facts.append(_plural(len(groups), suite.group_label.lower()))
+        if len(epochs) == 1 and None not in epochs:
             facts.append(f"each asked {epochs.pop()} times")
-        facts.append(f"{_plural(len(rows), 'model')} with a complete result")
-        caption = "Score with 95% range."
-        if scoring == "tutor":
-            caption += " Marked by rule only; the judge-marked explanation score is separate, below."
+        facts.append(f"{_plural(len(pairs), 'model')} with a complete result")
+        links = _findings_links(ranked, test)
+        findings = (
+            '<p class="more-link">On the Findings page: '
+            + ", ".join(f'<a href="findings.html#{anchor}">{e(label)}</a>' for anchor, label in links)
+            + "</p>"
+            if links
+            else ""
+        )
         anchor = _test_anchor(test)
+        explain = f'<p class="panel-desc"><strong>The task.</strong> {e(ask)}</p>'
+        if marking:
+            explain += f'<p class="panel-desc"><strong>Marking.</strong> {e(marking)}</p>'
+        results = _results_viz(suite, ranked, test, scoring) if pairs else '<p class="empty-note">No complete runs yet.</p>'
         panels.append(
             f'<section class="panel" id="{anchor}" aria-labelledby="{anchor}-title">'
             + _heading(f"{anchor}-title", e(_test_title(suite.key, test)))
-            + f'<p class="panel-desc">{e(_test_description(suite.key, test, scoring))}</p>'
-            f'<p class="meta">{e(" · ".join(facts))}</p>'
-            f"{ranked_bars(rows, e(caption))}"
-            f"{_explanation_table(suite, test, ranked, current_pair)}"
-            f'<p class="more-link"><a href="methodology.html#set-{test.replace("_", "-")}">How this test set is built</a></p>'
+            + explain
+            + f'<p class="meta">{e(" · ".join(facts))}</p>'
+            + _example_html(_example_item(repo_root, suite.key, test))
+            + f'<h3 class="results-h">Results</h3>{results}'
+            + _explanation_table(suite, test, ranked, current_pair)
+            + findings
+            + f'<p class="more-link"><a href="methodology.html#set-{test.replace("_", "-")}">How this test set is built</a></p>'
             "</section>"
         )
     parts.append(
@@ -1142,6 +1368,7 @@ def _tests_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str], reports
         f'<nav class="tab-list" aria-label="Tests" data-tablist>{tabs}</nav>'
         f'{"".join(panels)}</div>'
     )
+    parts.append(_drill("about", "What the tests measure", f'<p class="section-intro">{e(suite.statement)}</p>' + _tests_summary(suite, tests, reports)))
     return "\n".join(parts)
 
 
@@ -1182,7 +1409,28 @@ def _groups_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str
     averages = _group_averages(suite, ranked)
     rows = [BarRow(label_html=e(_group_name(g)), label_text=_group_name(g), score=s, ci95=None) for g, s in averages.items()]
     parts.append(_heading("average", f"Average across {_plural(len(ranked), 'model')}"))
-    parts.append(ranked_bars(rows, "Highest first. Ranges per model are on each model page."))
+    per_model = {entry.slug: _group_means(entry, suite.group_field) for entry in ranked}
+    names = _labels(ranked)
+    table_rows = []
+    for group, average in sorted(averages.items(), key=lambda item: (-item[1], item[0])):
+        scores = sorted((means[group], names[slug]) for slug, means in per_model.items() if group in means)
+        table_rows.append(
+            f'<tr><th scope="row">{e(_group_name(group))}</th><td class="r num">{pct(average)}</td>'
+            f"<td>{e(scores[0][1])} ({pct(scores[0][0])})</td><td>{e(scores[-1][1])} ({pct(scores[-1][0])})</td></tr>"
+        )
+    parts.append(
+        _viz(
+            ranked_bars(rows),
+            takeaway=group_sentence([(_group_name(g), s) for g, s in averages.items()], len(ranked), noun),
+            caption=f"Mean of each model's per-test scores for each {e(noun)}, averaged over models; highest first. "
+            "Ranges per model are on each model page.",
+            table=_table(
+                [_th(e(suite.group_label)), _th("Average", True), _th("Lowest model"), _th("Highest model")],
+                table_rows,
+                label=f"Average score by {noun}",
+            ),
+        )
+    )
     parts.append(_heading("grid", "Every model"))
     means = {entry.model: _group_means(entry, suite.group_field) for entry in ranked}
     parts.append(
@@ -1210,6 +1458,929 @@ def _groups_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str
             )
         )
     return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Charts with takeaways, shared by the Findings page and the other pages
+
+
+def _viz(chart: str, *, takeaway: str, caption: str, table: str, css: str = "") -> str:
+    """A chart as a figure: the computed takeaway and what is plotted first,
+    then the graphic, then the exact numbers behind 'View as table'."""
+    return (
+        f'<figure class="viz{" " + css if css else ""}"><figcaption>'
+        f'<p class="takeaway">{e(takeaway)}</p><p class="viz-cap">{caption}</p></figcaption>'
+        f'<div class="viz-body">{chart}</div>'
+        f'<details class="as-table"><summary>View as table</summary>{table}</details></figure>'
+    )
+
+
+def _labels(ranked: list[Entry]) -> dict[str, str]:
+    """A unique display name per entry slug, for sentences and tables."""
+    seen: dict[str, int] = {}
+    out = {}
+    for entry in ranked:
+        seen[entry.display] = seen.get(entry.display, 0) + 1
+        out[entry.slug] = entry.display if seen[entry.display] == 1 else f"{entry.display} ({seen[entry.display]})"
+    return out
+
+
+def _est(stat: dict[str, Any] | None) -> Est | None:
+    if not stat or stat.get("score") is None:
+        return None
+    ci = stat.get("ci95")
+    return Est(float(stat["score"]), (float(ci[0]), float(ci[1])) if ci else None, stat.get("n_items"))
+
+
+def _overall_est(entry: Entry) -> Est:
+    ci = entry.ci95
+    return Est(float(entry.score or 0.0), (float(ci[0]), float(ci[1])) if ci else None)
+
+
+def _ci(est: Est | None) -> list[float] | None:
+    return list(est.ci) if est and est.ci else None
+
+
+def _test_ests(ranked: list[Entry], test: str) -> list[tuple[Entry, Est]]:
+    """Every ranked model with a complete result on this test."""
+    out = []
+    for entry in ranked:
+        if _complete_score(entry, test) is not None:
+            est = _est(entry.tests[test])
+            if est:
+                out.append((entry, est))
+    return out
+
+
+def _breakdown(ranked: list[Entry], test: str, field: str) -> dict[str, list[tuple[Entry, Est]]]:
+    """Value of a breakdown field to each model's estimate, complete tests only."""
+    out: dict[str, list[tuple[Entry, Est]]] = {}
+    for entry, _ in _test_ests(ranked, test):
+        for key, stat in (entry.tests[test].get(field) or {}).items():
+            if key in ("none", "unspecified", "None"):
+                continue
+            est = _est(stat)
+            if est:
+                out.setdefault(key, []).append((entry, est))
+    return out
+
+
+def _n_items(pairs: list[tuple[Entry, Est]]) -> int:
+    """Items behind a breakdown value: the smallest count any model reports."""
+    return min((est.n or 0) for _, est in pairs) if pairs else 0
+
+
+def _scoring(ranked: list[Entry], test: str, reports: dict[str, dict[str, Any]] | None = None) -> str | None:
+    found = next((entry.tests[test].get("scoring") for entry in ranked if test in entry.tests), None)
+    return found or ((reports or {}).get(test) or {}).get("scoring")
+
+
+def _mean(values: list[float]) -> float:
+    return sum(values) / len(values)
+
+
+def _score_cell(est: Est | None) -> str:
+    if est is None:
+        return '<td class="muted">n/a</td>'
+    return f'<td class="num"><strong>{pct(est.score)}</strong> <span class="ci-text">{e(interval_short(_ci(est)))}</span></td>'
+
+
+def _key(items: list[tuple[str, str, str]]) -> str:
+    """A legend row of (shape, tone, label): the marker drawn next to its name."""
+    return '<ul class="key">' + "".join(f"<li>{swatch(shape, tone)}{label}</li>" for shape, tone, label in items) + "</ul>"
+
+
+def _ranking_rows(ranked: list[Entry], test: str) -> list[tuple[str, Est]]:
+    names = _labels(ranked)
+    return [(names[entry.slug], est) for entry, est in _test_ests(ranked, test)]
+
+
+def _results_viz(suite: SuiteInfo, ranked: list[Entry], test: str, scoring: str | None) -> str:
+    """One test's scores, every model, highest first (Tests page)."""
+    pairs = _test_ests(ranked, test)
+    rows = [BarRow(label_html=_model_label(entry), label_text=entry.display, score=est.score, ci95=_ci(est)) for entry, est in pairs]
+    caption = "Score of each model with its 95% range (the thin line)."
+    if scoring == "tutor":
+        caption += " Marked by rule only; the judge-marked explanation score is separate, below."
+    table_rows = [
+        f'<tr><th scope="row">{_model_link(entry)}</th><td class="r num">{pct(est.score)}</td>'
+        f'<td class="r num">{e(interval_short(_ci(est)))}</td><td class="r num">{e(est.n)}</td>'
+        f'<td class="r num">{pct(entry.tests[test].get("consistency"))}</td></tr>'
+        for entry, est in sorted(pairs, key=lambda p: (-p[1].score, p[0].display))
+    ]
+    return _viz(
+        ranked_bars(rows),
+        takeaway=leader_sentence(_ranking_rows(ranked, test)),
+        caption=e(caption),
+        table=_table(
+            [_th("Model"), _th("Score", True), _th("95% range", True), _th("Items", True), _th("Consistency", True)],
+            table_rows,
+            label=f"{_test_title(suite.key, test)}: every model",
+        ),
+    )
+
+
+def _matrix_viz(suite: SuiteInfo, ranked: list[Entry], tests: list[str], *, top: int = 0) -> str:
+    """Models as rows, tests as columns: the profile of every model."""
+    names = _labels(ranked)
+    columns: list[tuple[str, str, list[tuple[Entry, Est]]]] = [("overall", "Overall", [(en, _overall_est(en)) for en in ranked])]
+    for test in tests:
+        pairs = _test_ests(ranked, test)
+        if pairs:
+            columns.append((test, _test_title(suite.key, test), pairs))
+    if not ranked or len(columns) == 1:
+        return '<p class="empty-note">No complete runs yet.</p>'
+    low = max(0.0, math.floor(min(est.score for _, _, pairs in columns for _, est in pairs) * 10) / 10)
+    lookup = {key: {en.slug: est for en, est in pairs} for key, _, pairs in columns}
+    leaders = {key: min(pairs, key=lambda p: (-p[1].score, p[0].rank or 0)) for key, _, pairs in columns}
+    head = ['<th scope="col" class="c-model" data-sort="asc">Model</th>']
+    for key, title, _ in columns:
+        initial = ' aria-sort="descending"' if key == "overall" else ""
+        css = "r c-overall" if key == "overall" else "r"
+        head.append(f'<th scope="col" class="{css}" data-sort="desc"{initial}>{e(title)}</th>')
+    rows, plain = [], []
+    for i, entry in enumerate(ranked):
+        more = ' class="more"' if top and i >= top else ""
+        cells = [f'<th scope="row" class="c-model" data-v="{e(names[entry.slug].lower())}">{_model_link(entry)}</th>']
+        plain_cells = [f'<th scope="row">{e(names[entry.slug])}</th>']
+        for key, title, _ in columns:
+            est = lookup[key].get(entry.slug)
+            plain_cells.append(_score_cell(est))
+            if est is None:
+                cells.append('<td class="empty" data-v="-1">n/a</td>')
+                continue
+            lead_entry, lead_est = leaders[key]
+            tip = f"{names[entry.slug]}, {title}: {pct(est.score)}, 95% range {interval_short(_ci(est))}"
+            mark = ""
+            if lead_entry.slug == entry.slug:
+                mark = '<span class="mk mk-best" aria-hidden="true">▲</span><span class="sr-only"> (highest)</span>'
+                tip += ". Highest in this column"
+            elif overlaps(est, lead_est):
+                mark = '<span class="mk mk-tie" aria-hidden="true">≈</span><span class="sr-only"> (tied with the highest)</span>'
+                tip += ". Tied with the highest: the 95% ranges overlap"
+            css = ' class="r c-overall"' if key == "overall" else ' class="r"'
+            cells.append(f'<td{css} data-v="{est.score:.6f}" title="{e(tip)}"{heat_style(est.score, low)}>{pct(est.score)}{mark}</td>')
+        rows.append(f"<tr{more}>{''.join(cells)}</tr>")
+        plain.append(f"<tr>{''.join(plain_cells)}</tr>")
+    top_attr = f' data-top="{top}"' if top else ""
+    table = (
+        f'<div class="table-scroll" role="region" aria-label="Score of every model on every test, {e(suite.name)}" tabindex="0">'
+        f'<table class="heat matrix" data-sortable{top_attr}><thead><tr>{"".join(head)}</tr></thead>'
+        f'<tbody>{"".join(rows)}</tbody></table></div>'
+    )
+    if top and len(ranked) > top:
+        more_text, less_text = f"Show all {len(ranked)} models", f"Show the top {top}"
+        table = (
+            f'<div class="collapsible" data-collapsible>{table}<button type="button" class="show-all" data-show-all '
+            f'aria-expanded="false" data-more="{more_text}" data-less="{less_text}">{more_text}</button></div>'
+        )
+    sentence = matrix_sentence(
+        [(title, [(names[en.slug], est) for en, est in pairs]) for key, title, pairs in columns if key != "overall"]
+    )
+    caption = (
+        f"Score of each model on each test; Overall counts every test equally. Darker cells are higher, shaded from "
+        f"{low * 100:.0f}% to 100%. <span class=\"mk mk-best\" aria-hidden=\"true\">▲</span> highest in the column; "
+        "<span class=\"mk mk-tie\" aria-hidden=\"true\">≈</span> tied with the highest (the 95% ranges overlap). "
+        '<span class="js-only">Select a column heading to sort.</span>'
+    )
+    plain_head = [_th("Model")] + [_th(e(title)) for _, title, _ in columns]
+    return _viz(
+        table,
+        takeaway=sentence,
+        caption=caption,
+        table=_table(plain_head, plain, label="Scores with 95% ranges", css="board"),
+        css="viz-matrix",
+    )
+
+
+def _scatter_viz(suite: SuiteInfo, ranked: list[Entry], prefix: str = "models/") -> str:
+    points = [ScatterPoint(entry.rank or 0, entry.display, entry.cost_usd, entry.score or 0.0, entry.ci95) for entry in ranked]
+    chart = scatter(points, f"scatter-{suite.key}", f"Overall score against cost, {suite.name}")
+    legend = "".join(
+        f'<li value="{entry.rank}"><a href="{prefix}{entry.slug}.html">{e(entry.display)}</a> '
+        f'<span class="num">{pct(entry.score)} · {_usd(entry.cost_usd)}</span></li>'
+        for entry in ranked
+    )
+    names = _labels(ranked)
+    rows = [
+        f'<tr><th scope="row">{e(names[en.slug])}</th><td class="r num">{en.rank}</td><td class="r num">{pct(en.score)}</td>'
+        f'<td class="r num">{e(interval_short(en.ci95))}</td><td class="r num">{_usd(en.cost_usd)}</td></tr>'
+        for en in ranked
+    ]
+    return _viz(
+        f'<div class="scatter-split">{chart}<ol class="legend">{legend}</ol></div>',
+        takeaway=value_sentence([(names[en.slug], _overall_est(en), en.cost_usd) for en in ranked]),
+        caption="Each circle is a model, numbered by rank. Higher is better; further left is cheaper. "
+        "The vertical line is the 95% range. Cost is one run of this suite, judges included.",
+        table=_table(
+            [_th("Model"), _th("Rank", True), _th("Score", True), _th("95% range", True), _th("Cost per run", True)],
+            rows,
+            label="Score and cost",
+        ),
+        css="viz-scatter",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Findings page
+
+MODEL_ROWS_TOP = 12  # longer model lists fold behind 'Show all'
+LINE_LIMIT = 12  # more models than this and a line chart shows only the median and the band
+TOPIC_SHOW = 5  # easiest and hardest shown when a test has many topics
+
+# Section key, title and what the view shows.
+FINDINGS: tuple[tuple[str, str, str], ...] = (
+    ("profile", "Every model on every test", "The quickest way to see each model's strengths and weaknesses."),
+    (
+        "ties",
+        "Who is tied with whom",
+        "Scores come from a sample of items, so small gaps can be chance. Models whose 95% ranges overlap "
+        "are not clearly different.",
+    ),
+    (
+        "levels",
+        "Scores by CEFR level",
+        "Items carry the CEFR level of the course content they come from, from A1 (beginner) up. Do models "
+        "drop as items get harder?",
+    ),
+    (
+        "topics",
+        "Hardest and easiest topics",
+        "Each item records its grammar topic, error type or course category. Which are hardest across models?",
+    ),
+    (
+        "directions",
+        "Translation directions",
+        "Translation items go into English or out of English, or come from legal and administrative parallel text.",
+    ),
+    (
+        "tutor",
+        "Tutor accuracy step by step",
+        "A tutor item counts only when three rule-marked checks all pass on the same item. Which check fails most?",
+    ),
+    (
+        "evidence",
+        "Evidence check",
+        "Each gold answer has an evidence label: cross-checked against a dictionary, from the course alone, or "
+        "marked unverified. Does weaker gold change the picture?",
+    ),
+    ("cost", "Cost per correct answer", "What a correct answer costs at OpenRouter prices on the day of the run."),
+    (
+        "consistency",
+        "Consistency",
+        "Each item is asked several times. How often does a model get the same score every time?",
+    ),
+)
+
+# One line per section for the home page's 'More findings' card.
+FINDINGS_TEASERS = {
+    "ties": "which gaps may be chance",
+    "levels": "do models drop as items get harder?",
+    "topics": "the hardest grammar points and error types",
+    "directions": "into English against out of English",
+    "tutor": "which check fails most",
+    "evidence": "does weaker gold change the picture?",
+    "cost": "what a correct answer costs",
+    "consistency": "the same score on every ask?",
+}
+
+DIRECTIONS = (
+    ("to_english", "Into English", "dot", "a"),
+    ("from_english", "Out of English", "square", "b"),
+    ("legal_or_administrative", "Legal and administrative corpus", "ring", "c"),
+)
+
+
+def _finding_anchor(section: str, test: str) -> str:
+    return f"{section}-{test.replace('_', '-')}"
+
+
+def _subsection(anchor: str, title: str, body: str, *, open_: bool = True) -> str:
+    """One test's chart in a findings section. Secondary charts fold away."""
+    if open_:
+        return f'<section class="multiple" id="{anchor}" aria-labelledby="{anchor}-h"><h3 id="{anchor}-h">{e(title)}</h3>{body}</section>'
+    return (
+        f'<details class="drill drill-sm" id="{anchor}"><summary><span class="drill-title"><h3>{e(title)}</h3></span>'
+        f'</summary><div class="drill-body">{body}</div></details>'
+    )
+
+
+def _ties_viz(ranked: list[Entry]) -> str:
+    names = _labels(ranked)
+    items = [(names[en.slug], _overall_est(en)) for en in ranked]
+    by_name = {names[en.slug]: en for en in ranked}
+    ends = [v for _, est in items for v in (est.ci or (est.score, est.score))]
+    lo, hi, step = nice_domain(ends, max_ticks=8)
+
+    def pos(v: float) -> float:
+        return (v - lo) / (hi - lo)
+
+    lead_name, lead = min(items, key=lambda item: (-item[1].score, item[0]))
+    band = (pos(lead.ci[0]), pos(lead.ci[1])) if lead.ci else None
+    rows: list[DotRow | str] = []
+    for gi, group in enumerate(tie_groups(items)):
+        top_name = group[0]
+        if gi == 0:
+            heading = (
+                f"Tied at the top: {len(group)} models whose 95% range overlaps {e(top_name)}’s"
+                if len(group) > 1
+                else f"Clear leader: no other model’s range overlaps {e(top_name)}’s"
+            )
+        elif len(group) > 1:
+            heading = f"Group {gi + 1}: {len(group)} models whose range overlaps {e(top_name)}’s"
+        else:
+            heading = f"Group {gi + 1}: {e(top_name)}, overlapping no lower model"
+        rows.append(heading)
+        for name in group:
+            est, entry = dict(items)[name], by_name[name]
+            words = f"{name}: {pct(est.score)}, 95% range {interval_words(_ci(est))}"
+            rows.append(
+                DotRow(
+                    label_html=f'<a href="models/{entry.slug}.html">{e(name)}</a>',
+                    aria=words,
+                    marks=(
+                        Mark(pos(est.score), "dot", "hl", pos(est.ci[0]) if est.ci else None, pos(est.ci[1]) if est.ci else None, words),
+                    ),
+                    value_html=f'<strong>{pct(est.score)}</strong> <span class="ci">{e(interval_short(_ci(est)))}</span>',
+                    band=band,
+                )
+            )
+    table_rows = [
+        f'<tr><th scope="row">{e(name)}</th><td class="r num">{pct(est.score)}</td><td class="r num">{e(interval_short(_ci(est)))}</td>'
+        f"<td>{e(', '.join(tied_with(name, items)) or 'none')}</td></tr>"
+        for name, est in sorted(items, key=lambda item: (-item[1].score, item[0]))
+    ]
+    return _viz(
+        dot_rows(rows, score_ticks(lo, hi, step)),
+        takeaway=leader_sentence(items),
+        caption=(
+            "Dot: overall score; line: its 95% range; the axis is zoomed in. The shaded column is the leader’s range: "
+            "a model whose line reaches it may be tied with the leader. Groups run from the top: each is its highest "
+            "model plus every model left whose range overlaps that model’s."
+        ),
+        table=_table(
+            [_th("Model"), _th("Score", True), _th("95% range", True), _th("Range overlaps")],
+            table_rows,
+            label="Overall scores and overlapping ranges",
+        ),
+    )
+
+
+def _level_plan(ranked: list[Entry], test: str) -> tuple[list[str], dict[str, int], dict[str, dict[str, Est]]] | None:
+    """Levels with enough items to plot, item counts for every level, and
+    each model's estimates by level. None when fewer than two levels qualify."""
+    by = _breakdown(ranked, test, "by_cefr")
+    present = [level for level in CEFR_ORDER if level in by]
+    counts = {level: _n_items(by[level]) for level in present}
+    plotted = [level for level in present if counts[level] >= MIN_ITEMS]
+    if len(plotted) < 2:
+        return None
+    lookup = {level: {en.slug: est for en, est in by[level]} for level in present}
+    return plotted, counts, lookup
+
+
+def _levels_viz(suite: SuiteInfo, ranked: list[Entry], test: str) -> str:
+    plotted, counts, lookup = _level_plan(ranked, test)  # type: ignore[misc]
+    names = _labels(ranked)
+    models = [en for en, _ in _test_ests(ranked, test)]
+    series = [
+        Series(names[en.slug], tuple((lookup[lv][en.slug].score if en.slug in lookup[lv] else None) for lv in plotted))
+        for en in models
+    ]
+    columns = [[lookup[lv][en.slug].score for en in models if en.slug in lookup[lv]] for lv in plotted]
+    if len(models) == 1:
+        series = [Series(series[0].label, series[0].values, "median")]
+        band: list[tuple[float, float] | None] = []
+    else:
+        if len(models) > LINE_LIMIT:
+            series = []  # too many to tell apart: the band and the median carry the chart, the table every model
+        series.append(Series("Median", tuple(statistics.median(c) if c else None for c in columns), "median"))
+        band = [(min(c), max(c)) if c else None for c in columns]
+    title = _test_title(suite.key, test)
+    median_words = ", ".join(f"{lv} {pct(v)}" for lv, v in zip(plotted, series[-1].values) if v is not None)
+    chart = line_chart(
+        plotted,
+        [f"n={counts[lv]}" for lv in plotted],
+        series,
+        band=band,
+        chart_id=f"levels-{suite.key}-{test.replace('_', '-')}",
+        title=f"{title}: score by CEFR level",
+        desc=f"{series[-1].label}: {median_words}.",
+    )
+    per_model = [(names[en.slug], {lv: lookup[lv][en.slug] for lv in plotted if en.slug in lookup[lv]}) for en in models]
+    head = [_th("Model")] + [_th(f"{lv} <span class=\"ci-text\">n={counts[lv]}</span>") for lv in counts]
+    rows = []
+    for en in models:
+        cells = []
+        for lv in counts:
+            if lv not in plotted:
+                cells.append('<td class="muted">too few items</td>')
+            else:
+                cells.append(_score_cell(lookup[lv].get(en.slug)))
+        rows.append(f'<tr><th scope="row">{e(names[en.slug])}</th>{"".join(cells)}</tr>')
+    left_out = f" With more than {LINE_LIMIT} models, single lines are left out; the table has every model." if len(models) > LINE_LIMIT else ""
+    caption = (
+        f"{'Thin lines: one per model (point at a line to name it). ' if len(models) <= LINE_LIMIT else ''}"
+        "Bold line: the median model. Band: lowest to highest model. n: items at that level; levels with fewer than "
+        f"{MIN_ITEMS} items are left out.{left_out}"
+        if len(models) > 1
+        else f"Score at each level. n: items at that level; levels with fewer than {MIN_ITEMS} items are left out."
+    )
+    return _viz(
+        chart,
+        takeaway=level_sentence(plotted, per_model),
+        caption=caption,
+        table=_table(head, rows, label=f"{title} by CEFR level"),
+    )
+
+
+def _levels_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    charts, skipped = [], []
+    for test in tests:
+        if not _test_ests(ranked, test):
+            continue
+        if _level_plan(ranked, test) is None:
+            skipped.append(_test_title(suite.key, test))
+            continue
+        charts.append(_subsection(_finding_anchor("levels", test), _test_title(suite.key, test), _levels_viz(suite, ranked, test)))
+    if not charts:
+        return ""
+    note = (
+        f'<p class="muted">Not shown: {e(", ".join(skipped))}, with fewer than two levels of {MIN_ITEMS} or more items.</p>'
+        if skipped
+        else ""
+    )
+    return f'<div class="multiples">{"".join(charts)}</div>{note}'
+
+
+def _topic_plan(ranked: list[Entry], test: str) -> tuple[list[str], dict[str, int], dict[str, list[tuple[Entry, Est]]], int] | None:
+    """Topics with enough items, highest average first. None when fewer than three."""
+    if _scoring(ranked, test) not in ("accept_list", "tutor"):
+        return None
+    by = _breakdown(ranked, test, "by_phenomenon")
+    counts = {key: _n_items(pairs) for key, pairs in by.items()}
+    keep = [key for key in by if counts[key] >= MIN_ITEMS]
+    if len(keep) < 3:
+        return None
+    keep.sort(key=lambda k: (-_mean([est.score for _, est in by[k]]), k))
+    return keep, counts, by, len(by)
+
+
+def _spread_rows(
+    keys: list[str],
+    by: dict[str, list[tuple[Entry, Est]]],
+    counts: dict[str, int],
+    label: Callable[[str], str],
+    names: dict[str, str],
+    *,
+    code: bool = False,
+) -> list[DotRow]:
+    """One row per category: the average over models as a bar, every model as a tick."""
+    rows = []
+    for key in keys:
+        pairs = by[key]
+        mean = _mean([est.score for _, est in pairs])
+        scores = sorted(est.score for _, est in pairs)
+        marks = [Mark(est.score, "tick", "muted", title=f"{names[en.slug]}: {pct(est.score)}") for en, est in pairs]
+        marks.append(Mark(mean, "bar", "hl", title=f"Average over {_plural(len(pairs), 'model')}: {pct(mean)}"))
+        note = f"{counts[key]} items" + (f" · <code>{e(key)}</code>" if code else "")
+        rows.append(
+            DotRow(
+                label_html=e(label(key)),
+                aria=f"{label(key)}: average {pct(mean)} over {_plural(len(pairs), 'model')}, models from {pct(scores[0])} to {pct(scores[-1])}; {counts[key]} items",
+                marks=tuple(marks),
+                value_html=f"<strong>{pct(mean)}</strong>",
+                note_html=note,
+            )
+        )
+    return rows
+
+
+def _spread_table(keys: list[str], by: dict[str, list[tuple[Entry, Est]]], counts: dict[str, int], label: Callable[[str], str], names: dict[str, str], head: str) -> str:
+    rows = []
+    for key in keys:
+        pairs = sorted(by[key], key=lambda p: (p[1].score, names[p[0].slug]))
+        mean = _mean([est.score for _, est in pairs])
+        rows.append(
+            f'<tr><th scope="row">{e(label(key))}</th><td class="r num">{counts[key]}</td><td class="r num">{pct(mean)}</td>'
+            f"<td>{e(names[pairs[0][0].slug])} ({pct(pairs[0][1].score)})</td><td>{e(names[pairs[-1][0].slug])} ({pct(pairs[-1][1].score)})</td></tr>"
+        )
+    return _table(
+        [_th(e(head)), _th("Items", True), _th("Average", True), _th("Lowest model"), _th("Highest model")],
+        rows,
+        label=head,
+    )
+
+
+def _topics_viz(suite: SuiteInfo, ranked: list[Entry], test: str) -> str:
+    keep, counts, by, total = _topic_plan(ranked, test)  # type: ignore[misc]
+    names = _labels(ranked)
+    noun = TEST_EXPLAIN.get((suite.key, test), DEFAULT_EXPLAIN)[2]
+    if len(keep) > 2 * TOPIC_SHOW:
+        shown: list[DotRow | str] = [f"Easiest {TOPIC_SHOW}"]
+        shown += _spread_rows(keep[:TOPIC_SHOW], by, counts, _topic_name, names)
+        shown.append(f"Hardest {TOPIC_SHOW}")
+        shown += _spread_rows(keep[-TOPIC_SHOW:], by, counts, _topic_name, names)
+        scope = f"the {TOPIC_SHOW} easiest and {TOPIC_SHOW} hardest of {len(keep)} {noun}s with {MIN_ITEMS} or more items"
+    else:
+        shown = list(_spread_rows(keep, by, counts, _topic_name, names))
+        scope = f"every {noun} with {MIN_ITEMS} or more items"
+    left_out = total - len(keep)
+    per_model = [
+        (names[en.slug], {k: est for k in (keep[0], keep[-1]) for x, est in by[k] if x.slug == en.slug})
+        for en, _ in _test_ests(ranked, test)
+    ]
+    caption = (
+        f"Bar: average over models; ticks: single models. Shows {scope}"
+        + (f"; {left_out} smaller ones are left out." if left_out else ".")
+    )
+    return _viz(
+        dot_rows(shown, PERCENT_TICKS),
+        takeaway=compare_sentence(per_model, _topic_name, noun, high_word="easiest", low_word="hardest"),
+        caption=e(caption),
+        table=_spread_table(keep, by, counts, _topic_name, names, noun.capitalize()),
+    )
+
+
+def _spread_gap(by: dict[str, list[tuple[Entry, Est]]], keys: list[str]) -> float:
+    means = [_mean([est.score for _, est in by[k]]) for k in keys]
+    return max(means) - min(means)
+
+
+def _lead_first(suite: SuiteInfo, plans: list[tuple[str, float, str]], section: str) -> str:
+    """Charts in one section: the one with the widest gap open, the rest folded."""
+    if not plans:
+        return ""
+    lead = max(plans, key=lambda p: (p[1], -[t for t, _, _ in plans].index(p[0])))[0]
+    ordered = [p for p in plans if p[0] == lead] + [p for p in plans if p[0] != lead]
+    return "".join(
+        _subsection(_finding_anchor(section, test), _test_title(suite.key, test), body, open_=test == lead)
+        for test, _, body in ordered
+    )
+
+
+def _topics_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    plans = []
+    for test in tests:
+        plan = _topic_plan(ranked, test)
+        if plan:
+            keep, _, by, _ = plan
+            plans.append((test, _spread_gap(by, keep), _topics_viz(suite, ranked, test)))
+    if not plans:
+        return ""
+    note = (
+        '<p class="muted">The topic labels come from the item sources. Results files hold topic and language '
+        "separately, so a topic cannot be split by language here.</p>"
+    )
+    return _lead_first(suite, plans, "topics") + note
+
+
+def _direction_plan(ranked: list[Entry], test: str) -> list[tuple[str, str, str, str]] | None:
+    by = _breakdown(ranked, test, "by_phenomenon")
+    kept = [d for d in DIRECTIONS if d[0] in by and _n_items(by[d[0]]) >= MIN_ITEMS]
+    if not {"to_english", "from_english"} <= {d[0] for d in kept}:
+        return None
+    return kept
+
+
+def _directions_viz(suite: SuiteInfo, ranked: list[Entry], test: str) -> str:
+    kept = _direction_plan(ranked, test) or []
+    by = _breakdown(ranked, test, "by_phenomenon")
+    names = _labels(ranked)
+    lookup = {key: {en.slug: est for en, est in by[key]} for key, *_ in kept}
+    counts = {key: _n_items(by[key]) for key, *_ in kept}
+    models = [en for en, _ in _test_ests(ranked, test)]
+    values = [est.score for key in lookup for est in lookup[key].values()]
+    lo, hi, step = nice_domain(values)
+
+    def pos(v: float) -> float:
+        return (v - lo) / (hi - lo)
+
+    rows, pairs, table_rows = [], [], []
+    for en in models:
+        name = names[en.slug]
+        marks, words = [], []
+        for key, label, shape, tone in kept:
+            est = lookup[key].get(en.slug)
+            if est is None:
+                continue
+            marks.append(Mark(pos(est.score), shape, tone, title=f"{name}, {label.lower()}: {pct(est.score)}"))
+            words.append(f"{label.lower()} {pct(est.score)}")
+        into, out = lookup["to_english"].get(en.slug), lookup["from_english"].get(en.slug)
+        gap = f"{(into.score - out.score) * 100:+.1f} pts" if into and out else "n/a"
+        if into and out:
+            pairs.append((name, into, out))
+        rows.append(
+            DotRow(
+                label_html=f'<a href="models/{en.slug}.html">{e(name)}</a>',
+                aria=f"{name}: {'; '.join(words)}",
+                marks=tuple(marks),
+                value_html=f'<span class="num">{e(gap)}</span>',
+            )
+        )
+        table_rows.append(
+            f'<tr><th scope="row">{e(name)}</th>{"".join(_score_cell(lookup[key].get(en.slug)) for key, *_ in kept)}</tr>'
+        )
+    key_html = _key([(shape, tone, f"{e(label)} <span class=\"ci-text\">{counts[key]} items</span>") for key, label, shape, tone in kept])
+    legal = (
+        " The legal and administrative items are published parallel text, in either direction; Breton is paired with French there."
+        if any(k == "legal_or_administrative" for k, *_ in kept)
+        else ""
+    )
+    return _viz(
+        key_html + dot_rows(rows, score_ticks(lo, hi, step), top=MODEL_ROWS_TOP, more_label="models"),
+        takeaway=direction_sentence(pairs),
+        caption=e(
+            "chrF++ score by direction for each model; the axis is zoomed in. Right: into English minus out of "
+            f"English, in percentage points.{legal}"
+        ),
+        table=_table(
+            [_th("Model")] + [_th(f"{e(label)} <span class=\"ci-text\">n={counts[key]}</span>") for key, label, *_ in kept],
+            table_rows,
+            label="Translation score by direction",
+        ),
+    )
+
+
+def _directions_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    charts = [
+        _subsection(_finding_anchor("directions", test), _test_title(suite.key, test), _directions_viz(suite, ranked, test))
+        for test in tests
+        if _test_ests(ranked, test) and _direction_plan(ranked, test)
+    ]
+    return "".join(charts)
+
+
+TUTOR_COLUMNS = (("found", "Found the error"), ("fixed", "Fixed it"), ("no_overcorrection", "Changed nothing else"))
+
+
+def _step_cell(value: float | None, *, strong: bool = False, judge: bool = False) -> str:
+    if value is None:
+        return '<td class="muted">n/a</td>'
+    css = "step-bar judge" if judge else "step-bar"
+    number = f"<strong>{pct(value)}</strong>" if strong else pct(value)
+    return (
+        f'<td class="step" data-v="{value:.6f}"><span class="{css}" aria-hidden="true"><span style="width:{max(0.0, min(1.0, value)) * 100:.1f}%"></span></span>'
+        f'<span class="num">{number}</span></td>'
+    )
+
+
+def _tutor_viz(suite: SuiteInfo, ranked: list[Entry], test: str, current_pair: set[str]) -> str:
+    names = _labels(ranked)
+    pairs = [(en, est) for en, est in _test_ests(ranked, test) if (en.tests[test].get("tutor") or {}).get("components")]
+    pairs.sort(key=lambda p: (-p[1].score, names[p[0].slug]))
+    rows, plain, parts, explanations = [], [], [], []
+    for en, est in pairs:
+        block = en.tests[test]
+        tutor = block.get("tutor") or {}
+        components = tutor.get("components") or {}
+        explanation = tutor.get("explanation") or {}
+        comparable = _explanation_comparable(block, en.run, current_pair)
+        parts.append((names[en.slug], {key: components.get(key) for key, _ in TUTOR_COLUMNS}))
+        if comparable:
+            explanations.append(float(explanation["score"]))
+            judge_cell = _step_cell(explanation.get("score"), judge=True)
+        else:
+            reason = {
+                "not_scored_same_family_as_judge": "not scored: same family as a judge",
+                "not_scored_judge_unavailable": "not scored: judge unavailable",
+            }.get(explanation.get("status") or "", "not comparable: other judge pair")
+            judge_cell = f'<td class="muted step-none">{e(reason)}</td>'
+        cells = "".join(_step_cell(components.get(key)) for key, _ in TUTOR_COLUMNS)
+        rows.append(
+            f'<tr><th scope="row">{_model_link(en)}</th>{cells}{_step_cell(est.score, strong=True)}{judge_cell}</tr>'
+        )
+        plain.append(
+            f'<tr><th scope="row">{e(names[en.slug])}</th>{_score_cell(est)}'
+            + (_score_cell(Est(float(explanation["score"]), tuple(explanation["ci95"]) if explanation.get("ci95") else None)) if comparable else '<td class="muted">n/a</td>')
+            + f'<td class="r num">{pct(explanation.get("judge_agreement")) if comparable else "n/a"}</td></tr>'
+        )
+    head = (
+        [_th("Model")]
+        + [_th(e(label)) for _, label in TUTOR_COLUMNS]
+        + [_th("All three: the score"), '<th scope="col" class="judge-col">Explanation <span class="tag">judge-marked</span></th>']
+    )
+    chart = _table(head, rows, css="board steps", label=f"{_test_title(suite.key, test)}: step by step")
+    return _viz(
+        chart,
+        takeaway=tutor_sentence(parts, explanations),
+        caption=e(
+            "Share of items that pass each check, over every ask. The score needs all three rule checks on the same "
+            "item. The explanation (hatched) is marked by two judge models from other families: it is secondary, not "
+            "human-validated and not part of the score."
+        ),
+        table=_table(
+            [_th("Model"), _th("Score and 95% range"), _th("Explanation and 95% range"), _th("Judges agree", True)],
+            plain,
+            label="Tutor score and explanation",
+        ),
+    )
+
+
+def _tutor_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str], current_pair: set[str]) -> str:
+    return "".join(
+        _subsection(_finding_anchor("tutor", test), _test_title(suite.key, test), _tutor_viz(suite, ranked, test, current_pair))
+        for test in tests
+        if _has_tutor_steps(ranked, test)
+    )
+
+
+def _evidence_plan(ranked: list[Entry], test: str) -> tuple[list[str], dict[str, int], dict[str, list[tuple[Entry, Est]]]] | None:
+    by = _breakdown(ranked, test, "by_evidence")
+    counts = {key: _n_items(pairs) for key, pairs in by.items()}
+    keep = [key for key in by if counts[key] >= MIN_ITEMS]
+    if len(keep) < 2:
+        return None
+    keep.sort(key=lambda k: (-_mean([est.score for _, est in by[k]]), k))
+    return keep, counts, by
+
+
+def _evidence_name(key: str) -> str:
+    return EVIDENCE_NAMES.get(key, key)
+
+
+def _evidence_viz(suite: SuiteInfo, ranked: list[Entry], test: str) -> str:
+    keep, counts, by = _evidence_plan(ranked, test)  # type: ignore[misc]
+    names = _labels(ranked)
+    left_out = [k for k in by if k not in keep]
+    per_model = [
+        (names[en.slug], {k: est for k in keep for x, est in by[k] if x.slug == en.slug}) for en, _ in _test_ests(ranked, test)
+    ]
+    caption = (
+        "Bar: average over models; ticks: single models. The groups also differ in what they contain, so a gap "
+        "is not by itself proof that weaker gold is wrong."
+    )
+    if left_out:
+        caption += f" Left out, with fewer than {MIN_ITEMS} items: {', '.join(_evidence_name(k) for k in sorted(left_out))}."
+    return _viz(
+        dot_rows(_spread_rows(keep, by, counts, _evidence_name, names, code=True), PERCENT_TICKS),
+        takeaway=compare_sentence(per_model, lambda k: f"‘{_evidence_name(k)}’", "evidence group"),
+        caption=e(caption),
+        table=_spread_table(keep, by, counts, _evidence_name, names, "Evidence"),
+    )
+
+
+def _evidence_section(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    plans = []
+    for test in tests:
+        plan = _evidence_plan(ranked, test)
+        if plan:
+            plans.append((test, _spread_gap(plan[2], plan[0]), _evidence_viz(suite, ranked, test)))
+    if not plans:
+        return ""
+    return (
+        '<p class="section-intro">Labels, from strongest to weakest gold: cross-checked against a dictionary '
+        "(BÚNaMo or Kaikki), from a published parallel corpus, from the course alone, or marked unverified or built "
+        'by a rule. <a href="methodology.html#no-human-review">What each label means</a>.</p>' + _lead_first(suite, plans, "evidence")
+    )
+
+
+def _cost_viz(ranked: list[Entry]) -> str:
+    names = _labels(ranked)
+    items = sorted(
+        ((en, en.cost_per_correct_usd * 1000) for en in ranked if en.cost_per_correct_usd),
+        key=lambda p: (p[1], names[p[0].slug]),
+    )
+    if not items:
+        return ""
+    pos, ticks, log = money_axis([v for _, v in items])
+    rows = [
+        DotRow(
+            label_html=f'<a href="models/{en.slug}.html">{e(names[en.slug])}</a>',
+            aria=f"{names[en.slug]}: {money(v)} per 1,000 correct answers",
+            marks=(Mark(pos(v), "bar", "hl", title=f"{names[en.slug]}: {money(v)} per 1,000 correct"),),
+            value_html=f"<strong>{_usd(v)}</strong>",
+        )
+        for en, v in items
+    ]
+    table_rows = [
+        f'<tr><th scope="row">{e(names[en.slug])}</th><td class="r num">{pct(en.score)}</td>'
+        f'<td class="r num">{_usd(en.cost_usd)}</td><td class="r num">{_usd(v)}</td></tr>'
+        for en, v in items
+    ]
+    scale = " Log scale: each grid step multiplies the cost, so equal gaps are equal ratios." if log else ""
+    return _viz(
+        dot_rows(rows, ticks, top=MODEL_ROWS_TOP, more_label="models"),
+        takeaway=spread_sentence([(names[en.slug], v) for en, v in items], "cost per 1,000 correct answers", money, ratio=True),
+        caption=e(
+            "Suite cost, candidate and judges, divided by the number of full-score answers and shown per 1,000 "
+            f"answers; cheapest first.{scale}"
+        )
+        + ' Score against cost per run is on the <a href="models.html#cost">Models page</a>.',
+        table=_table(
+            [_th("Model"), _th("Score", True), _th("Cost per run", True), _th("Per 1,000 correct", True)],
+            table_rows,
+            label="Cost per correct answer",
+        ),
+    )
+
+
+def _consistency_viz(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
+    names = _labels(ranked)
+    per_model = []
+    for en in ranked:
+        values = {
+            t: float(en.tests[t]["consistency"])
+            for t in tests
+            if _complete_score(en, t) is not None and en.tests[t].get("consistency") is not None
+        }
+        if values:
+            per_model.append((en, values, _mean(list(values.values()))))
+    if not per_model:
+        return ""
+    per_model.sort(key=lambda p: (-p[2], names[p[0].slug]))
+    shown = [t for t in tests if any(t in values for _, values, _ in per_model)]
+    rows = []
+    for en, values, mean in per_model:
+        marks = [Mark(v, "tick", "muted", title=f"{_test_title(suite.key, t)}: {pct(v)}") for t, v in values.items()]
+        marks.append(Mark(mean, "bar", "hl", title=f"Mean over {_plural(len(values), 'test')}: {pct(mean)}"))
+        rows.append(
+            DotRow(
+                label_html=f'<a href="models/{en.slug}.html">{e(names[en.slug])}</a>',
+                aria=f"{names[en.slug]}: mean consistency {pct(mean)}; "
+                + "; ".join(f"{_test_title(suite.key, t)} {pct(v)}" for t, v in values.items()),
+                marks=tuple(marks),
+                value_html=f"<strong>{pct(mean)}</strong>",
+            )
+        )
+    table_rows = [
+        f'<tr><th scope="row">{e(names[en.slug])}</th>'
+        + "".join(f'<td class="r num">{pct(values.get(t))}</td>' for t in shown)
+        + f'<td class="r num"><strong>{pct(mean)}</strong></td><td class="r num">{pct(en.score)}</td></tr>'
+        for en, values, mean in per_model
+    ]
+    epochs = sorted({en.epochs for en, _, _ in per_model if en.epochs})
+    asks = f"all {epochs[0]} asks" if len(epochs) == 1 else "every ask"
+    return _viz(
+        dot_rows(rows, PERCENT_TICKS, top=MODEL_ROWS_TOP, more_label="models"),
+        takeaway=spread_sentence([(names[en.slug], mean) for en, _, mean in per_model], "mean consistency", pct),
+        caption=e(
+            f"Consistency is the share of items that got the same score in {asks}: a model that often changes its "
+            "answer is less dependable for learners. Bar: mean over the tests; ticks: single tests (point at one to name "
+            "it). Translation tests give partial credit, so exact repeats are rarer there."
+        ),
+        table=_table(
+            [_th("Model")] + [_th(e(_test_title(suite.key, t)), True) for t in shown] + [_th("Mean", True), _th("Score", True)],
+            table_rows,
+            label="Consistency by test",
+        ),
+    )
+
+
+def _findings_page(suite: SuiteInfo, ranked: list[Entry], tests: list[str], current_pair: set[str]) -> str:
+    parts = [
+        _page_head(
+            "Findings",
+            "What the results show beyond the ranking: profiles, ties, difficulty, topics and cost. Every chart "
+            "opens with a sentence computed from the data and has its numbers in a table.",
+        ),
+        _honesty("./"),
+    ]
+    if not ranked:
+        parts.append(
+            '<p class="empty-note">No complete runs yet. This page will show every model on every test, which models '
+            "are tied, scores by level, topic and evidence, and cost per correct answer.</p>"
+        )
+        return "\n".join(parts)
+    bodies = {
+        "profile": _matrix_viz(suite, ranked, tests),
+        "ties": _ties_viz(ranked),
+        "levels": _levels_section(suite, ranked, tests),
+        "topics": _topics_section(suite, ranked, tests),
+        "directions": _directions_section(suite, ranked, tests),
+        "tutor": _tutor_section(suite, ranked, tests, current_pair),
+        "evidence": _evidence_section(suite, ranked, tests),
+        "cost": _cost_viz(ranked),
+        "consistency": _consistency_viz(suite, ranked, tests),
+    }
+    present = [(key, title, intro) for key, title, intro in FINDINGS if bodies.get(key)]
+    parts.append(
+        '<nav class="toc-inline" aria-label="On this page"><ol>'
+        + "".join(f'<li><a href="#{key}">{e(title)}</a></li>' for key, title, _ in present)
+        + "</ol></nav>"
+    )
+    for key, title, intro in present:
+        parts.append(
+            f'<section class="finding" aria-labelledby="{key}">{_heading(key, e(title))}'
+            f'<p class="section-intro">{e(intro)}</p>{bodies[key]}</section>'
+        )
+    return "\n".join(parts)
+
+
+def _findings_links(ranked: list[Entry], test: str) -> list[tuple[str, str]]:
+    """Findings views that include this test, as (anchor, label)."""
+    links = []
+    if _level_plan(ranked, test):
+        links.append((_finding_anchor("levels", test), "by CEFR level"))
+    if _topic_plan(ranked, test):
+        links.append((_finding_anchor("topics", test), "hardest topics"))
+    if _direction_plan(ranked, test):
+        links.append((_finding_anchor("directions", test), "by direction"))
+    if _has_tutor_steps(ranked, test):
+        links.append((_finding_anchor("tutor", test), "step by step"))
+    if _evidence_plan(ranked, test):
+        links.append((_finding_anchor("evidence", test), "by evidence"))
+    return links
 
 
 # ---------------------------------------------------------------------------
@@ -1244,7 +2415,8 @@ def _models_page(suite: SuiteInfo, entries: list[Entry]) -> str:
     parts.append(_unranked_notice(unranked))
     if ranked:
         parts.append(_heading("cost", "Score against cost"))
-        parts.append(f'<div class="card cost-split">{_scatter_figure(suite, ranked)}</div>')
+        parts.append(_scatter_viz(suite, ranked))
+        parts.append('<p class="more-link"><a href="findings.html#cost">Cost per correct answer, every model</a></p>')
         parts.append(
             '<p class="data-links">Data: <a href="data/leaderboard.json">this leaderboard as JSON</a> · '
             f'<a href="{REPO_URL}/tree/main/results/runs">every results file on GitHub</a></p>'
@@ -1483,7 +2655,58 @@ def _examples(suite: SuiteInfo, entry: Entry, tests: list[str]) -> str:
     return _drill("failures", "Failure examples", body, count=str(total) if total else "")
 
 
-def _model_page(suite: SuiteInfo, entry: Entry, tests: list[str], n_ranked: int, current_pair: set[str]) -> str:
+def _profile_viz(suite: SuiteInfo, entry: Entry, tests: list[str], ranked: list[Entry]) -> str:
+    """This model on every test against the range of all ranked models."""
+    names = _labels(ranked)
+    own_name = names.get(entry.slug, entry.display)
+    rows, per_test, table_rows = [], [], []
+    for test in tests:
+        pairs = _test_ests(ranked, test)
+        own = next((est for en, est in pairs if en.slug == entry.slug), None)
+        if own is None:
+            continue
+        title = _test_title(suite.key, test)
+        per_test.append((title, [(names[en.slug], est) for en, est in pairs]))
+        rank = 1 + sum(1 for _, est in pairs if est.score > own.score)
+        others = [(en, est) for en, est in pairs if en.slug != entry.slug]
+        words = f"{own_name}: {pct(own.score)}, 95% range {interval_words(_ci(own))}, {ordinal(rank)} of {len(pairs)}"
+        marks = [Mark(est.score, "tick", "muted", title=f"{names[en.slug]}: {pct(est.score)}") for en, est in others]
+        marks.append(Mark(own.score, "dot", "hl", own.ci[0] if own.ci else None, own.ci[1] if own.ci else None, words))
+        scores = [est.score for _, est in pairs]
+        aria = words + (f"; other models from {pct(min(s.score for _, s in others))} to {pct(max(s.score for _, s in others))}" if others else "")
+        rows.append(
+            DotRow(
+                label_html=f'<a href="../tests.html#{_test_anchor(test)}">{e(title)}</a>{_test_tags(entry.tests[test])}',
+                aria=aria,
+                marks=tuple(marks),
+                value_html=f'<strong>{pct(own.score)}</strong> <span class="ci">{ordinal(rank)} of {len(pairs)}</span>',
+            )
+        )
+        lead_entry, lead = min(pairs, key=lambda p: (-p[1].score, p[0].rank or 0))
+        table_rows.append(
+            f'<tr><th scope="row">{e(title)}</th>{_score_cell(own)}<td class="r num">{ordinal(rank)} of {len(pairs)}</td>'
+            f"<td>{e(names[lead_entry.slug])} ({pct(lead.score)})</td><td class=\"r num\">{pct(statistics.median(scores))}</td></tr>"
+        )
+    if not rows:
+        return '<p class="empty-note">No complete test results.</p>'
+    key = _key([("dot", "hl", "This model, with its 95% range"), ("tick", "muted", "Each other ranked model")])
+    return _viz(
+        key + dot_rows(rows, PERCENT_TICKS),
+        takeaway=profile_sentence(own_name, per_test),
+        caption=e(
+            "Score on each test. Right: the score and its place among the ranked models. Select a test to compare "
+            "every model."
+        ),
+        table=_table(
+            [_th("Test"), _th("Score and 95% range"), _th("Place", True), _th("Highest"), _th("Median model", True)],
+            table_rows,
+            label="Scores by test",
+        ),
+    )
+
+
+def _model_page(suite: SuiteInfo, entry: Entry, tests: list[str], ranked: list[Entry], current_pair: set[str]) -> str:
+    n_ranked = len(ranked)
     tests = [t for t in tests if t in entry.tests]
     consistency = [b.get("consistency") for b in entry.tests.values() if b.get("consistency") is not None]
     epochs = entry.epochs
@@ -1506,20 +2729,6 @@ def _model_page(suite: SuiteInfo, entry: Entry, tests: list[str], n_ranked: int,
             '<p class="notice">This run used the public sample items, not the full sets, so its scores are not '
             "comparable with full-set runs.</p>"
         )
-    rows = []
-    for test in tests:
-        block = entry.tests[test]
-        if block.get("score") is None:
-            continue
-        rows.append(
-            BarRow(
-                label_html=f'<a href="../tests.html#{_test_anchor(test)}">{e(_test_title(suite.key, test))}</a>',
-                label_text=_test_title(suite.key, test),
-                score=float(block["score"]),
-                ci95=block.get("ci95"),
-                note_html=_test_tags(block),
-            )
-        )
     parts = [
         '<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../">Leaderboard</a></li>'
         f'<li><a href="../models.html">Models</a></li><li aria-current="page">{e(entry.display)}</li></ol></nav>',
@@ -1528,7 +2737,7 @@ def _model_page(suite: SuiteInfo, entry: Entry, tests: list[str], n_ranked: int,
         f'<dl class="facts">{"".join(facts)}</dl>',
         _honesty("../"),
         _heading("tests", "Scores by test"),
-        ranked_bars(rows, "Score with 95% range. Select a test to compare every model.", sort=False),
+        _profile_viz(suite, entry, tests, ranked),
         _drill("test-details", "Items, consistency and cost by test", _tests_table(suite, entry, tests)),
     ]
     group_table = _breakdown_table(suite, entry, tests, suite.group_field, suite.group_label, suite.group_order)
@@ -1788,8 +2997,16 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
             "tests.html",
             f"Tests: {suffix}",
             f"Every test in the {BENCHMARK_NAME} {suite.name}, with each model's score.",
-            _tests_page(suite, ranked, tests, reports, current_pair),
+            _tests_page(suite, ranked, tests, reports, current_pair, repo_root),
             "tests",
+        )
+        page(
+            "findings.html",
+            f"Findings: {suffix}",
+            f"What the {BENCHMARK_NAME} {suite.name} results show: every model on every test, ties, difficulty by "
+            "level, topics, evidence and cost.",
+            _findings_page(suite, ranked, tests, current_pair),
+            "findings",
         )
         page(
             f"{suite.group_page}.html",
@@ -1818,7 +3035,7 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
                 f"models/{entry.slug}.html",
                 f"{entry.display} ({entry.model}): {suffix}",
                 f"{entry.model} on the {BENCHMARK_NAME} {suite.name}: {pct(entry.score)} overall.",
-                _model_page(suite, entry, tests, len(ranked), current_pair),
+                _model_page(suite, entry, tests, ranked, current_pair),
                 "model",
                 depth=2,
             )

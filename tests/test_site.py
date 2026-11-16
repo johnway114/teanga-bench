@@ -7,14 +7,29 @@ import re
 from pathlib import Path
 
 import pytest
-from site_fakes import fake_document, nine_models
+from site_fakes import fake_document, nine_models, twenty_models
 
 from teanga_bench.markdown_lite import markdown_to_html
 from teanga_bench.site import SUITES, SiteError, build_site, display_name
+from teanga_bench.site_findings import (
+    Est,
+    compare_sentence,
+    direction_sentence,
+    leader_sentence,
+    level_sentence,
+    matrix_sentence,
+    overlaps,
+    profile_sentence,
+    spread_sentence,
+    tie_groups,
+    value_sentence,
+)
 
 LINK = re.compile(r'(?:href|src|data-local)="([^"]+)"')
 NAV = re.compile(r'<nav class="site-nav" aria-label="Main">(.*?)</nav>', re.S)
-SUITE_PAGES = ("index.html", "tests.html", "models.html", "methodology.html")
+SUITE_PAGES = ("index.html", "tests.html", "findings.html", "models.html", "methodology.html")
+VIZ = re.compile(r'<figure class="viz[^"]*">(.*?)</figure>', re.S)
+CHART_SVG = re.compile(r'<svg class="(?:dtrack|lines|scatter)"')
 
 
 def _results(tmp_path: Path, documents: dict[str, dict]) -> Path:
@@ -132,8 +147,8 @@ def test_every_link_resolves_and_nav_is_shared(tmp_path):
                 assert other.short in text  # the suite switcher names both suites
             other = SUITES["tonada" if suite == "blas" else "blas"]
             assert f'href="{other.url}"' in text
-    assert labels["blas"] == ["Leaderboard", "Tests", "Languages", "Models", "Methodology", "GitHub"]
-    assert labels["tonada"] == ["Leaderboard", "Tests", "Learners", "Models", "Methodology", "GitHub"]
+    assert labels["blas"] == ["Leaderboard", "Tests", "Findings", "Languages", "Models", "Methodology", "GitHub"]
+    assert labels["tonada"] == ["Leaderboard", "Tests", "Findings", "Learners", "Models", "Methodology", "GitHub"]
 
 
 def test_honesty_note_on_every_page_with_scores(tmp_path):
@@ -305,3 +320,167 @@ def test_markdown_lists_and_paragraphs():
 )
 def test_display_names(model_id, name, maker):
     assert display_name(model_id) == (name, maker)
+
+
+def _vizzes(text: str) -> list[str]:
+    return VIZ.findall(text)
+
+
+def test_findings_page_shows_every_view(tmp_path):
+    out = tmp_path / "site"
+    build_site(_results(tmp_path, nine_models()), out, repo_root=_repo(tmp_path))
+    blas = _read(out / "blas" / "findings.html")
+    for anchor in ("profile", "ties", "levels", "topics", "directions", "tutor", "evidence", "cost", "consistency"):
+        assert f'<h2 id="{anchor}">' in blas, anchor
+        assert f'<a href="#{anchor}">' in blas  # listed in the table of contents
+    tonada = _read(out / "tonada" / "findings.html")
+    assert 'id="directions"' not in tonada  # no translation test in the Tonada suite
+    assert 'id="tutor"' in tonada and 'id="levels"' in tonada
+    # C1 has 12 items in the fakes: in the table, never plotted.
+    assert "too few items" in blas and "C1 <span" in blas and ">C1</text>" not in blas
+    assert "judge-marked" in blas and "step-bar judge" in blas
+    home = _read(out / "blas" / "index.html")
+    assert 'class="heat matrix" data-sortable data-top="10"' in home
+    assert home.count("(highest)</span>") == 6  # one best cell per column: overall and five tests
+    assert 'href="findings.html#ties"' in home
+    model = _read(out / "blas" / "models" / "anthropic-claude-opus-5.html")
+    assert "places best in" in model or "in every test" in model
+    assert model.count('class="dtrack"') == 5  # one profile row per test
+    tests = _read(out / "blas" / "tests.html")
+    assert 'class="structure"' in tests and "Judges: the explanation, secondary" in tests
+    assert 'href="findings.html#levels-morphology"' in tests
+
+
+def test_every_chart_has_a_takeaway_caption_and_table(tmp_path):
+    out = tmp_path / "site"
+    build_site(_results(tmp_path, nine_models()), out, repo_root=_repo(tmp_path))
+    seen = 0
+    for page in sorted(out.rglob("*.html")):
+        text = _read(page)
+        figures = _vizzes(text)
+        inside = sum(len(CHART_SVG.findall(fig)) for fig in figures)
+        assert inside == len(CHART_SVG.findall(text)), f"{page.relative_to(out)}: a chart outside a takeaway figure"
+        for fig in figures:
+            takeaway = re.search(r'<p class="takeaway">([^<]+)</p>', fig)
+            assert takeaway and takeaway.group(1).strip().endswith("."), page
+            assert '<p class="viz-cap">' in fig, page
+            assert "<summary>View as table</summary>" in fig and "<table" in fig.split("View as table")[1], page
+        seen += len(figures)
+    assert seen > 50
+    findings = _read(out / "blas" / "findings.html")
+    assert len(_vizzes(findings)) >= 9
+
+
+def test_example_items_come_from_public_samples_and_are_escaped(tmp_path):
+    repo = _repo(tmp_path)
+    samples = repo / "samples" / "blas"
+    samples.mkdir(parents=True)
+    items = [
+        {"id": "s-long", "input": "Give the plural of 'teach'. " + "Think it over. " * 20, "target": "tithe",
+         "metadata": {"scoring": "accept_list", "accept": ["tithe"]}},
+        {"id": "s-short", "input": "Plural of <b>cat</b>?", "target": "cait",
+         "metadata": {"scoring": "accept_list", "accept": ["cait", "<i>cait</i>"]}},
+    ]
+    (samples / "morphology.jsonl").write_text("\n".join(json.dumps(item) for item in items) + "\n", encoding="utf-8")
+    tutor = [
+        {"id": "t-clean", "input": "Check: Tá sé.", "target": "Tá sé.", "metadata": {"scoring": "tutor", "has_error": False}},
+        {"id": "t-error", "input": "Check this longer sentence: Tá sé mór go leor.", "target": "Tá sé mór go leor.",
+         "metadata": {"scoring": "tutor", "has_error": True, "error_span": "mór", "correction": "mhór"}},
+    ]
+    (samples / "tutor_accuracy.jsonl").write_text("\n".join(json.dumps(item) for item in tutor) + "\n", encoding="utf-8")
+    out = tmp_path / "site"
+    build_site(_two_runs(tmp_path), out, repo_root=repo)
+    tests = _read(out / "blas" / "tests.html")
+    assert tests.count('class="example example-item"') == 2  # only tests with a public sample file
+    assert "s-short" in tests and "s-long" not in tests  # the shortest item, chosen on every build
+    assert "Plural of &lt;b&gt;cat&lt;/b&gt;?" in tests and "<b>cat</b>" not in tests
+    assert "cait · &lt;i&gt;cait&lt;/i&gt;" in tests
+    assert "t-error" in tests and "t-clean" not in tests  # a tutor item with an error explains more
+    assert "mór → mhór" in tests
+
+
+def test_one_model_and_twenty_two_models_build(tmp_path):
+    one = tmp_path / "one"
+    build_site(_results(tmp_path / "a", {"a__solo": fake_document("a/solo", 0.7)}), one, repo_root=_repo(tmp_path / "a"))
+    findings = _read(one / "blas" / "findings.html")
+    assert "Solo is the only model with a complete result" in findings
+    assert "Solo is the only ranked model" in _read(one / "blas" / "index.html")
+    assert "nothing to compare yet" in _read(one / "blas" / "models" / "a-solo.html")
+    for fig in _vizzes(findings):
+        assert '<p class="takeaway">' in fig
+
+    many = tmp_path / "many"
+    build_site(_results(tmp_path / "b", twenty_models()), many, repo_root=_repo(tmp_path / "b"))
+    home = _read(many / "blas" / "index.html")
+    assert "Show all 22 models" in home and home.count('<tr class="more">') >= 12
+    findings = _read(many / "blas" / "findings.html")
+    assert 'class="ln-model"' not in findings and "single lines are left out" in findings
+    assert findings.count("Show all 22 models") >= 3  # directions, cost and consistency fold
+    assert len(list((many / "blas" / "models").glob("*.html"))) == 22
+
+
+def test_empty_results_dir_has_an_empty_findings_page(tmp_path):
+    results = tmp_path / "results"
+    (results / "runs").mkdir(parents=True)
+    out = tmp_path / "site"
+    build_site(results, out, repo_root=_repo(tmp_path))
+    findings = _read(out / "blas" / "findings.html")
+    assert "No complete runs yet" in findings and 'class="viz' not in findings
+
+
+A = Est(0.80, (0.76, 0.84), 200)
+B = Est(0.78, (0.74, 0.82), 200)
+C = Est(0.60, (0.57, 0.63), 200)
+
+
+def test_overlap_and_groups():
+    assert overlaps(A, B) and not overlaps(A, C)
+    assert overlaps(A, Est(0.1))  # no range: a gap cannot be called clear
+    assert tie_groups([("C", C), ("A", A), ("B", B)]) == [["A", "B"], ["C"]]
+
+
+def test_leader_sentence_says_tied_when_ranges_overlap():
+    tied = leader_sentence([("A", A), ("B", B), ("C", C)])
+    assert "tied with B" in tied and "95% ranges overlap" in tied and "C" not in tied.split("tied with")[1]
+    assert "clearly ahead" in leader_sentence([("A", A), ("C", C)])
+    assert "none is clearly ahead" in leader_sentence([("A", A), ("B", B), ("D", Est(0.79, (0.75, 0.83)))])
+    assert "only model" in leader_sentence([("A", A)])
+
+
+def test_matrix_and_profile_sentences_say_tied():
+    tests = [("T1", [("A", A), ("B", B)]), ("T2", [("A", C), ("B", A)])]
+    sentence = matrix_sentence(tests)
+    assert sentence.startswith("A and B each have the highest score in 1 of 2 tests")
+    assert "in 1 of the 2 tests the top score is tied" in sentence
+    profile = profile_sentence("B", tests)
+    assert "places best in T2 (1st of 2)" in profile
+    assert "worst in T1 (2nd of 2, 2.0 points below the top but tied with it)" in profile
+    assert "tied means the 95% ranges overlap" in profile
+    assert profile_sentence("A", [("T1", [("A", A), ("B", B)]), ("T2", [("A", A), ("C", C)])]) == (
+        "A ranks 1st in every test, but in 1 of them another model is tied with it (95% ranges overlap)."
+    )
+
+
+def test_level_direction_and_compare_sentences_say_not_clear_when_ranges_overlap():
+    overlapping = [("A", {"A1": A, "B2": B}), ("B", {"A1": A, "B2": B})]
+    assert level_sentence(["A1", "B2"], overlapping) == (
+        "2 of 2 models score lower at B2 than at A1, but none of these drops is clear: the 95% ranges overlap."
+    )
+    clear = overlapping + [("C", {"A1": A, "B2": C})]
+    assert "All 3 models score lower at B2 than at A1; the drop is clear (95% ranges do not overlap) for 1 of them." == level_sentence(["A1", "B2"], clear)
+    assert "Fewer than two levels" in level_sentence(["A1"], overlapping)
+    assert "but no gap is clear" in direction_sentence([("A", A, B), ("B", A, B)])
+    assert "for 1 of them" in direction_sentence([("A", A, C), ("B", A, B)])
+    compared = compare_sentence([("A", {"x": A, "y": B}), ("B", {"x": A, "y": B})], str, "topic")
+    assert "highest-scoring topic is x (80.0%, 200 items)" in compared and "the gap is not clear" in compared
+    assert "clear (95% ranges do not overlap) for 1 of 1" not in compare_sentence([("A", {"x": A, "y": C})], str, "topic")
+
+
+def test_cost_and_value_sentences():
+    assert spread_sentence([("A", 0.2), ("B", 8.0)], "cost per 1,000 correct answers", lambda v: f"${v:.2f}", ratio=True) == (
+        "Cost per 1,000 correct answers runs from $0.20 (A) to $8.00 (B), 40 times as much."
+    )
+    assert value_sentence([("A", A, 30.0), ("B", B, 3.0), ("C", C, 0.5)]).startswith(
+        "B is the cheapest model tied with the leader (95% ranges overlap)"
+    )
+    assert "also the cheapest" in value_sentence([("A", A, 1.0), ("C", C, 0.5)])
