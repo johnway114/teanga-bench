@@ -1111,10 +1111,11 @@ def _tests_summary(suite: SuiteInfo, tests: list[str], reports: dict[str, dict[s
 
 
 def _unranked_notice(unranked: list[Entry]) -> str:
+    site_notice = f'<p class="notice">{e(_SITE_NOTICE)}</p>' if _SITE_NOTICE else ""
     if not unranked:
-        return ""
+        return site_notice
     n = len(unranked)
-    return (
+    return site_notice + (
         f'<p class="notice">{n} other run{"s" if n != 1 else ""} did not finish every test and '
         f'{"are" if n != 1 else "is"} not ranked.</p>'
     )
