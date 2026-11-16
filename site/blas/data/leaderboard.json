@@ -4,7 +4,7 @@
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
   "suite": "blas",
-  "generated_at": "2026-11-16T06:03:04+00:00",
+  "generated_at": "2026-11-16T06:51:49+00:00",
   "note": "Only live runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval; the suite score weights every test equally. cost_usd is the spend on this suite's tests. by_language gives the mean of per-test scores.",
   "models": [
     {
@@ -840,35 +840,35 @@
       }
     },
     {
-      "rank": null,
-      "ranked": false,
+      "rank": 9,
+      "ranked": true,
       "model": "qwen/qwen3.8-flash",
       "family": "qwen",
-      "page": null,
+      "page": "models/qwen-qwen3-8-flash.html",
       "run_file": "qwen__qwen3.8-flash.json",
       "run_kind": "live",
-      "status": "cost_cap_reached",
-      "generated_at": "2026-11-16T01:22:32+00:00",
+      "status": "complete",
+      "generated_at": "2026-11-16T06:51:49+00:00",
       "data": "full",
       "epochs": 3,
       "overall": {
-        "score": 0.48158098435221397,
+        "score": 0.4363758985928823,
         "ci95": [
-          0.4630706693396435,
-          0.5001489434226924
+          0.4181330555858928,
+          0.4554843453947148
         ],
-        "n_tests": 4,
-        "n_items": 1320
+        "n_tests": 5,
+        "n_items": 1500
       },
-      "cost_usd": 2.49775881,
-      "cost_per_correct_usd": 0.0012818231601384096,
+      "cost_usd": 2.844229534,
+      "cost_per_correct_usd": 0.0013630937639989248,
       "by_language": {
         "breton": 0.45680496243524593,
         "cornish": 0.3504177709392638,
-        "irish": 0.5799351353103436,
+        "irish": 0.5395036638038304,
         "manx": 0.2882748075000046,
-        "scots-gaelic": 0.620990121171997,
-        "welsh": 0.5930631087564289
+        "scots-gaelic": 0.5434587636042643,
+        "welsh": 0.5055615981162542
       },
       "tests": {
         "lesson_exercises": {
@@ -928,15 +928,18 @@
           "cost_per_correct_usd": 0.0012603237321352815
         },
         "tutor_accuracy": {
-          "score": null,
-          "ci95": null,
-          "n_items": 0,
+          "score": 0.25555555555555554,
+          "ci95": [
+            0.20550925925925934,
+            0.3074074074074074
+          ],
+          "n_items": 180,
           "epochs": 3,
-          "consistency": null,
-          "status": "incomplete",
+          "consistency": 0.7555555555555555,
+          "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.07592935,
-          "cost_per_correct_usd": null
+          "cost_usd": 0.422400074,
+          "cost_per_correct_usd": 0.0030608701014492755
         }
       }
     }

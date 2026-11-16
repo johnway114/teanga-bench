@@ -4,7 +4,7 @@
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
   "suite": "tonada",
-  "generated_at": "2026-11-16T06:03:04+00:00",
+  "generated_at": "2026-11-16T06:51:49+00:00",
   "note": "Only live runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval; the suite score weights every test equally. cost_usd is the spend on this suite's tests. by_l1 gives the mean of per-test scores.",
   "models": [
     {
@@ -488,43 +488,62 @@
       }
     },
     {
-      "rank": null,
-      "ranked": false,
+      "rank": 9,
+      "ranked": true,
       "model": "qwen/qwen3.8-flash",
       "family": "qwen",
-      "page": null,
+      "page": "models/qwen-qwen3-8-flash.html",
       "run_file": "qwen__qwen3.8-flash.json",
       "run_kind": "live",
-      "status": "cost_cap_reached",
-      "generated_at": "2026-11-16T01:22:32+00:00",
+      "status": "complete",
+      "generated_at": "2026-11-16T06:51:49+00:00",
       "data": "full",
       "epochs": 3,
-      "overall": null,
-      "cost_usd": 0.0,
-      "cost_per_correct_usd": null,
-      "by_l1": {},
+      "overall": {
+        "score": 0.8399074074074073,
+        "ci95": [
+          0.8175925925925926,
+          0.8612557870370369
+        ],
+        "n_tests": 2,
+        "n_items": 760
+      },
+      "cost_usd": 0.356640452,
+      "cost_per_correct_usd": 0.0001845965072463768,
+      "by_l1": {
+        "japanese": 0.8344444444444444,
+        "portuguese": 0.8177777777777777,
+        "spanish": 0.8474074074074074,
+        "vietnamese": 0.8599999999999999
+      },
       "tests": {
         "exercises": {
-          "score": null,
-          "ci95": null,
-          "n_items": 0,
+          "score": 0.9816666666666666,
+          "ci95": [
+            0.9683333333333333,
+            0.9925
+          ],
+          "n_items": 400,
           "epochs": 3,
-          "consistency": null,
-          "status": "incomplete",
+          "consistency": 0.9925,
+          "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.0,
-          "cost_per_correct_usd": null
+          "cost_usd": 0.114022382,
+          "cost_per_correct_usd": 9.67931935483871e-05
         },
         "tutor_accuracy": {
-          "score": null,
-          "ci95": null,
-          "n_items": 0,
+          "score": 0.6981481481481482,
+          "ci95": [
+            0.6546064814814815,
+            0.738912037037037
+          ],
+          "n_items": 360,
           "epochs": 3,
-          "consistency": null,
-          "status": "incomplete",
+          "consistency": 0.7777777777777778,
+          "status": "complete",
           "dataset": "full",
-          "cost_usd": 0.0,
-          "cost_per_correct_usd": null
+          "cost_usd": 0.24261807,
+          "cost_per_correct_usd": 0.00032177462864721484
         }
       }
     }

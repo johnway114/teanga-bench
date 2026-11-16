@@ -3,7 +3,7 @@
   "benchmark": "teanga-bench",
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
-  "generated_at": "2026-11-16T06:03:59+00:00",
+  "generated_at": "2026-11-16T06:52:30+00:00",
   "note": "Only runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval. Runs on public samples and runs on full sets are not comparable; the data column says which. Explanation scores are judge-marked, not human-validated, and shown only for runs that used the current judge pair.",
   "current_judges": [
     "deepseek/deepseek-v4.1-flash-1017",
@@ -1817,32 +1817,40 @@
       "family": "qwen",
       "run_file": "qwen__qwen3.8-flash.json",
       "run_kind": "live",
-      "status": "cost_cap_reached",
-      "ranked": false,
-      "generated_at": "2026-11-16T01:22:32+00:00",
+      "status": "complete",
+      "ranked": true,
+      "generated_at": "2026-11-16T06:51:49+00:00",
       "data": "full",
       "epochs": 3,
       "overall": {
-        "score": 0.48158098435221397,
+        "score": 0.5516706153970323,
         "ci95": [
-          0.4630706693396435,
-          0.5001489434226924
+          0.5369161057896072,
+          0.5667237489426669
         ],
-        "n_tests": 4,
-        "n_items": 1320
+        "n_tests": 7,
+        "n_items": 2260
       },
-      "cost_usd": 2.49775881,
+      "cost_usd": 3.200869986,
       "suites": {
         "blas": {
-          "score": 0.48158098435221397,
+          "score": 0.4363758985928823,
           "ci95": [
-            0.4630706693396435,
-            0.5001489434226924
+            0.4181330555858928,
+            0.4554843453947148
           ],
-          "n_tests": 4,
-          "n_items": 1320
+          "n_tests": 5,
+          "n_items": 1500
         },
-        "tonada": null
+        "tonada": {
+          "score": 0.8399074074074073,
+          "ci95": [
+            0.8175925925925926,
+            0.8612557870370369
+          ],
+          "n_tests": 2,
+          "n_items": 760
+        }
       },
       "languages": {
         "breton": {
@@ -1863,14 +1871,23 @@
           "n_tests": 4,
           "n_items": 220
         },
-        "irish": {
-          "score": 0.5799351353103437,
+        "english": {
+          "score": 0.8399074074074073,
           "ci95": [
-            0.5347147218595167,
-            0.6229615721481454
+            0.8187013888888889,
+            0.8608344907407407
           ],
-          "n_tests": 4,
-          "n_items": 220
+          "n_tests": 2,
+          "n_items": 760
+        },
+        "irish": {
+          "score": 0.5395036638038305,
+          "ci95": [
+            0.49747991279348214,
+            0.5810851599452602
+          ],
+          "n_tests": 5,
+          "n_items": 280
         },
         "manx": {
           "score": 0.2882748075000046,
@@ -1882,22 +1899,22 @@
           "n_items": 220
         },
         "scots-gaelic": {
-          "score": 0.620990121171997,
+          "score": 0.5434587636042643,
           "ci95": [
-            0.5769104025185533,
-            0.6627800616607926
+            0.5049731631291284,
+            0.5827092158056371
           ],
-          "n_tests": 4,
-          "n_items": 220
+          "n_tests": 5,
+          "n_items": 280
         },
         "welsh": {
-          "score": 0.5930631087564289,
+          "score": 0.5055615981162542,
           "ci95": [
-            0.552989597338705,
-            0.6338846113546235
+            0.4702003093412062,
+            0.5419943423087582
           ],
-          "n_tests": 4,
-          "n_items": 220
+          "n_tests": 5,
+          "n_items": 280
         }
       },
       "tests": {
@@ -1950,31 +1967,40 @@
           "cost_usd": 0.60991613
         },
         "blas/tutor_accuracy": {
-          "score": null,
-          "ci95": null,
-          "n_items": 0,
-          "status": "incomplete",
+          "score": 0.25555555555555554,
+          "ci95": [
+            0.20550925925925934,
+            0.3074074074074074
+          ],
+          "n_items": 180,
+          "status": "complete",
           "dataset": "full",
-          "consistency": null,
-          "cost_usd": 0.07592935
+          "consistency": 0.7555555555555555,
+          "cost_usd": 0.422400074
         },
         "tonada/exercises": {
-          "score": null,
-          "ci95": null,
-          "n_items": 0,
-          "status": "incomplete",
+          "score": 0.9816666666666666,
+          "ci95": [
+            0.9683333333333333,
+            0.9925
+          ],
+          "n_items": 400,
+          "status": "complete",
           "dataset": "full",
-          "consistency": null,
-          "cost_usd": 0.0
+          "consistency": 0.9925,
+          "cost_usd": 0.114022382
         },
         "tonada/tutor_accuracy": {
-          "score": null,
-          "ci95": null,
-          "n_items": 0,
-          "status": "incomplete",
+          "score": 0.6981481481481482,
+          "ci95": [
+            0.6546064814814815,
+            0.738912037037037
+          ],
+          "n_items": 360,
+          "status": "complete",
           "dataset": "full",
-          "consistency": null,
-          "cost_usd": 0.0
+          "consistency": 0.7777777777777778,
+          "cost_usd": 0.24261807
         }
       },
       "judges": [
@@ -1992,9 +2018,19 @@
             "deepseek/deepseek-v4.1-flash-1017",
             "qwen/qwen3.8-flash"
           ]
+        },
+        "tonada/tutor_accuracy": {
+          "score": null,
+          "ci95": null,
+          "comparable": false,
+          "reason": "not_scored_same_family_as_judge",
+          "judges": [
+            "deepseek/deepseek-v4.1-flash-1017",
+            "qwen/qwen3.8-flash"
+          ]
         }
       },
-      "rank": null
+      "rank": 9
     }
   ],
   "skipped": []

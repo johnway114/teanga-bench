@@ -12,7 +12,7 @@ Only runs with status complete are ranked. Scores are means over items with a 95
 | 6 | moonshotai/kimi-k3.1-pro | 78.0% | 76.6% to 79.3% | $34.76 | full |
 | 7 | openai/gpt-6-luna | 78.0% | 76.6% to 79.3% | $1.30 | full |
 | 8 | anthropic/claude-haiku-5.5 | 72.1% | 70.7% to 73.6% | $1.90 | full |
-| - | qwen/qwen3.8-flash (cost_cap_reached) | 48.2% | 46.3% to 50.0% | $2.50 | full |
+| 9 | qwen/qwen3.8-flash | 55.2% | 53.7% to 56.7% | $3.20 | full |
 
 ## Suite: blas
 
@@ -26,6 +26,7 @@ Only runs with status complete are ranked. Scores are means over items with a 95
 | moonshotai/kimi-k3.1-pro | 73.3% | 71.6% to 75.0% |
 | openai/gpt-6-luna | 75.6% | 73.9% to 77.2% |
 | anthropic/claude-haiku-5.5 | 67.1% | 65.3% to 68.9% |
+| qwen/qwen3.8-flash | 43.6% | 41.8% to 45.5% |
 
 ## Suite: tonada
 
@@ -39,6 +40,7 @@ Only runs with status complete are ranked. Scores are means over items with a 95
 | moonshotai/kimi-k3.1-pro | 89.7% | 87.7% to 91.7% |
 | openai/gpt-6-luna | 84.0% | 81.6% to 86.3% |
 | anthropic/claude-haiku-5.5 | 84.8% | 82.3% to 87.2% |
+| qwen/qwen3.8-flash | 84.0% | 81.8% to 86.1% |
 
 ## Tests
 
@@ -52,6 +54,7 @@ Only runs with status complete are ranked. Scores are means over items with a 95
 | moonshotai/kimi-k3.1-pro | 94.8% | 76.6% | 60.0% | 65.6% | 69.4% | 98.8% | 80.6% |
 | openai/gpt-6-luna | 93.6% | 80.5% | 64.5% | 68.0% | 71.3% | 98.0% | 70.0% |
 | anthropic/claude-haiku-5.5 | 87.5% | 65.3% | 58.0% | 57.9% | 66.9% | 98.3% | 71.2% |
+| qwen/qwen3.8-flash | 83.8% | 27.4% | 36.6% | 44.8% | 25.6% | 98.2% | 69.8% |
 
 ## Tutor explanation (judge-marked, not human-validated)
 
@@ -75,6 +78,8 @@ Judges: deepseek/deepseek-v4.1-flash-1017, qwen/qwen3.8-flash. Only runs that us
 | openai/gpt-6-luna | tonada/tutor_accuracy | 58.6% | 53.7% to 63.4% |  |
 | anthropic/claude-haiku-5.5 | blas/tutor_accuracy | 59.6% | 53.1% to 65.8% |  |
 | anthropic/claude-haiku-5.5 | tonada/tutor_accuracy | 62.2% | 57.4% to 66.8% |  |
+| qwen/qwen3.8-flash | blas/tutor_accuracy | n/a | n/a | not comparable: not_scored_same_family_as_judge |
+| qwen/qwen3.8-flash | tonada/tutor_accuracy | n/a | n/a | not comparable: not_scored_same_family_as_judge |
 
 ## Charts
 

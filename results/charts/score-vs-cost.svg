@@ -29,6 +29,8 @@
 <text x="91.5" y="134.1" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">openai/gpt-6-luna</text>
 <circle cx="89.7" cy="147.6" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
 <text x="97.7" y="151.6" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">anthropic/claude-haiku-5.5</text>
+<circle cx="103.3" cy="198.5" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
+<text x="111.3" y="202.5" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">qwen/qwen3.8-flash</text>
 <circle cx="127.9" cy="110.7" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
 <text x="135.9" y="114.7" font-size="11" text-anchor="start" fill="#1a1a1a" font-weight="normal" font-family="Helvetica, Arial, sans-serif">google/gemini-4-argon</text>
 <circle cx="431.5" cy="130.1" r="5" fill="#d1495b" stroke="#1a1a1a" stroke-width="0.5"/>
