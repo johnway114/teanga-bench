@@ -224,7 +224,10 @@ item is labelled `private` or `public-source`.
 - **Answer length limit.** The first runs gave each answer at most 2048
   tokens. Four models reason before they answer, and the reasoning counts
   towards that limit. They often used it all up and returned nothing, which
-  scored 0. Two other models did this a few times. The limit is now 16000
-  tokens. The answers that hit the old limit were asked again under the new
-  one. Models that never hit the limit were not re-run. Each results file
-  records how many answers were asked again, under which limits.
+  scored 0. The limit is now 16000 tokens. For those four models, the answers
+  that hit the old limit were asked again under the new one. Two other
+  models hit the old limit a few times: `openai/gpt-6-luna` on 7 of 6,780
+  answers and `anthropic/claude-haiku-5.5` on 2. Those answers were not asked
+  again and still score 0. Models that never hit the limit were not re-run.
+  Each results file of a re-run model records how many answers were asked
+  again, under which limits.
