@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: "Teanga Bench"
+message: "If you use Teanga Bench, its evaluation harness, or its published results, please cite it using the metadata from this file."
+type: software
+authors:
+  - family-names: Conway
+    given-names: John
+    affiliation: "Blas / Tonada"
+version: "0.2.0"
+date-released: "2026-11-16"
+license: Apache-2.0
+repository-code: "https://github.com/johnway114/teanga-bench"
+url: "https://research.blasapp.com"
+abstract: >-
+  Teanga Bench measures how well large language models perform the work of a
+  language tutor across two suites: the Blas suite (Irish, Welsh, Scottish
+  Gaelic, Manx, Breton, and Cornish) and the Tonada suite (English tutoring
+  for Portuguese, Spanish, Vietnamese, and Japanese L1 learners).
+keywords:
+  - celtic-languages
+  - irish
+  - welsh
+  - scottish-gaelic
+  - manx
+  - breton
+  - cornish
+  - english-tutoring
+  - llm-evaluation
+  - low-resource-languages
+  - language-tutoring
+  - benchmark

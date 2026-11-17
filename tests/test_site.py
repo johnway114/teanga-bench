@@ -210,11 +210,24 @@ def test_model_output_is_escaped(tmp_path):
 
 
 def test_pages_hold_no_external_requests(tmp_path):
+    from bs4 import BeautifulSoup
+
     out = tmp_path / "site"
     build_site(_two_runs(tmp_path), out, repo_root=_repo(tmp_path))
     for page in out.rglob("*.html"):
         text = _read(page)
-        assert not re.search(r'<(?:script|link|img)[^>]+(?:src|href)="https?://', text), page
+        soup = BeautifulSoup(text, "html.parser")
+        for tag in soup.find_all(["script", "img"]):
+            for attr in ("src", "href"):
+                val = tag.get(attr, "")
+                assert not re.match(r"https?://", val), (page, tag)
+        for tag in soup.find_all("link"):
+            rels = set(tag.get("rel") or [])
+            if rels and rels <= {"canonical", "alternate"}:
+                continue
+            for attr in ("src", "href"):
+                val = tag.get(attr, "")
+                assert not re.match(r"https?://", val), (page, tag)
         assert "@import" not in text
     assert "url(" not in _read(out / "assets" / "site.css")
 

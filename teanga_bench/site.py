@@ -45,6 +45,7 @@ from teanga_bench.export import EXPLANATION_SCORED, SCHEMA_VERSION
 from teanga_bench.leaderboard import BLAS_LANGUAGES, load_runs
 from teanga_bench.markdown_lite import markdown_to_html
 from teanga_bench.models_config import configured_judges
+from teanga_bench.og_cards import CARD_HEIGHT, CARD_WIDTH, CardSpec, card_rows_from_entries, render_card_png
 from teanga_bench.paths import REPO_ROOT
 from teanga_bench.site_charts import (
     PERCENT_TICKS,
@@ -95,12 +96,41 @@ from teanga_bench.site_findings import (
 SITE = REPO_ROOT / "site"
 REPO_URL = "https://github.com/johnway114/teanga-bench"
 DOCS_BASE_URL = f"{REPO_URL}/blob/main"
+APACHE_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0"
 PUBLIC_SAMPLE_SIZE = 20
 MIN_TOPIC_ITEMS = 5
 TOPIC_COUNT = 5
 LEADERBOARD_TOP = 5
 GENERATED_DIRS = ("assets", "blas", "tonada")
 GENERATED_FILES = ("suites.html",)
+DATASET_PAGES = frozenset({"index.html", "tests.html", "languages.html", "learners.html", "methodology.html"})
+SUITE_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "blas": (
+        "Teanga Bench",
+        "Blas",
+        "Celtic languages",
+        "Irish", "ga", "gle",
+        "Welsh", "cy", "cym",
+        "Scottish Gaelic", "gd", "gla",
+        "Manx", "gv", "glv",
+        "Breton", "br", "bre",
+        "Cornish", "kw", "cor",
+        "language learning",
+        "LLM benchmark",
+    ),
+    "tonada": (
+        "Teanga Bench",
+        "Tonada",
+        "English", "en", "eng",
+        "English tutoring",
+        "Portuguese", "pt", "por",
+        "Spanish", "es", "spa",
+        "Vietnamese", "vi", "vie",
+        "Japanese", "ja", "jpn",
+        "language learning",
+        "LLM benchmark",
+    ),
+}
 CEFR_ORDER = ("A1", "A2", "B1", "B2", "C1", "C2")
 MONTHS = (
     "January", "February", "March", "April", "May", "June",
@@ -851,6 +881,105 @@ SITE_JS = """\
 """
 
 
+def _canonical_url(suite: SuiteInfo, relative: str) -> str:
+    base = suite.url.rstrip("/")
+    if not relative or relative == "index.html":
+        return f"{base}/"
+    if relative.endswith("/index.html"):
+        return f"{base}/{relative.removesuffix('index.html')}"
+    if relative.endswith(".html"):
+        return f"{base}/{relative.removesuffix('.html')}"
+    return f"{base}/{relative}"
+
+
+def _og_image_url(suite: SuiteInfo) -> str:
+    return f"{suite.url.rstrip('/')}/og-image.png"
+
+
+def _og_image_alt(suite: SuiteInfo) -> str:
+    return f"{BENCHMARK_NAME} {suite.name}: {suite.headline} ({suite.description})."
+
+
+def _social_head_tags(
+    *,
+    title: str,
+    description: str,
+    canonical_url: str,
+    og_image_url: str,
+    og_image_alt: str,
+) -> str:
+    return "\n".join(
+        (
+            f'<link rel="canonical" href="{e(canonical_url)}">',
+            '<meta property="og:type" content="website">',
+            f'<meta property="og:site_name" content="{e(BENCHMARK_NAME)}">',
+            f'<meta property="og:title" content="{e(title)}">',
+            f'<meta property="og:description" content="{e(description)}">',
+            f'<meta property="og:url" content="{e(canonical_url)}">',
+            f'<meta property="og:image" content="{e(og_image_url)}">',
+            f'<meta property="og:image:width" content="{CARD_WIDTH}">',
+            f'<meta property="og:image:height" content="{CARD_HEIGHT}">',
+            f'<meta property="og:image:alt" content="{e(og_image_alt)}">',
+            '<meta name="twitter:card" content="summary_large_image">',
+            f'<meta name="twitter:title" content="{e(title)}">',
+            f'<meta name="twitter:description" content="{e(description)}">',
+            f'<meta name="twitter:image" content="{e(og_image_url)}">',
+            f'<meta name="twitter:image:alt" content="{e(og_image_alt)}">',
+        )
+    )
+
+
+def _json_ld_script(payload: dict[str, Any]) -> str:
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    # Escape HTML-sensitive characters so </script> or <!-- cannot break out of <script>.
+    safe = raw.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return f'<script type="application/ld+json">{safe}</script>'
+
+
+def _dataset_json_ld(
+    suite: SuiteInfo,
+    *,
+    name: str,
+    description: str,
+    canonical_url: str,
+    updated: str | None,
+) -> str:
+    base = suite.url.rstrip("/")
+    payload: dict[str, Any] = {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": name,
+        "description": description,
+        "url": canonical_url,
+        "identifier": f"{BENCHMARK}:{suite.key}",
+        "version": __version__,
+        "license": APACHE_LICENSE_URL,
+        "isAccessibleForFree": True,
+        "creator": {
+            "@type": "Person",
+            "name": "John Conway",
+            "url": REPO_URL,
+        },
+        "inLanguage": "en",
+        "keywords": list(SUITE_KEYWORDS.get(suite.key, (BENCHMARK_NAME, suite.short))),
+        "sameAs": [REPO_URL],
+        "distribution": [
+            {
+                "@type": "DataDownload",
+                "encodingFormat": "application/json",
+                "contentUrl": f"{base}/data/leaderboard.json",
+            },
+            {
+                "@type": "DataDownload",
+                "contentUrl": REPO_URL,
+            },
+        ],
+    }
+    if updated:
+        payload["dateModified"] = updated
+    return _json_ld_script(payload)
+
+
 def _page(
     *,
     title: str,
@@ -860,9 +989,20 @@ def _page(
     depth: int,
     current: str,
     updated: str | None,
+    relative: str = "",
+    json_ld: str = "",
 ) -> str:
     root = "../" * depth
     home = "./" if depth == 1 else "../" * (depth - 1)
+    canonical_url = _canonical_url(suite, relative)
+    social_tags = _social_head_tags(
+        title=title,
+        description=description,
+        canonical_url=canonical_url,
+        og_image_url=_og_image_url(suite),
+        og_image_alt=_og_image_alt(suite),
+    )
+    json_ld_block = f"\n{json_ld}" if json_ld else ""
     nav = []
     for key, label, href in (
         ("home", "Leaderboard", home),
@@ -896,6 +1036,7 @@ def _page(
 <meta name="color-scheme" content="light dark">
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
+{social_tags}{json_ld_block}
 <link rel="stylesheet" href="{root}assets/site.css">
 <script>document.documentElement.className += " js";</script>
 </head>
@@ -3121,10 +3262,39 @@ def _slice(suite: SuiteInfo, entries: list[Entry], updated: str | None) -> dict[
     }
 
 
+def _robots_txt(suite: SuiteInfo) -> str:
+    base = suite.url.rstrip("/")
+    return f"User-agent: *\nAllow: /\n\nSitemap: {base}/sitemap.xml\n"
+
+
+def _sitemap_xml(urls: list[tuple[str, str | None]]) -> str:
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for loc, lastmod in urls:
+        lines.append("  <url>")
+        lines.append(f"    <loc>{e(loc)}</loc>")
+        if lastmod:
+            lines.append(f"    <lastmod>{e(lastmod)}</lastmod>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    return "\n".join(lines) + "\n"
+
+
 def _preview_index(updated: str | None) -> str:
     cards = "".join(
         f'<a class="suite-card suite-{s.key}" href="{s.key}/"><strong>{e(s.short)} · {e(s.topic)}</strong>{e(s.description)}</a>'
         for s in SUITES.values()
+    )
+    primary = SUITES["blas"]
+    title = f"{BENCHMARK_NAME} research pages"
+    description = (
+        "A benchmark of how well large language models handle Celtic language learning and English tutoring."
+    )
+    social_tags = _social_head_tags(
+        title=title,
+        description=description,
+        canonical_url=primary.url,
+        og_image_url=_og_image_url(primary),
+        og_image_alt=_og_image_alt(primary),
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -3132,7 +3302,9 @@ def _preview_index(updated: str | None) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>{BENCHMARK_NAME} research pages</title>
+<title>{e(title)}</title>
+<meta name="description" content="{e(description)}">
+{social_tags}
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
@@ -3155,6 +3327,11 @@ def _preview_index(updated: str | None) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def _write_bytes(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
 
 
 def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root: Path | str = REPO_ROOT) -> dict[str, Any]:
@@ -3182,6 +3359,10 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
         _write(out_dir / relative, text)
         written.append(relative)
 
+    def put_bytes(relative: str, data: bytes) -> None:
+        _write_bytes(out_dir / relative, data)
+        written.append(relative)
+
     put("assets/site.css", SITE_CSS)
     put("suites.html", _preview_index(updated))
     summary: dict[str, Any] = {"updated": updated, "suites": {}, "files": written}
@@ -3190,8 +3371,29 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
         ranked = [entry for entry in entries if entry.ranked]
         reports = _reports(repo_root, suite.key)
         tests = _test_order(suite.key, set(reports) | {t for entry in ranked for t in entry.tests})
+        sitemap_urls: list[tuple[str, str | None]] = []
 
-        def page(relative: str, title: str, description: str, body: str, current: str, depth: int = 1) -> None:
+        def page(
+            relative: str,
+            title: str,
+            description: str,
+            body: str,
+            current: str,
+            depth: int = 1,
+            *,
+            lastmod: str | None = updated,
+        ) -> None:
+            canonical_url = _canonical_url(suite, relative)
+            json_ld = ""
+            if relative in DATASET_PAGES:
+                dataset_desc = description if relative == "index.html" else f"{description} {suite.measured}"
+                json_ld = _dataset_json_ld(
+                    suite,
+                    name=title,
+                    description=dataset_desc,
+                    canonical_url=canonical_url,
+                    updated=updated,
+                )
             put(
                 f"{suite.key}/{relative}",
                 _page(
@@ -3202,8 +3404,11 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
                     depth=depth,
                     current=current,
                     updated=updated,
+                    relative=relative,
+                    json_ld=json_ld,
                 ),
             )
+            sitemap_urls.append((canonical_url, lastmod))
 
         suffix = f"{BENCHMARK_NAME}, {suite.name}"
         page("index.html", f"{BENCHMARK_NAME}: {suite.description}", suite.statement, _home(suite, entries, tests, reports, updated), "home")
@@ -3252,11 +3457,30 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
                 _model_page(suite, entry, tests, ranked, current_pair),
                 "model",
                 depth=2,
+                lastmod=entry.generated_at or updated,
             )
         put(
             f"{suite.key}/data/leaderboard.json",
             json.dumps(_slice(suite, entries, updated), indent=2, ensure_ascii=False) + "\n",
         )
+        put_bytes(
+            f"{suite.key}/og-image.png",
+            render_card_png(
+                CardSpec(
+                    suite_key=suite.key,
+                    suite_name=suite.name,
+                    headline=suite.headline,
+                    description=suite.description,
+                    domain=suite.url.removeprefix("https://").rstrip("/"),
+                    n_tests=len(tests),
+                    total_ranked=len(ranked),
+                    rows=card_rows_from_entries(ranked),
+                    updated_label=_date(updated) if updated else None,
+                )
+            ),
+        )
+        put(f"{suite.key}/robots.txt", _robots_txt(suite))
+        put(f"{suite.key}/sitemap.xml", _sitemap_xml(sitemap_urls))
         summary["suites"][suite.key] = {"ranked": len(ranked), "runs": len(entries)}
     return summary
 
