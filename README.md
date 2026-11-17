@@ -1,14 +1,19 @@
 # Teanga Bench
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24305705.svg)](https://doi.org/10.5281/zenodo.24305705)
+
 Teanga Bench measures how well a large language model does the work of a
 language tutor. It has two suites:
 
 - **Blas suite**: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish.
-  Results will be published at `research.blasapp.com`.
+  Published at [research.blasapp.com](https://research.blasapp.com).
 - **Tonada suite**: English tutoring for learners whose first language is
   Portuguese, Spanish, Vietnamese or Japanese.
-  Results will be published at `research.tonadaapp.com`.
+  Published at [research.tonadaapp.com](https://research.tonadaapp.com).
 
+Public samples and run files are also mirrored on Hugging Face at
+[datasets/johnconway114/teanga-bench](https://huggingface.co/datasets/johnconway114/teanga-bench)
+and [spaces/johnconway114/teanga-bench-leaderboard](https://huggingface.co/spaces/johnconway114/teanga-bench-leaderboard).
 The name is always "Teanga Bench".
 
 ## Run it

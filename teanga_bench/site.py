@@ -962,7 +962,11 @@ def _dataset_json_ld(
         },
         "inLanguage": "en",
         "keywords": list(SUITE_KEYWORDS.get(suite.key, (BENCHMARK_NAME, suite.short))),
-        "sameAs": [REPO_URL],
+        "sameAs": [
+            REPO_URL,
+            "https://doi.org/10.5281/zenodo.24305705",
+            "https://huggingface.co/datasets/johnconway114/teanga-bench",
+        ],
         "distribution": [
             {
                 "@type": "DataDownload",

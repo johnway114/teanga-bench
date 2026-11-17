@@ -6,10 +6,12 @@ authors:
   - family-names: Conway
     given-names: John
     affiliation: "Blas / Tonada"
-version: "0.2.0"
-date-released: "2026-11-16"
+version: "0.2.1"
+doi: "10.5281/zenodo.24305705"
+date-released: "2026-11-17"
 license: Apache-2.0
 repository-code: "https://github.com/johnway114/teanga-bench"
+repository-artifact: "https://huggingface.co/datasets/johnconway114/teanga-bench"
 url: "https://research.blasapp.com"
 abstract: >-
   Teanga Bench measures how well large language models perform the work of a
