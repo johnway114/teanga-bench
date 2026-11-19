@@ -300,3 +300,130 @@ def test_export_crosses_language_or_l1_with_phenomenon(tmp_path, suite, attribut
     assert "syntax" not in cells["welsh"]
     assert ("by_language_phenomenon" if suite == "tonada" else "by_l1_phenomenon") not in outcome.block
     assert not_run_block(dataset, 19, 2, "cost_cap_reached")[field] == {}
+
+
+def test_default_core_tests_and_all_tests_flag(tmp_path):
+    from teanga_bench.runner import DEFAULT_EPOCHS, default_output, select_datasets
+
+    assert DEFAULT_EPOCHS == 1
+    assert default_output("openai/gpt-6-luna", sample_only=True).parent.name == "samples"
+    assert default_output("openai/gpt-6-luna", sample_only=False).parent.name == "runs"
+
+    for suite, tests in (
+        ("blas", ("lesson_exercises", "morphology", "round_trip", "translation", "tutor_accuracy")),
+        ("tonada", ("exercises", "tutor_accuracy")),
+    ):
+        folder = tmp_path / "samples" / suite
+        folder.mkdir(parents=True, exist_ok=True)
+        for test in tests:
+            (folder / f"{test}.jsonl").write_text("{}\n", encoding="utf-8")
+
+    core = [d.name for d in select_datasets(tmp_path, None)]
+    assert core == ["blas/morphology", "blas/translation", "blas/tutor_accuracy", "tonada/tutor_accuracy"]
+    everything = [d.name for d in select_datasets(tmp_path, None, all_tests=True)]
+    assert len(everything) == 7 and "blas/round_trip" in everything and "tonada/exercises" in everything
+
+
+@pytest.mark.parametrize(
+    ("supported", "requested", "expected_label", "expected_effort", "expected_tokens"),
+    [
+        (["reasoning_effort", "reasoning"], "low", "low", "low", None),
+        (["reasoning"], "low", "tokens:512", None, 512),
+        (["temperature"], "low", "unsupported", None, None),
+        (["reasoning_effort", "reasoning"], "default", "default", None, None),
+    ],
+)
+def test_reasoning_effort_resolution_and_propagation(
+    fixture_root, tmp_path, monkeypatch, supported, requested, expected_label, expected_effort, expected_tokens
+):
+    from teanga_bench.pricing import Catalog
+    import teanga_bench.runner as runner_module
+
+    seen_configs = []
+
+    def responder(messages, tools, tool_choice, config):
+        seen_configs.append(config)
+        return ModelOutput.from_content(model="mockllm/model", content="ANSWER: bhean")
+
+    catalog = Catalog(
+        entries={
+            "google/gemini-4-neon": {
+                "id": "google/gemini-4-neon",
+                "pricing": {"prompt": "0.000003", "completion": "0.000015"},
+                "supported_parameters": supported,
+            },
+        },
+        retrieved_at="2026-11-19T00:00:00+00:00",
+    )
+    monkeypatch.setattr(runner_module, "export_api_key", lambda: None)
+    result = run_benchmark(
+        RunOptions(
+            model="google/gemini-4-neon",
+            root=fixture_root,
+            epochs=1,
+            limit=1,
+            tests=["blas/mutations"],
+            reasoning_effort=requested,
+            log_dir=tmp_path / "logs",
+        ),
+        catalog=catalog,
+        inspect_model=get_model("mockllm/model", custom_outputs=responder, memoize=False),
+    )
+    assert result.document["config"]["reasoning_effort"] == expected_label
+    assert seen_configs and seen_configs[0].reasoning_effort == expected_effort
+    assert seen_configs[0].reasoning_tokens == expected_tokens
+
+
+def test_batch_mode_scales_pricing_and_sets_batch_config(fixture_root, tmp_path, monkeypatch):
+    from teanga_bench.pricing import Catalog
+    import teanga_bench.runner as runner_module
+
+    catalog = Catalog(
+        entries={
+            "openai/gpt-6-astra": {
+                "id": "openai/gpt-6-astra",
+                "pricing": {"prompt": "0.00001", "completion": "0.00005"},
+                "supported_parameters": ["reasoning_effort", "reasoning"],
+            },
+            "moonshotai/kimi-k3.1-pro": {
+                "id": "moonshotai/kimi-k3.1-pro",
+                "pricing": {"prompt": "0.00000024", "completion": "0.0000084"},
+                "supported_parameters": ["reasoning_effort", "reasoning"],
+            },
+        },
+        retrieved_at="2026-11-19T00:00:00+00:00",
+    )
+    with pytest.raises(RunError, match="supported only for direct providers"):
+        run_benchmark(
+            RunOptions(model="moonshotai/kimi-k3.1-pro", root=fixture_root, batch=True, tests=["blas/mutations"]),
+            catalog=catalog,
+        )
+
+    seen_configs = []
+
+    def responder(messages, tools, tool_choice, config):
+        seen_configs.append(config)
+        return ModelOutput.from_content(model="mockllm/model", content="ANSWER: bhean")
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(runner_module, "export_api_key", lambda: None)
+    result = run_benchmark(
+        RunOptions(
+            model="openai/gpt-6-astra",
+            root=fixture_root,
+            epochs=1,
+            limit=1,
+            tests=["blas/mutations"],
+            batch=True,
+            log_dir=tmp_path / "logs",
+        ),
+        catalog=catalog,
+        inspect_model=get_model("mockllm/model", custom_outputs=responder, memoize=False),
+    )
+    doc = result.document
+    assert doc["model"]["inspect_id"] == "openai/gpt-6-astra"
+    assert doc["model"]["pricing"]["batch_discount"] == 0.5
+    assert doc["model"]["pricing"]["completion_usd_per_token"] == pytest.approx(2.5e-5)
+    assert doc["config"]["batch"] is True
+    assert doc["config"]["max_tokens"]["candidate"] == 4096
+    assert seen_configs and seen_configs[0].batch is not None and seen_configs[0].timeout is None

@@ -514,6 +514,7 @@ def _entries(runs: list[dict[str, Any]], suite: str) -> list[Entry]:
             if t.get("status") == "complete"
         )
         kinds = {t.get("dataset", "full") for t in tests.values()}
+        data = kinds.pop() if len(kinds) == 1 else "mixed"
         overall = block.get("overall")
         display, provider = display_name(run["model"]["id"])
         entries.append(
@@ -528,10 +529,11 @@ def _entries(runs: list[dict[str, Any]], suite: str) -> list[Entry]:
                 status=run.get("status", ""),
                 generated_at=run.get("generated_at", ""),
                 epochs=(run.get("config") or {}).get("epochs"),
-                data=kinds.pop() if len(kinds) == 1 else "mixed",
+                data=data,
                 ranked=(
                     run.get("run_kind") == "live"
                     and run.get("status") == "complete"
+                    and data == "full"
                     and bool(overall)
                     and overall.get("score") is not None
                 ),

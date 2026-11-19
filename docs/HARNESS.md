@@ -18,10 +18,15 @@ model id. Tests and the mock path make no paid call.
 | --- | --- | --- |
 | `--model` | required | OpenRouter id, such as `anthropic/claude-haiku-5.5`. `mockllm/model` runs the offline mock path |
 | `--max-cost` | 5.00, or with `--resume` the earlier cap | Hard cap in USD on the run's total candidate plus judge spend, earlier attempts included |
-| `--epochs` | 3 | Times each item is asked |
-| `--limit` | all | Items per test, for smoke runs |
-| `--tests` | all | Test names, or `suite/test` |
-| `--output` | `results/runs/<id with / as __>.json` | Where the results JSON goes |
+| `--epochs` | 1 | Times each item is asked (v1 used 3; pass `--epochs 3` to measure multi-epoch consistency) |
+| `--limit` | all | Items per test, for smoke runs (never ranked or published) |
+| `--tests` | v2 core (4 tests) | Test names, or `suite/test`. Defaults to `default_tests` in `config/models.yaml` (`blas/morphology`, `blas/translation`, `blas/tutor_accuracy`, `tonada/tutor_accuracy`) |
+| `--all-tests` | off | Run every discovered test, including retired v1 tests (`blas/lesson_exercises`, `blas/round_trip`, `tonada/exercises`) |
+| `--reasoning-effort` | `low` | Reasoning effort (`minimal`, `low`, `medium`, `high`, `none`, or `default` for provider default). Falls back to a token cap (`512` for `low`) on models exposing `reasoning` without `reasoning_effort` |
+| `--batch` | off | Route `openai/`, `anthropic/`, or `google/` candidates through their direct 50%-off Batch API (requires provider key and SDK via `uv pip install -e '.[batch]'`) |
+| `--direct-model` | inferred | With `--batch`: override the direct provider Inspect model id |
+| `--max-tokens` | 16000 (4096 in low-reasoning `--batch`) | Override candidate `max_tokens` |
+| `--output` | `results/runs/<id>.json` (full) or `results/samples/<id>.json` (samples) | Where the results JSON goes |
 | `--data-root` | repo root | Folder holding `data/private/` and `samples/` |
 | `--log-dir` | `logs/<id with / as __>-<UTC time>/` | Inspect logs. The folder is recorded in the results as `config.log_dir` |
 | `--resume` | off | Finish the incomplete run in `--output`. See [Resuming a run](#resuming-a-run) |
@@ -152,15 +157,20 @@ every test weighted equally, with its own interval.
 
 ## Key and pricing
 
-The key is `OPENROUTER_API_KEY`, or else the macOS keychain item `omp-openrouter`
-(`security find-generic-password -s omp-openrouter -w`). It is held in memory and
-in the process environment. It is never printed, logged, or written to disk.
+The OpenRouter key is `OPENROUTER_API_KEY` (required on Linux and CI), or on
+macOS only the keychain item `omp-openrouter`
+(`security find-generic-password -s omp-openrouter -w`). Direct `--batch` runs
+additionally require `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or
+`GOOGLE_API_KEY`/`GEMINI_API_KEY` and the matching SDK (`uv pip install -e '.[batch]'`).
+Keys are held in memory and in the process environment only, and are never
+printed, logged, or written to disk.
 
 At the start of each run the harness fetches `https://openrouter.ai/api/v1/models`.
 If the model id is not in the list, the run stops with a clear error. The
 prompt, completion and cache prices (USD per token) and the retrieval time are
-recorded in the results. A model with no fixed price, such as a router, is
-refused because it cannot be capped.
+recorded in the results. Under `--batch`, candidate list prices are scaled by
+`0.5` (`pricing.batch_discount: 0.5`). A model with no fixed price, such as a
+router, is refused because it cannot be capped.
 
 ## Cost cap
 

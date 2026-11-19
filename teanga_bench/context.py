@@ -15,8 +15,20 @@ from inspect_ai.model import Model
 from teanga_bench.cost import CostGuard
 
 CANDIDATE_MAX_TOKENS = 16000
+LOW_REASONING_MAX_TOKENS = 4096
 JUDGE_MAX_TOKENS = 1024
 JUDGE_RETRIES = 3
+
+REASONING_EFFORT_VALUES = ("minimal", "low", "medium", "high", "none", "default")
+DEFAULT_REASONING_EFFORT = "low"
+# Fallback reasoning token budgets for models that expose OpenRouter's
+# `reasoning` parameter without `reasoning_effort` (for example qwen3.8-flash).
+REASONING_TOKEN_BUDGETS = {
+    "minimal": 256,
+    "low": 512,
+    "medium": 2048,
+    "high": 8192,
+}
 
 # Store key the solver sets once every candidate call of a sample has returned.
 # A resumed run reuses the candidate output of an errored sample only when it is set.
@@ -65,6 +77,9 @@ class RunContext:
     max_tokens: int = CANDIDATE_MAX_TOKENS
     judge_max_tokens: int = JUDGE_MAX_TOKENS
     judge_retries: int = JUDGE_RETRIES
+    reasoning_effort: str | None = None
+    reasoning_tokens: int | None = None
+    batch: bool = False
     replay: dict[tuple[str, int], Replay] = field(default_factory=dict)
 
 

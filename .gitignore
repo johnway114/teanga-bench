@@ -19,4 +19,5 @@ build/
 data/cache/
 *.tgz
 results/mock/
+results/samples/
 .vercel

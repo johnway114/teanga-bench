@@ -166,16 +166,31 @@ unscored. It is not counted as wrong.
 
 ## Runs, intervals and cost
 
-- **Repeat runs.** Each item is run three times with the provider's default
-  settings. An item's score is the mean of its three runs.
+- **Core suite (v2).** New runs default to the four high-signal, non-saturated
+  tests (`blas/morphology`, `blas/translation`, `blas/tutor_accuracy`,
+  `tonada/tutor_accuracy`; 1,260 items). Three v1 tests remain on disk via
+  `--all-tests`: `tonada/exercises` (saturated at 98.0–99.6%),
+  `blas/lesson_exercises` (95.6–98.5% across top models, r=0.95 with
+  translation), and `blas/round_trip` (r=0.96 with translation at twice the call
+  count). The unreviewed Wikipedia revision slice in `tonada/tutor_accuracy`
+  was dropped in v2 after v1 runs showed grammatical style edits inverted model
+  rankings (32.6–43.9%, weaker models outscoring frontier models).
+- **Epochs and reasoning.** New runs ask each item once (`--epochs 1`) with
+  `--reasoning-effort low` (or a 512-token reasoning cap on models exposing
+  `reasoning` without `reasoning_effort`) to reflect interactive tutoring
+  latency and keep per-model cost in the $1–$6 range (or ~$1–$3 via direct
+  50%-off `--batch` APIs). Re-scoring all nine v1 runs on Epoch 1 alone moved
+  overall scores by at most 0.43 percentage points and widened overall 95%
+  intervals by 0.01–0.18 points. v1 runs used 3 epochs and provider-default
+  reasoning; results files record both `config.epochs` and
+  `config.reasoning_effort`.
 - **Confidence intervals.** Each score has a 95 percent interval from 2,000
   bootstrap resamples of the items. When two models' intervals overlap, do not
   read the difference between them as real.
-- **Consistency.** We report the share of items where the model gave the same
-  result in all three runs.
-- **Cost.** Prices are read from OpenRouter at the start of the run. We report
-  the cost of the run and the cost per correct answer. Each run has a hard
-  cost cap.
+- **Consistency.** Reported when `epochs >= 2` (null for 1-epoch runs).
+- **Cost.** Prices are read from OpenRouter at the start of the run (scaled by
+  0.5 for direct `--batch` runs). We report the cost of the run and the cost
+  per correct answer. Each run has a hard cost cap.
 - **Sampling.** Items are selected with a fixed random seed, spread evenly
   over languages and grammar topics. A rebuild from the same sources gives the
   same items.

@@ -86,7 +86,12 @@ def test_publish_refuses_other_staged_paths(repo):
 
 @pytest.mark.parametrize(
     ("kwargs", "message"),
-    [({"run_kind": "mock"}, "mock run"), ({"status": "cost_cap_reached"}, "only complete runs"), ({"status": "incomplete"}, "only complete runs")],
+    [
+        ({"run_kind": "mock"}, "mock run"),
+        ({"status": "cost_cap_reached"}, "only complete runs"),
+        ({"status": "incomplete"}, "only complete runs"),
+        ({"dataset": "public_sample"}, "only full-set runs"),
+    ],
 )
 def test_publish_refuses_mock_and_incomplete_runs(repo, kwargs, message):
     run = _write_run(repo, "a__model", fake_document("a/model", 0.7, **kwargs))
@@ -95,6 +100,13 @@ def test_publish_refuses_mock_and_incomplete_runs(repo, kwargs, message):
         publish_run(run, repo_root=repo, out=lambda _line: None)
     assert _git(repo, "rev-parse", "HEAD") == head
     assert not (repo / "site").exists()
+
+
+def test_run_publish_refuses_public_sample_and_smoke_before_running(fixture_root, capsys):
+    assert cli.main(["run", "--model", "openai/gpt-6-luna", "--data-root", str(fixture_root), "--publish"]) == cli.EXIT_USAGE
+    assert "data/private/ is missing" in capsys.readouterr().err
+    assert cli.main(["run", "--model", "openai/gpt-6-luna", "--limit", "2", "--publish"]) == cli.EXIT_USAGE
+    assert "refuses smoke runs" in capsys.readouterr().err
 
 
 def test_publish_refuses_files_outside_results_runs(repo, tmp_path):

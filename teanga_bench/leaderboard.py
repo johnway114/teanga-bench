@@ -98,7 +98,9 @@ def _truncated_share(document: dict[str, Any]) -> float | None:
     return truncation["n_truncated_item_epochs"] / truncation["n_item_epochs"]
 
 
-def summarise_run(document: dict[str, Any], current_pair: list[str]) -> dict[str, Any]:
+def summarise_run(
+    document: dict[str, Any], current_pair: list[str], *, allow_sample: bool = False
+) -> dict[str, Any]:
     tests: dict[str, Any] = {}
     kinds: set[str] = set()
     for suite_name, suite in document["suites"].items():
@@ -114,16 +116,24 @@ def summarise_run(document: dict[str, Any], current_pair: list[str]) -> dict[str
                 "cost_usd": block.get("cost_usd"),
             }
     overall = document.get("overall")
+    data = kinds.pop() if len(kinds) == 1 else "mixed"
+    config = document.get("config") or {}
     return {
         "model": document["model"]["id"],
         "family": document["model"].get("family"),
         "run_file": document["_file"],
         "run_kind": document["run_kind"],
         "status": document["status"],
-        "ranked": document["status"] == "complete" and overall is not None,
+        "ranked": (
+            document["status"] == "complete"
+            and overall is not None
+            and (data == "full" or allow_sample)
+        ),
         "generated_at": document["generated_at"],
-        "data": kinds.pop() if len(kinds) == 1 else "mixed",
-        "epochs": document["config"]["epochs"],
+        "data": data,
+        "epochs": config.get("epochs"),
+        "reasoning_effort": config.get("reasoning_effort"),
+        "batch": bool(config.get("batch")),
         "overall": _stat(overall),
         "cost_usd": document["cost"]["total_usd"],
         "suites": {name: _stat(suite.get("overall")) for name, suite in document["suites"].items()},
@@ -145,10 +155,16 @@ def _rank_key(entry: dict[str, Any]) -> tuple:
 
 
 def build_leaderboard(
-    runs: list[dict[str, Any]], skipped: list[str], judge_pair: list[str] | None = None
+    runs: list[dict[str, Any]],
+    skipped: list[str],
+    judge_pair: list[str] | None = None,
+    *,
+    allow_sample: bool = False,
 ) -> dict[str, Any]:
     current = list(judge_pair) if judge_pair is not None else [j.id for j in configured_judges()]
-    entries = sorted((summarise_run(run, current) for run in runs), key=_rank_key)
+    entries = sorted(
+        (summarise_run(run, current, allow_sample=allow_sample) for run in runs), key=_rank_key
+    )
     rank = 0
     for entry in entries:
         if entry["ranked"]:
@@ -163,9 +179,9 @@ def build_leaderboard(
         "benchmark_version": __version__,
         "generated_at": now_iso(),
         "note": (
-            "Only runs with status complete are ranked. Scores are means over items with a "
-            "95% bootstrap interval. Runs on public samples and runs on full sets are not "
-            "comparable; the data column says which. Explanation scores are judge-marked, "
+            "Only complete runs on full datasets are ranked. Scores are means over items with a "
+            "95% bootstrap interval. Runs on public samples are never ranked and are not comparable "
+            "with full-set runs. Explanation scores are judge-marked, "
             "not human-validated, and shown only for runs that used the current judge pair."
         ),
         "current_judges": current,
@@ -286,7 +302,7 @@ def write_leaderboard(
     runs_dir: Path, out_dir: Path, include_mock: bool = False, judge_pair: list[str] | None = None
 ) -> dict[str, Any]:
     runs, skipped = load_runs(runs_dir, include_mock=include_mock)
-    board = build_leaderboard(runs, skipped, judge_pair)
+    board = build_leaderboard(runs, skipped, judge_pair, allow_sample=include_mock)
     charts = build_charts(board)
     chart_dir = out_dir / "charts"
     chart_dir.mkdir(parents=True, exist_ok=True)

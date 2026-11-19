@@ -49,7 +49,7 @@ KAIKKI_LOCAL = {
     "scots-gaelic": BLAS_SOURCES / "scots-gaelic" / "kaikki-scottish-gaelic.jsonl",
 }
 
-ANSWER_FORMAT = "Reply with the answer on one line, in this exact form:\nANSWER: <answer>"
+ANSWER_FORMAT = "Reply with only this one line and nothing else:\nANSWER: <answer>"
 
 REQUIRED_METADATA = (
     "suite", "test", "scoring", "language", "l1", "phenomenon", "cefr",

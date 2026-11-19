@@ -36,6 +36,11 @@ def configured_judges() -> list[JudgeChoice]:
     return [JudgeChoice(id=item, family=family_of(item)) for item in ids]
 
 
+def configured_default_tests() -> list[str]:
+    """The default core tests from config/models.yaml (empty if unset)."""
+    return [str(item) for item in load_config().get("default_tests") or []]
+
+
 def family_of(model_id: str, families: dict[str, str] | None = None) -> str:
     """Family of an OpenRouter id: its provider prefix, mapped through the config."""
     table = load_config().get("families", {}) if families is None else families

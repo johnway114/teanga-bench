@@ -41,18 +41,23 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="teanga-bench", description=f"{BENCHMARK_NAME} {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    run = sub.add_parser("run", help="Benchmark one OpenRouter model on every test")
+    run = sub.add_parser("run", help="Benchmark one OpenRouter model on the core test suite")
     run.add_argument("--model", required=True, help="OpenRouter model id, for example openai/gpt-6-luna")
     run.add_argument("--max-cost", type=_money, default=None, help="Hard cap in USD on the run's total spend, candidate plus judges (default 5.00; with --resume, the earlier cap)")
-    run.add_argument("--epochs", type=int, default=None, help="Repeats per item (default 3)")
+    run.add_argument("--epochs", type=int, default=None, help="Repeats per item (default 1)")
     run.add_argument("--limit", type=int, default=None, help="Items per test, for smoke runs")
-    run.add_argument("--tests", nargs="+", default=None, metavar="NAME", help="Test names, or suite/test (default: all)")
-    run.add_argument("--output", type=Path, default=None, help="Results JSON path (default results/runs/<model with / as __>.json)")
+    run.add_argument("--tests", nargs="+", default=None, metavar="NAME", help="Test names, or suite/test (default: core v2 suite)")
+    run.add_argument("--all-tests", action="store_true", help="Run every discovered test, including retired v1 tests (lesson_exercises, round_trip, tonada/exercises)")
+    run.add_argument("--reasoning-effort", choices=("minimal", "low", "medium", "high", "none", "default"), default=None, help="Reasoning effort for supporting models (default: low; use 'default' for provider default)")
+    run.add_argument("--batch", action="store_true", help="Route openai/anthropic/google candidates through their direct 50%%-off Batch API (requires provider key and SDK)")
+    run.add_argument("--direct-model", default=None, help="With --batch: override the direct provider Inspect model id (for example google/gemini-4-neon)")
+    run.add_argument("--max-tokens", type=int, default=None, help="Override candidate max_tokens (default 16000, or 4096 in low-reasoning --batch mode)")
+    run.add_argument("--output", type=Path, default=None, help="Results JSON path (default results/runs/<model>.json for full runs, results/samples/<model>.json for sample-only runs)")
     run.add_argument("--data-root", type=Path, default=REPO_ROOT, help="Folder holding data/private/ and samples/")
     run.add_argument("--log-dir", type=Path, default=None, help="Where Inspect writes its logs (default logs/<model>-<UTC time>/)")
     run.add_argument("--resume", action="store_true", help="Finish the earlier incomplete run in --output: reuse every scored sample-epoch, run the rest")
     run.add_argument("--rerun-truncated", action="store_true", help="With --resume, also on a complete run: ask again every sample-epoch whose answer stopped at a lower token limit than the current one")
-    run.add_argument("--publish", action="store_true", help="After a complete live run, commit and push the results and site")
+    run.add_argument("--publish", action="store_true", help="After a complete full-set live run, commit and push the results and site")
 
     plan = sub.add_parser("resume-plan", help="Show what run --resume would reuse and run, and its estimated cost (read-only)")
     plan.add_argument("--model", required=True, help="OpenRouter model id of the incomplete run")
@@ -225,15 +230,34 @@ def _run(args: argparse.Namespace) -> int:
         RunOptions,
         is_mock,
         run_benchmark,
+        select_datasets,
     )
 
     if args.publish:
         if is_mock(args.model):
             print("error: --publish refuses mock runs", file=sys.stderr)
             return EXIT_USAGE
+        if args.limit is not None:
+            print("error: --publish refuses smoke runs with --limit", file=sys.stderr)
+            return EXIT_USAGE
         if args.output is not None and args.output.resolve().parent != RUNS.resolve():
             print("error: --publish needs the results in results/runs; drop --output", file=sys.stderr)
             return EXIT_USAGE
+        if not args.resume:
+            try:
+                selected = select_datasets(args.data_root, args.tests, all_tests=args.all_tests)
+            except KeyError as exc:
+                print(f"error: {exc.args[0] if exc.args else exc}", file=sys.stderr)
+                return EXIT_USAGE
+            sample_only = [dataset.name for dataset in selected if dataset.kind != "full"]
+            if sample_only:
+                print(
+                    "error: --publish requires full private datasets (data/private/ is missing for "
+                    + ", ".join(sample_only)
+                    + ")",
+                    file=sys.stderr,
+                )
+                return EXIT_USAGE
 
     options = RunOptions(
         model=args.model,
@@ -241,6 +265,11 @@ def _run(args: argparse.Namespace) -> int:
         epochs=args.epochs,
         limit=args.limit,
         tests=args.tests,
+        all_tests=args.all_tests,
+        reasoning_effort=args.reasoning_effort,
+        batch=args.batch,
+        direct_model=args.direct_model,
+        max_tokens=args.max_tokens,
         output=args.output,
         root=args.data_root,
         log_dir=args.log_dir,
@@ -261,6 +290,8 @@ def _run(args: argparse.Namespace) -> int:
     try:
         if is_mock(args.model):
             write_leaderboard(result.output.parent, result.output.parent / "board", include_mock=True)
+        elif result.output.resolve().parent != RUNS.resolve():
+            write_leaderboard(result.output.parent, result.output.parent / "board")
         else:
             write_leaderboard(RUNS, RESULTS)
     except Exception as exc:

@@ -25,6 +25,12 @@ def _assert_public_path(path: Path) -> None:
 
 def _copy_public_samples(dataset_dir: Path) -> list[str]:
     copied: list[str] = []
+    licence_note = SAMPLES_DIR / "LICENCE.md"
+    if licence_note.is_file():
+        dst_samples = dataset_dir / "samples"
+        dst_samples.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(licence_note, dst_samples / "LICENCE.md")
+        copied.append("samples/LICENCE.md")
     for suite in ("blas", "tonada"):
         src_suite = SAMPLES_DIR / suite
         _assert_public_path(src_suite)
@@ -71,7 +77,8 @@ def _write_dataset_readme(dataset_dir: Path, leaderboard: dict) -> None:
     table_md = "\n".join(rows)
 
     readme = f"""---
-license: apache-2.0
+license: other
+license_name: apache-2.0-code-mixed-sample-licences
 language:
   - ga
   - cy
@@ -104,8 +111,9 @@ Code, scoring rules, and build scripts live at [github.com/johnway114/teanga-ben
 
 ## What is in this dataset (and what is held out)
 
-- **Included here (`samples/`)**: 20 public sample items per test (140 items total across 7 tests) with per-file `*.ATTRIBUTION.md` licence notices, plus `results/leaderboard.json` and `results/runs/*.json` for all 9 evaluated models.
-- **Held out (`data/private/`)**: The full **2,260-item** evaluation sets (1,500 Blas items, 760 Tonada items, run over 3 epochs = 6,780 item-epochs per model) remain private and are **not** included in this repository or dataset bundle to prevent training-data contamination.
+- **Included here (`samples/`)**: 20 public sample items per test with per-file `*.ATTRIBUTION.md` licence notices and `samples/LICENCE.md`, plus `results/leaderboard.json` and `results/runs/*.json`. Because `samples/` is public, those sample rows (including excerpts tagged `private-blas` and `private-tonada`) are exposed to training data.
+- **Licences**: The code and metadata are Apache-2.0. Sample text in `samples/` is **not** covered by Apache-2.0 and retains each item's `metadata.licence` (including **GPL-3.0** for Gaelg Manx sentences, CC BY 2.0 FR, CC BY 4.0, OGL-v3, CC BY-SA 4.0, and Blas/Tonada sample excerpts).
+- **Held out (`data/private/`)**: The full evaluation sets remain private and are **not** included in this repository or dataset bundle to prevent training-data contamination.
 - **Human review status**: Every item in Teanga Bench has `human_checked: false`. No human expert signed off on the benchmark items; scores on app-derived tests measure agreement with the source app content, and tutor explanation scores are judge-marked (`deepseek/deepseek-v4.1-flash-1017` and `qwen/qwen3.8-flash`), not human-validated. Read the full [methodology](https://github.com/johnway114/teanga-bench/blob/main/docs/methodology.md) before citing a score.
 
 ## Leaderboard Summary (Full 2,260-item Held-Out Sets, 3 Epochs)

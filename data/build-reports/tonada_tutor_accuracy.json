@@ -14,38 +14,32 @@
     "vietnamese": 90
   },
   "by_phenomenon": {
-    "agreement": 36,
-    "agreement_or_plural": 22,
-    "article": 23,
-    "capitalisation": 1,
+    "agreement": 41,
+    "agreement_or_plural": 26,
+    "article": 7,
     "comparison": 3,
     "determiner_quantifier": 8,
-    "function_word": 3,
     "no_error": 120,
-    "omitted_auxiliary": 8,
-    "preposition": 38,
-    "pronoun_form": 5,
-    "relative_pronoun": 13,
-    "spelling": 1,
-    "verb_form": 72,
+    "omitted_auxiliary": 11,
+    "preposition": 36,
+    "pronoun_form": 6,
+    "relative_pronoun": 14,
+    "verb_form": 76,
     "word_class": 2,
-    "word_order": 5
+    "word_order": 10
   },
   "by_cefr": {
-    "A1": 56,
-    "A2": 56,
-    "B1": 97,
-    "B2": 107,
-    "None": 44
+    "A1": 62,
+    "A2": 68,
+    "B1": 118,
+    "B2": 112
   },
   "by_evidence": {
-    "tonada-app-answer-machine-reviewed": 106,
-    "tonada-app-distractor-machine-reviewed": 210,
-    "wikipedia-revision-silver-unreviewed": 44
+    "tonada-app-answer-machine-reviewed": 120,
+    "tonada-app-distractor-machine-reviewed": 240
   },
   "by_licence": {
-    "CC BY-SA 4.0 (Wikipedia text); MIT (WikiEdits-MultiGEC dataset, https://huggingface.co/datasets/lang-uk/WikiEdits-MultiGEC)": 44,
-    "private-tonada": 316
+    "private-tonada": 360
   },
   "human_checked": 0,
   "per_l1_sources": {
@@ -53,41 +47,41 @@
       "screen_distractor_candidates": 40,
       "drill_distractor_candidates": 81,
       "wiki_candidates": 8,
-      "distractors_used": 52,
-      "wiki_errors_used": 8,
-      "clean_wiki": 4,
-      "clean_screens": 26,
-      "clean_screen_candidates": 476
+      "distractors_used": 60,
+      "wiki_errors_used": 0,
+      "clean_wiki": 0,
+      "clean_screens": 30,
+      "clean_screen_candidates": 475
     },
     "spanish": {
       "screen_distractor_candidates": 40,
       "drill_distractor_candidates": 81,
       "wiki_candidates": 8,
-      "distractors_used": 52,
-      "wiki_errors_used": 8,
-      "clean_wiki": 4,
-      "clean_screens": 26,
-      "clean_screen_candidates": 477
+      "distractors_used": 60,
+      "wiki_errors_used": 0,
+      "clean_wiki": 0,
+      "clean_screens": 30,
+      "clean_screen_candidates": 475
     },
     "vietnamese": {
       "screen_distractor_candidates": 40,
       "drill_distractor_candidates": 82,
       "wiki_candidates": 7,
-      "distractors_used": 53,
-      "wiki_errors_used": 7,
-      "clean_wiki": 3,
-      "clean_screens": 27,
+      "distractors_used": 60,
+      "wiki_errors_used": 0,
+      "clean_wiki": 0,
+      "clean_screens": 30,
       "clean_screen_candidates": 476
     },
     "japanese": {
       "screen_distractor_candidates": 41,
       "drill_distractor_candidates": 80,
       "wiki_candidates": 7,
-      "distractors_used": 53,
-      "wiki_errors_used": 7,
-      "clean_wiki": 3,
-      "clean_screens": 27,
-      "clean_screen_candidates": 476
+      "distractors_used": 60,
+      "wiki_errors_used": 0,
+      "clean_wiki": 0,
+      "clean_screens": 30,
+      "clean_screen_candidates": 475
     }
   },
   "shortfalls": {
@@ -105,12 +99,12 @@
         "got": 30
       },
       "distractor_errors": {
-        "minimum": 40,
-        "got": 52
+        "minimum": 60,
+        "got": 60
       },
       "real_revision_errors": {
-        "max": 20,
-        "got": 8
+        "max": 0,
+        "got": 0
       }
     },
     "spanish": {
@@ -127,12 +121,12 @@
         "got": 30
       },
       "distractor_errors": {
-        "minimum": 40,
-        "got": 52
+        "minimum": 60,
+        "got": 60
       },
       "real_revision_errors": {
-        "max": 20,
-        "got": 8
+        "max": 0,
+        "got": 0
       }
     },
     "vietnamese": {
@@ -149,12 +143,12 @@
         "got": 30
       },
       "distractor_errors": {
-        "minimum": 40,
-        "got": 53
+        "minimum": 60,
+        "got": 60
       },
       "real_revision_errors": {
-        "max": 20,
-        "got": 7
+        "max": 0,
+        "got": 0
       }
     },
     "japanese": {
@@ -171,53 +165,45 @@
         "got": 30
       },
       "distractor_errors": {
-        "minimum": 40,
-        "got": 53
+        "minimum": 60,
+        "got": 60
       },
       "real_revision_errors": {
-        "max": 20,
-        "got": 7
+        "max": 0,
+        "got": 0
       }
     }
   },
   "by_l1_error_origin": {
     "japanese": {
       "None": 30,
-      "exercise-distractor": 53,
-      "real-revision-edit": 7
+      "exercise-distractor": 60
     },
     "portuguese": {
       "None": 30,
-      "exercise-distractor": 52,
-      "real-revision-edit": 8
+      "exercise-distractor": 60
     },
     "spanish": {
       "None": 30,
-      "exercise-distractor": 52,
-      "real-revision-edit": 8
+      "exercise-distractor": 60
     },
     "vietnamese": {
       "None": 30,
-      "exercise-distractor": 53,
-      "real-revision-edit": 7
+      "exercise-distractor": 60
     }
   },
   "by_l1_source_status": {
     "japanese": {
-      "silver-unreviewed": 10,
-      "verified": 80
+      "verified": 90
     },
     "portuguese": {
-      "silver-unreviewed": 12,
-      "verified": 78
+      "verified": 90
     },
     "spanish": {
-      "silver-unreviewed": 12,
-      "verified": 78
+      "verified": 90
     },
     "vietnamese": {
-      "silver-unreviewed": 10,
-      "verified": 80
+      "verified": 90
     }
   },
   "by_l1_has_error": {
@@ -290,5 +276,6 @@
     "Documents/blas/blas-gec-artifacts/sealed-candidates/english/manifest.json",
     "Documents/blas-english/data/sources/tatoeba/eng_sentences_detailed.tsv.bz2"
   ],
-  "licence_note": "Wikipedia pair items carry the licence in WIKI_LICENCE: the text is Wikipedia revision text (CC BY-SA 4.0, attribution and share-alike apply) and the WikiEdits-MultiGEC dataset is MIT; the pairs are silver-unreviewed and evaluation-only. Tatoeba (CC BY 2.0 FR) is used for lookup counts only."
+  "wiki_excluded_reason": "Unreviewed WikiEdits-MultiGEC revision pairs included grammatical style edits and inverted model rankings in v1; excluded in v2.",
+  "licence_note": "Tonada tutor items are private-tonada machine-reviewed app content. Tatoeba (CC BY 2.0 FR) is used for lookup counts only."
 }

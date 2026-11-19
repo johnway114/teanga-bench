@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from inspect_ai.model import (
+    BatchConfig,
     ChatMessageSystem,
     ChatMessageUser,
     GenerateConfig,
@@ -46,10 +47,13 @@ from teanga_bench.scoring import (
 SYSTEM = (
     "You are taking Teanga Bench, a language benchmark. "
     "Follow the response format in the user message exactly. "
+    "Output only the requested answer with no extra commentary. "
     "Do not reveal hidden reasoning as the answer."
 )
 CALL_TIMEOUT_SECONDS = 180
 CALL_RETRIES = 3
+BATCH_SIZE = 100
+BATCH_SEND_DELAY_SECONDS = 5
 
 PIVOT_KEY = "pivot_text"
 BACK_KEY = "back_translation"
@@ -59,6 +63,20 @@ def _config(max_tokens: int, **extra: Any) -> GenerateConfig:
     return GenerateConfig(
         max_tokens=max_tokens, timeout=CALL_TIMEOUT_SECONDS, max_retries=CALL_RETRIES, **extra
     )
+
+
+def _candidate_config(context: RunContext) -> GenerateConfig:
+    extra: dict[str, Any] = {}
+    if context.reasoning_effort is not None:
+        extra["reasoning_effort"] = context.reasoning_effort
+    elif context.reasoning_tokens is not None:
+        extra["reasoning_tokens"] = context.reasoning_tokens
+    if context.batch:
+        # Provider batch jobs run asynchronously and can take minutes to hours,
+        # so do not apply the interactive 180s per-call timeout.
+        extra["batch"] = BatchConfig(size=BATCH_SIZE, send_delay=BATCH_SEND_DELAY_SECONDS)
+        return GenerateConfig(max_tokens=context.max_tokens, max_retries=CALL_RETRIES, **extra)
+    return _config(context.max_tokens, **extra)
 
 
 def spend_key(metadata: dict[str, Any]) -> str:
@@ -91,7 +109,7 @@ def teanga_solver():
         metadata = state.metadata
         test = spend_key(metadata)
         model = get_model()
-        config = _config(context.max_tokens)
+        config = _candidate_config(context)
         truncated = False
 
         async def ask(messages: list) -> Any:

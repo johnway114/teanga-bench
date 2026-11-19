@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+batch = ["anthropic>=0.40", "google-genai>=1.0"]
 
 [project.scripts]
 teanga-bench = "teanga_bench.cli:main"

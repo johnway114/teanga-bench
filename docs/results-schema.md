@@ -54,12 +54,15 @@ price, so the cap errs towards stopping early.
 ### `config`
 
 `epochs`, `limit`, `max_cost_usd`, `max_tokens` (`candidate`, `judge`),
+`reasoning_effort` (`"minimal"`, `"low"`, `"medium"`, `"high"`, `"none"`,
+`"default"`, `"tokens:<N>"`, or `"unsupported"`), `batch` (boolean),
 `temperature` (`"provider default"`), `bootstrap` (`seed`, `resamples`,
 `confidence`), `tests` (names run), `pricing_source`, `dataset_hashes` (map of
 `suite/test` to `"sha256:<hex>"` of the dataset file, so a resume can refuse a
 changed dataset), and `log_dir` (the first attempt's Inspect log folder,
 relative to the repo when inside it). Files written before resume support have
-neither `dataset_hashes` nor `log_dir`.
+neither `dataset_hashes` nor `log_dir`, and v1 files omit `reasoning_effort`
+and `batch`.
 
 ### `judge_info`
 

@@ -31,6 +31,14 @@ def check_publishable(document: dict[str, Any], name: str) -> None:
         raise PublishError(f"{name} is a {document.get('run_kind') or 'unknown'} run; only live runs are published.")
     if document.get("status") != "complete":
         raise PublishError(f"{name} has status {document.get('status')!r}; only complete runs are published.")
+    kinds = {
+        block.get("dataset", "full")
+        for suite in (document.get("suites") or {}).values()
+        for block in (suite.get("tests") or {}).values()
+    }
+    if not kinds or kinds != {"full"}:
+        found = ", ".join(sorted(kinds)) or "none"
+        raise PublishError(f"{name} used {found} data; only full-set runs are published.")
 
 
 def allowed_path(path: str) -> bool:

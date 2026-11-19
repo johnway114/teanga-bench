@@ -262,14 +262,14 @@ def test_unranked_and_mock_runs_are_not_shown(tmp_path):
     assert not (out / "blas" / "models" / "c-capped.html").exists()
 
 
-def test_public_sample_runs_are_labelled(tmp_path):
+def test_public_sample_runs_are_not_ranked(tmp_path):
     results = _results(tmp_path, {"s__sample": fake_document("s/sample", 0.6, dataset="public_sample")})
     out = tmp_path / "site"
-    build_site(results, out, repo_root=_repo(tmp_path))
-    assert "public sample" in _read(out / "blas" / "index.html")
-    assert "public sample" in _read(out / "blas" / "models.html")
-    model = _read(out / "blas" / "models" / "s-sample.html")
-    assert "not comparable with full-set runs" in model
+    summary = build_site(results, out, repo_root=_repo(tmp_path))
+    assert summary["suites"]["blas"]["ranked"] == 0
+    assert summary["suites"]["tonada"]["ranked"] == 0
+    assert not (out / "blas" / "models" / "s-sample.html").exists()
+    assert "s/sample" not in _read(out / "blas" / "index.html")
 
 
 def test_explanations_from_another_judge_pair_are_not_compared(tmp_path):

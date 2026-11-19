@@ -13,6 +13,15 @@ judges:
   - deepseek/deepseek-v4.1-flash-1017
   - qwen/qwen3.8-flash
 
+# Default core tests for new runs (v2). Saturated or redundant v1 tests
+# (blas/lesson_exercises, blas/round_trip, tonada/exercises) remain on disk
+# and can still be run explicitly via --all-tests or --tests <name>.
+default_tests:
+  - blas/morphology
+  - blas/translation
+  - blas/tutor_accuracy
+  - tonada/tutor_accuracy
+
 # OpenRouter provider prefix (the part before "/") to model family.
 # A prefix that is not listed is its own family. A leading "~" is ignored.
 families:

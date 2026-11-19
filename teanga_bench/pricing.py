@@ -53,6 +53,15 @@ class Pricing:
             total += self.prompt * cache_write_tokens
         return total
 
+    def scaled(self, factor: Decimal) -> "Pricing":
+        """Scale every listed price by ``factor`` (for example 0.5 for provider Batch APIs)."""
+        return Pricing(
+            prompt=self.prompt * factor,
+            completion=self.completion * factor,
+            cache_read=None if self.cache_read is None else self.cache_read * factor,
+            cache_write=None if self.cache_write is None else self.cache_write * factor,
+        )
+
     def as_dict(self) -> dict[str, float | None]:
         def number(value: Decimal | None) -> float | None:
             return None if value is None else float(value)
@@ -86,6 +95,12 @@ class Catalog:
                 f"({self.source}, read {self.retrieved_at}). Check the id for typos."
             )
         return pricing_from_entry(model_id, self.entries[model_id])
+
+    def supported_parameters(self, model_id: str) -> set[str]:
+        """Parameters the live OpenRouter entry advertises for ``model_id``."""
+        entry = self.entries.get(model_id) or {}
+        raw = entry.get("supported_parameters") or []
+        return {str(param) for param in raw if isinstance(param, str)}
 
 
 def _decimal(value: Any) -> Decimal | None:

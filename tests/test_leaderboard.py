@@ -102,6 +102,23 @@ def test_mock_runs_can_be_included_on_request(tmp_path):
     assert len(load_runs(runs, include_mock=True)[0]) == 1
 
 
+def test_public_sample_runs_are_not_ranked_or_charted(tmp_path):
+    runs, out = tmp_path / "runs", tmp_path / "out"
+    full = fake_run("a/full", 0.7, 0.2)
+    sample = fake_run("b/sample", 0.95, 0.05)
+    for suite in sample["suites"].values():
+        for block in suite["tests"].values():
+            block["dataset"] = "public_sample"
+    _write(runs, "a__full", full)
+    _write(runs, "b__sample", sample)
+    board = write_leaderboard(runs, out)
+    by_model = {m["model"]: m for m in board["models"]}
+    assert by_model["a/full"]["ranked"] is True and by_model["a/full"]["rank"] == 1
+    assert by_model["b/sample"]["ranked"] is False and by_model["b/sample"]["rank"] is None
+    svg = (out / "charts" / "suite-blas.svg").read_text(encoding="utf-8")
+    assert "a/full" in svg and "b/sample" not in svg
+
+
 def test_empty_runs_directory_still_writes_a_valid_leaderboard(tmp_path):
     board = write_leaderboard(tmp_path / "none", tmp_path / "out")
     assert board["models"] == []

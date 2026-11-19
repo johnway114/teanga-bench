@@ -62,15 +62,11 @@ SEALED = GEC_ARTIFACTS / "sealed-celtic-clean-600-v3"
 CEFR = {"A1", "A2", "B1", "B2", "C1", "C2"}
 
 PROMPT = (
-    "You are a {name} language tutor checking a sentence written by a learner.\n"
-    "Language: {name}\n"
-    "The sentence may contain one error, or it may already be correct.\n"
-    "If it has an error, change only that one error: give the exact erroneous "
-    "substring and the replacement for it. If it is correct, set has_error to "
-    "false, leave error_span and correction empty and repeat the sentence as "
-    "corrected_sentence.\n"
+    "Check this {name} learner sentence for at most one error.\n"
     "Sentence: {sentence}\n"
-    "Reply with one JSON object and nothing else:\n"
+    "If wrong: fix only that error (exact error_span, correction, corrected_sentence). "
+    "If correct: set has_error false, leave error_span and correction empty, repeat sentence as corrected_sentence.\n"
+    "Reply with one JSON object only:\n"
     '{{"has_error": true|false, "error_span": "...", "correction": "...", '
     '"corrected_sentence": "...", "explanation": "..."}}\n'
 )

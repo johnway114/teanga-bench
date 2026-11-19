@@ -10,6 +10,11 @@ version: "0.2.1"
 doi: "10.5281/zenodo.24305705"
 date-released: "2026-11-17"
 license: Apache-2.0
+comment: >-
+  Apache-2.0 applies to the harness code, scripts, and documentation only.
+  Public sample text in samples/ retains the per-item licence recorded on each
+  row and in samples/LICENCE.md (including GPL-3.0 for Gaelg Manx sentences,
+  CC BY 2.0 FR, CC BY 4.0, OGL-v3, CC BY-SA 4.0, and private app sample excerpts).
 repository-code: "https://github.com/johnway114/teanga-bench"
 repository-artifact: "https://huggingface.co/datasets/johnconway114/teanga-bench"
 url: "https://research.blasapp.com"

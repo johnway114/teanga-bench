@@ -67,9 +67,12 @@ EXERCISE_PER_L1 = 100
 EXERCISE_DRILLS_PER_L1 = 60  # remainder from choose screens; shortfalls are refilled from the other kind
 TUTOR_PER_L1 = 90
 TUTOR_CLEAN_PER_L1 = 30
-TUTOR_WIKI_ERROR_MAX = 20
-TUTOR_WIKI_CLEAN_PER_L1 = 10  # at most; about half the wiki error count so the Wikipedia domain is not a cue
-TUTOR_DISTRACTOR_MIN = 40
+# Unreviewed Wikipedia revision pairs included grammatical style edits and
+# inverted model rankings in v1; excluded in v2 so Tonada tutor uses only
+# machine-reviewed app items.
+TUTOR_WIKI_ERROR_MAX = 0
+TUTOR_WIKI_CLEAN_PER_L1 = 0
+TUTOR_DISTRACTOR_MIN = 60
 WIKI_LICENCE = (
     "CC BY-SA 4.0 (Wikipedia text); MIT (WikiEdits-MultiGEC dataset, "
     "https://huggingface.co/datasets/lang-uk/WikiEdits-MultiGEC)"
@@ -587,16 +590,12 @@ def assert_single_edit(item: dict[str, Any]) -> None:
 def tutor_prompt(l1: str, sentence: str) -> str:
     name = L1_NAME[l1]
     return (
-        f"A learner of English whose first language is {name} wrote the English sentence below. "
-        "The sentence may contain one error, or it may be correct.\n\n"
-        f"Sentence: {sentence}\n\n"
-        "Decide whether the sentence has an error. If it does, give the exact words that are wrong (error_span), "
-        "the words that should replace them (correction) and the whole corrected sentence (corrected_sentence). "
-        "If the sentence is correct, set has_error to false, leave error_span and correction empty, and copy the "
-        "sentence into corrected_sentence. "
-        f"Write the explanation in {name}, in one or two short sentences saying what is wrong and why, or why the "
-        "sentence is correct. Every other field stays in English.\n\n"
-        "Reply with one JSON object and nothing else, in this form:\n"
+        f"Check this English sentence from a {name} learner for at most one error.\n"
+        f"Sentence: {sentence}\n"
+        "If wrong: set has_error true, give exact error_span, correction, and corrected_sentence. "
+        "If correct: set has_error false, leave error_span and correction empty, copy sentence into corrected_sentence. "
+        f"Write explanation in {name} (1-2 short sentences); all other fields in English.\n"
+        "Reply with one JSON object only:\n"
         '{"has_error": true|false, "error_span": "...", "correction": "...", "corrected_sentence": "...", "explanation": "..."}\n'
     )
 
@@ -1525,10 +1524,13 @@ def build_tutor(src: Source) -> tuple[list[dict[str, Any]], dict[str, Any]]:
             home_relative(SCREENS), home_relative(SCREENS_REVIEW), home_relative(WIKI_ERROR),
             home_relative(WIKI_CLEAN), home_relative(WIKI_MANIFEST), home_relative(TATOEBA),
         ],
+        "wiki_excluded_reason": (
+            "Unreviewed WikiEdits-MultiGEC revision pairs included grammatical style edits and "
+            "inverted model rankings in v1; excluded in v2."
+        ),
         "licence_note": (
-            "Wikipedia pair items carry the licence in WIKI_LICENCE: the text is Wikipedia revision text (CC BY-SA 4.0, "
-            "attribution and share-alike apply) and the WikiEdits-MultiGEC dataset is MIT; the pairs are silver-unreviewed "
-            "and evaluation-only. Tatoeba (CC BY 2.0 FR) is used for lookup counts only."
+            "Tonada tutor items are private-tonada machine-reviewed app content. Tatoeba (CC BY 2.0 FR) "
+            "is used for lookup counts only."
         ),
     }
     return final, report

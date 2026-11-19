@@ -17,12 +17,16 @@ from typing import Any
 from inspect_ai import eval as inspect_eval
 from inspect_ai.model import Model
 
-from teanga_bench.apikey import export_api_key
+from teanga_bench.apikey import check_direct_batch_ready, export_api_key
 from teanga_bench.context import (
     CANDIDATE_MAX_TOKENS,
+    DEFAULT_REASONING_EFFORT,
     JUDGE_MAX_TOKENS,
     JUDGE_RETRIES,
     LEGACY_CANDIDATE_MAX_TOKENS,
+    LOW_REASONING_MAX_TOKENS,
+    REASONING_EFFORT_VALUES,
+    REASONING_TOKEN_BUDGETS,
     JudgeSpec,
     Replay,
     RunContext,
@@ -44,7 +48,7 @@ from teanga_bench.export import (
     now_iso,
     score_of,
 )
-from teanga_bench.models_config import JudgeChoice, configured_judges, family_of
+from teanga_bench.models_config import JudgeChoice, configured_default_tests, configured_judges, family_of
 from teanga_bench.paths import LOGS, REPO_ROOT, RESULTS, RUNS, safe_name
 from teanga_bench.pricing import MODELS_URL, Catalog, Pricing, fetch_catalog
 from teanga_bench.resume import (
@@ -63,9 +67,11 @@ from teanga_bench.resume import (
 from teanga_bench.stats import CONFIDENCE, RESAMPLES, SEED
 
 MAX_CONNECTIONS = 8
+BATCH_MAX_CONNECTIONS = 100
+BATCH_DISCOUNT = Decimal("0.5")
 MOCK_PREFIX = "mockllm/"
 DEFAULT_MAX_COST = Decimal("5.00")
-DEFAULT_EPOCHS = 3
+DEFAULT_EPOCHS = 1
 
 STATUS_COMPLETE = "complete"
 STATUS_CAP = "cost_cap_reached"
@@ -80,9 +86,14 @@ class RunError(RuntimeError):
 class RunOptions:
     model: str
     max_cost: Decimal | None = None  # None: 5.00, or the earlier cap when resuming
-    epochs: int | None = None  # None: 3, or the earlier value when resuming
+    epochs: int | None = None  # None: 1, or the earlier value when resuming
     limit: int | None = None
     tests: list[str] | None = None
+    all_tests: bool = False  # include retired v1 tests alongside the default core suite
+    reasoning_effort: str | None = None  # None: "low", or the earlier value when resuming
+    batch: bool = False  # route openai/anthropic/google through direct 50%-off Batch API
+    direct_model: str | None = None  # explicit direct Inspect model id for --batch
+    max_tokens: int | None = None  # optional override for candidate max_tokens
     output: Path | None = None
     root: Path = REPO_ROOT
     log_dir: Path | None = None
@@ -108,9 +119,65 @@ def is_mock(model: str) -> bool:
     return model.startswith(MOCK_PREFIX)
 
 
-def default_output(model: str) -> Path:
-    # Mock runs never go to results/runs/, so they cannot reach the real leaderboard.
-    return (RESULTS / "mock" if is_mock(model) else RUNS) / f"{safe_name(model)}.json"
+def default_output(model: str, *, sample_only: bool = False) -> Path:
+    # Mock and public-sample runs never go to results/runs/, so they cannot reach the real leaderboard.
+    if is_mock(model):
+        folder = RESULTS / "mock"
+    elif sample_only:
+        folder = RESULTS / "samples"
+    else:
+        folder = RUNS
+    return folder / f"{safe_name(model)}.json"
+
+
+def select_datasets(
+    root: Path, requested: list[str] | None, *, all_tests: bool = False
+) -> list[DatasetFile]:
+    """Select datasets to run: explicit list, all tests, or configured default core tests."""
+    discovered = discover(root)
+    if requested is not None:
+        return select(discovered, requested)
+    if all_tests:
+        return select(discovered, None)
+    defaults = configured_default_tests()
+    known = {dataset.name for dataset in discovered.values()}
+    if defaults and all(name in known for name in defaults):
+        return select(discovered, defaults)
+    return select(discovered, None)
+
+
+def _resolve_reasoning(
+    requested: str,
+    model: str,
+    catalog: Catalog | None,
+    *,
+    mock: bool,
+    batch: bool,
+) -> tuple[str | None, int | None, str]:
+    """Return (reasoning_effort, reasoning_tokens, recorded_label) for candidate calls."""
+    if requested == "default":
+        return None, None, "default"
+    if requested == "unsupported":
+        return None, None, "unsupported"
+    if requested.startswith("tokens:"):
+        try:
+            budget = int(requested.split(":", 1)[1])
+        except ValueError as exc:
+            raise RunError(f"invalid saved reasoning setting {requested!r}") from exc
+        return None, budget, requested
+    if requested not in REASONING_EFFORT_VALUES:
+        allowed = ", ".join(REASONING_EFFORT_VALUES)
+        raise RunError(f"--reasoning-effort must be one of {allowed} (got {requested!r})")
+    if mock or batch:
+        return requested, None, requested
+    supported = catalog.supported_parameters(model) if catalog is not None else set()
+    if not supported or "reasoning_effort" in supported:
+        return requested, None, requested
+    if "reasoning" in supported:
+        budget = REASONING_TOKEN_BUDGETS.get(requested)
+        if budget is not None:
+            return None, budget, f"tokens:{budget}"
+    return None, None, "unsupported"
 
 
 def _judges_for_run(
@@ -140,7 +207,11 @@ class _Settings:
     epochs: int
     limit: int | None
     tests: list[str] | None
+    all_tests: bool
     max_cost: Decimal
+    reasoning_effort: str
+    batch: bool
+    candidate_max_tokens: int
     rerun_below: int | None = None  # rerun sample-epochs truncated under a lower answer limit
 
 
@@ -152,15 +223,30 @@ class _Attempt:
     rerun_limits: set[int] = field(default_factory=set)  # limits the rerun truncated sample-epochs had
 
 
+def _candidate_max_tokens(options: RunOptions, reasoning_effort: str, batch: bool) -> int:
+    if options.max_tokens is not None:
+        if options.max_tokens < 1:
+            raise RunError("--max-tokens must be at least 1")
+        return options.max_tokens
+    if batch and reasoning_effort in ("minimal", "low", "none"):
+        return LOW_REASONING_MAX_TOKENS
+    return CANDIDATE_MAX_TOKENS
+
+
 def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
     if options.rerun_truncated and previous is None:
         raise RunError("--rerun-truncated works only with --resume")
     if previous is None:
+        effort = DEFAULT_REASONING_EFFORT if options.reasoning_effort is None else options.reasoning_effort
         return _Settings(
             epochs=DEFAULT_EPOCHS if options.epochs is None else options.epochs,
             limit=options.limit,
             tests=options.tests,
+            all_tests=options.all_tests,
             max_cost=DEFAULT_MAX_COST if options.max_cost is None else options.max_cost,
+            reasoning_effort=effort,
+            batch=options.batch,
+            candidate_max_tokens=_candidate_max_tokens(options, effort, options.batch),
         )
     config = previous.config
     if previous.document["status"] == STATUS_COMPLETE and not options.rerun_truncated:
@@ -169,11 +255,19 @@ def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
             "(add --rerun-truncated to ask again the answers cut off by a lower token limit)"
         )
     saved_tests = list(config["tests"])
+    saved_effort = str(config.get("reasoning_effort") or "default")
+    saved_batch = bool(config.get("batch", False))
     conflicts = []
     if options.epochs is not None and options.epochs != config["epochs"]:
         conflicts.append(f"--epochs {options.epochs} (the run used {config['epochs']})")
     if options.limit is not None and options.limit != config.get("limit"):
         conflicts.append(f"--limit {options.limit} (the run used {config.get('limit')})")
+    if options.reasoning_effort is not None and options.reasoning_effort != saved_effort:
+        conflicts.append(
+            f"--reasoning-effort {options.reasoning_effort} (the run used {saved_effort})"
+        )
+    if options.batch and not saved_batch:
+        conflicts.append("--batch (the run did not use --batch)")
     if options.tests is not None:
         try:
             chosen = [d.name for d in select(discover(options.root), options.tests)]
@@ -183,12 +277,17 @@ def _settings(options: RunOptions, previous: PreviousRun | None) -> _Settings:
             conflicts.append(f"--tests {' '.join(options.tests)} (the run used {' '.join(saved_tests)})")
     if conflicts:
         raise RunError("--resume keeps the settings of the first attempt; drop " + ", ".join(conflicts))
+    max_tokens = _candidate_max_tokens(options, saved_effort, saved_batch)
     return _Settings(
         epochs=int(config["epochs"]),
         limit=config.get("limit"),
         tests=saved_tests,
+        all_tests=False,
         max_cost=Decimal(str(config["max_cost_usd"])) if options.max_cost is None else options.max_cost,
-        rerun_below=CANDIDATE_MAX_TOKENS if options.rerun_truncated else None,
+        reasoning_effort=saved_effort,
+        batch=saved_batch,
+        candidate_max_tokens=max_tokens,
+        rerun_below=max_tokens if options.rerun_truncated else None,
     )
 
 
@@ -221,9 +320,13 @@ def run_benchmark(
 ) -> RunResult:
     """Run the benchmark. ``catalog``, ``inspect_model`` and ``backoff`` are for tests."""
     mock = is_mock(options.model)
-    output = options.output or default_output(options.model)
     previous: PreviousRun | None = None
+    output = options.output
     if options.resume:
+        if output is None:
+            candidate_out = default_output(options.model)
+            sample_out = default_output(options.model, sample_only=True)
+            output = candidate_out if candidate_out.is_file() or not sample_out.is_file() else sample_out
         search = ([options.log_dir] if options.log_dir is not None else []) + [options.logs_root]
         try:
             previous = load_previous_run(output, options.model, search)
@@ -235,12 +338,15 @@ def run_benchmark(
     if settings.max_cost <= 0:
         raise RunError("--max-cost must be above 0")
 
-    datasets = select(discover(options.root), settings.tests)
+    datasets = select_datasets(options.root, settings.tests, all_tests=settings.all_tests)
     if not datasets:
         raise RunError(
             "No datasets found. Put full sets in data/private/<suite>/<test>.jsonl "
             "or samples in samples/<suite>/<test>.jsonl."
         )
+    if output is None:
+        sample_only = any(dataset.kind != "full" for dataset in datasets)
+        output = default_output(options.model, sample_only=sample_only)
     dataset_check: str | None = None
     if previous is not None:
         try:
@@ -253,6 +359,8 @@ def run_benchmark(
     if mock:
         model_pricing = options.mock_pricing
         if model_pricing is not None:
+            if settings.batch:
+                model_pricing = model_pricing.scaled(BATCH_DISCOUNT)
             prices[options.model] = model_pricing
         model_block = {
             "id": options.model,
@@ -266,17 +374,34 @@ def run_benchmark(
             model_pricing = catalog.pricing(options.model)
         except Exception as exc:
             raise RunError(str(exc)) from exc
+        if settings.batch:
+            try:
+                inspect_id = check_direct_batch_ready(options.model)
+            except Exception as exc:
+                raise RunError(str(exc)) from exc
+            if options.direct_model:
+                inspect_id = options.direct_model
+            model_pricing = model_pricing.scaled(BATCH_DISCOUNT)
+        else:
+            inspect_id = f"openrouter/{options.model}"
         prices[options.model] = model_pricing
+        pricing_block: dict[str, Any] = {
+            **model_pricing.as_dict(),
+            "source": catalog.source,
+            "retrieved_at": catalog.retrieved_at,
+        }
+        if settings.batch:
+            pricing_block["batch_discount"] = float(BATCH_DISCOUNT)
         model_block = {
             "id": options.model,
             "family": family_of(options.model),
-            "inspect_id": f"openrouter/{options.model}",
-            "pricing": {
-                **model_pricing.as_dict(),
-                "source": catalog.source,
-                "retrieved_at": catalog.retrieved_at,
-            },
+            "inspect_id": inspect_id,
+            "pricing": pricing_block,
         }
+
+    reasoning_effort, reasoning_tokens, reasoning_label = _resolve_reasoning(
+        settings.reasoning_effort, options.model, catalog, mock=mock, batch=settings.batch
+    )
 
     try:
         judge_specs, judge_choices, explanation_status = _judges_for_run(options, catalog)
@@ -306,7 +431,8 @@ def run_benchmark(
                 "retrieved_at": catalog.retrieved_at,
             }
 
-    if not mock:
+    needs_openrouter = (not settings.batch) or bool(judge_specs)
+    if not mock and needs_openrouter:
         try:
             export_api_key()
         except Exception as exc:
@@ -323,7 +449,13 @@ def run_benchmark(
             )
         guard.carry_forward(by_test, by_model, carried_total)
     context = RunContext(
-        guard=guard, candidate_id=options.model, judges=judge_specs, max_tokens=CANDIDATE_MAX_TOKENS
+        guard=guard,
+        candidate_id=options.model,
+        judges=judge_specs,
+        max_tokens=settings.candidate_max_tokens,
+        reasoning_effort=reasoning_effort,
+        reasoning_tokens=reasoning_tokens,
+        batch=settings.batch,
     )
     set_context(context)
 
@@ -372,7 +504,7 @@ def run_benchmark(
         if asked == 0:
             raise RunError(
                 f"nothing to re-run: no sample-epoch of {previous.results_path} stopped at an answer "
-                f"limit below {CANDIDATE_MAX_TOKENS} tokens"
+                f"limit below {settings.candidate_max_tokens} tokens"
             )
 
     all_blocks = [o.block for o in outcomes] + not_run
@@ -389,7 +521,9 @@ def run_benchmark(
         "epochs": settings.epochs,
         "limit": settings.limit,
         "max_cost_usd": float(settings.max_cost),
-        "max_tokens": {"candidate": CANDIDATE_MAX_TOKENS, "judge": JUDGE_MAX_TOKENS},
+        "max_tokens": {"candidate": settings.candidate_max_tokens, "judge": JUDGE_MAX_TOKENS},
+        "reasoning_effort": reasoning_label,
+        "batch": settings.batch,
         "temperature": "provider default",
         "bootstrap": {"seed": SEED, "resamples": RESAMPLES, "confidence": CONFIDENCE},
         "tests": [dataset.name for dataset in datasets],
@@ -417,7 +551,7 @@ def run_benchmark(
             "cost_usd": float(guard.spent - carried_total),
             "log_dir": display_path(log_dir),
             "prices_retrieved_at": catalog.retrieved_at if catalog is not None and not mock else None,
-            "candidate_max_tokens": CANDIDATE_MAX_TOKENS,
+            "candidate_max_tokens": settings.candidate_max_tokens,
             "dataset_check": dataset_check,
             "sample_epochs": totals,
             "tests": attempt.counts,
@@ -426,14 +560,14 @@ def run_benchmark(
         if totals["rerun_truncated"]:
             record["truncation_rerun"] = {
                 "old_limit": min(attempt.rerun_limits),
-                "new_limit": CANDIDATE_MAX_TOKENS,
+                "new_limit": settings.candidate_max_tokens,
                 "n_rerun": totals["rerun_truncated"],
             }
             # Over every attempt: a second rerun adds to the first.
             earlier = truncation_rerun or {"old_limit": min(attempt.rerun_limits), "n_rerun": 0}
             truncation_rerun = {
                 "old_limit": min(earlier["old_limit"], min(attempt.rerun_limits)),
-                "new_limit": CANDIDATE_MAX_TOKENS,
+                "new_limit": settings.candidate_max_tokens,
                 "n_rerun": earlier["n_rerun"] + totals["rerun_truncated"],
             }
         attempts.append(record)
@@ -489,7 +623,7 @@ def _run_test(
         # pauses the whole run on 402 and on a 429 Inspect gave up on. Retrying
         # whole samples would repeat calls that already succeeded, so it is off.
         retry_on_error=0,
-        max_connections=MAX_CONNECTIONS,
+        max_connections=BATCH_MAX_CONNECTIONS if settings.batch else MAX_CONNECTIONS,
     )
     if previous is None:
         log = inspect_eval(build_task(dataset, settings.epochs), limit=settings.limit, **eval_args)[0]
