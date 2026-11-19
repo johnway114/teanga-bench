@@ -79,6 +79,7 @@ including **GPL-3.0** for Gaelg Manx sentences.
 
 - [Methodology](docs/methodology.md): sources, marking rules and known limits.
 - [Harness guide](docs/HARNESS.md): how a run works, the cost cap, the judges.
+- [Operating policy](docs/operating-policy.md): release cadence, v2 cost decision, and v1-to-v2 cutover rules.
 - [Results schema](docs/results-schema.md): the format of the results files.
 
 ## Tests

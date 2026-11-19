@@ -357,6 +357,7 @@ results/leaderboard.*     Leaderboard and charts/
 site/                     Static research site, built by teanga-bench site
 vercel.json               Serves site/ on the two research domains
 docs/results-schema.md    Contract for the research pages
+docs/operating-policy.md  Release cadence, v2 cost decision, and v1-to-v2 cutover
 ```
 
 ## Local development
