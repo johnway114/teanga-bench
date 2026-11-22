@@ -2,7 +2,8 @@
 """Export public Teanga Bench bundles for Hugging Face Datasets and Static Spaces.
 
 Reads ONLY public `samples/` (20 items per test + attribution notices) and
-`results/` (`leaderboard.json` + `runs/*.json`). Never touches `data/private/`.
+`results/` (the v2 `leaderboard.json` + `runs/*.json`, and the archived v1
+board under `v1-archive/`). Never touches `data/private/`.
 """
 
 from __future__ import annotations
@@ -61,6 +62,21 @@ def _copy_public_results(dataset_dir: Path) -> None:
         _assert_public_path(run_file)
         shutil.copy2(run_file, dst_runs / run_file.name)
 
+    archive_src = RESULTS_DIR / "v1-archive"
+    if archive_src.is_dir():
+        dst_archive = dst_results / "v1-archive"
+        dst_archive.mkdir(parents=True, exist_ok=True)
+        for name in ("leaderboard.json", "leaderboard.md", "README.md"):
+            src = archive_src / name
+            if src.is_file():
+                _assert_public_path(src)
+                shutil.copy2(src, dst_archive / name)
+        dst_archive_runs = dst_archive / "runs"
+        dst_archive_runs.mkdir(parents=True, exist_ok=True)
+        for run_file in sorted((archive_src / "runs").glob("*.json")):
+            _assert_public_path(run_file)
+            shutil.copy2(run_file, dst_archive_runs / run_file.name)
+
 
 def _write_dataset_readme(dataset_dir: Path, leaderboard: dict) -> None:
     models = leaderboard.get("models", [])
@@ -116,7 +132,9 @@ Code, scoring rules, and build scripts live at [github.com/johnway114/teanga-ben
 - **Held out (`data/private/`)**: The full evaluation sets remain private and are **not** included in this repository or dataset bundle to prevent training-data contamination.
 - **Human review status**: Every item in Teanga Bench has `human_checked: false`. No human expert signed off on the benchmark items; scores on app-derived tests measure agreement with the source app content, and tutor explanation scores are judge-marked (`deepseek/deepseek-v4.1-flash-1017` and `qwen/qwen3.8-flash`), not human-validated. Read the full [methodology](https://github.com/johnway114/teanga-bench/blob/main/docs/methodology.md) before citing a score.
 
-## Leaderboard Summary (Full 2,260-item Held-Out Sets, 3 Epochs)
+## Leaderboard Summary (v1 archived: full 2,260-item held-out sets, 3 epochs)
+
+These nine runs are the v1 protocol. They are not comparable with v2 (4 core tests, 1 epoch, low reasoning). The Zenodo deposit [10.5281/zenodo.24305705](https://doi.org/10.5281/zenodo.24305705) records this v1 result set. v2 runs, when published, are in `results/runs/` and `results/leaderboard.json`.
 
 | Rank | Model | Overall (95% CI) | Blas Suite | Tonada Suite | Run Cost (USD) |
 | --- | --- | --- | --- | --- | --- |
@@ -133,6 +151,7 @@ If you use Teanga Bench or its results, please cite it using [`CITATION.cff`](ht
   year         = 2026,
   version      = {{0.2.0}},
   url          = {{https://research.blasapp.com}},
+  doi          = {{10.5281/zenodo.24305705}},
   code         = {{https://github.com/johnway114/teanga-bench}},
   license      = {{Apache-2.0}}
 }}
@@ -267,7 +286,8 @@ Source code & methodology: [github.com/johnway114/teanga-bench](https://github.c
     </header>
 
     <section class="card">
-      <h2>Overall Leaderboard (Full Held-Out Sets, n=2,260)</h2>
+      <h2>v1 (archived) leaderboard (7 tests, 3 epochs, n=2,260)</h2>
+      <p>These scores are the v1 protocol. They are not comparable with v2. DOI <a href="https://doi.org/10.5281/zenodo.24305705">10.5281/zenodo.24305705</a>.</p>
       <table>
         <thead>
           <tr>
@@ -305,7 +325,10 @@ Source code & methodology: [github.com/johnway114/teanga-bench](https://github.c
 
 
 def export_bundles(output_dir: Path) -> dict[str, int]:
-    lb_path = RESULTS_DIR / "leaderboard.json"
+    # The space and dataset summary keep showing the citable v1 scores. The v2
+    # board is copied alongside them and may be empty just after the cutover.
+    archive_lb = RESULTS_DIR / "v1-archive" / "leaderboard.json"
+    lb_path = archive_lb if archive_lb.is_file() else RESULTS_DIR / "leaderboard.json"
     _assert_public_path(lb_path)
     leaderboard = json.loads(lb_path.read_text(encoding="utf-8"))
 

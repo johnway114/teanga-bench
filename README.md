@@ -36,8 +36,10 @@ This one command:
    `--batch` to route `openai/`, `anthropic/`, or `google/` models through their
    50%-off direct Batch API (`uv pip install -e '.[batch]'`);
 4. writes `results/runs/<model>.json` and a Markdown report beside it for full
-   sets, or `results/samples/<model>.json` when `data/private/` is missing;
-5. rebuilds the leaderboard and the research site in `site/`;
+   sets, or `results/samples/<model>.json` when `data/private/` is missing.
+   A v2 run will not overwrite an archived v1 file;
+5. rebuilds the v2 leaderboard and the research site in `site/`. The nine v1
+   runs stay published under `results/v1-archive/` and on each site at `/v1/`;
 6. with `--publish`, commits the results and the site and pushes them. The
    hosting service then puts the new pages live. `--publish` refuses mock,
    smoke (`--limit`), and `public_sample` runs.

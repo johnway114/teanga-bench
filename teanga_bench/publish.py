@@ -14,11 +14,23 @@ from typing import Any, Callable
 
 from teanga_bench.leaderboard import load_runs, write_leaderboard
 from teanga_bench.paths import REPO_ROOT
+from teanga_bench.protocol import V2
 from teanga_bench.site import SUITES, SiteError, build_site, check_public_examples
 
-STAGE_PATHS = ("results/runs", "results/leaderboard.json", "results/leaderboard.md", "results/charts", "site")
-_STAGE_FILES = {"results/leaderboard.json", "results/leaderboard.md"}
-_STAGE_DIRS = ("results/runs/", "results/charts/", "site/")
+# results/v1-archive is staged so a publish can keep the archived files in the
+# commit, but publish_run does not modify them. vercel.json holds the legacy
+# model-page redirects the site build refreshes.
+STAGE_PATHS = (
+    "results/runs",
+    "results/leaderboard.json",
+    "results/leaderboard.md",
+    "results/charts",
+    "results/v1-archive",
+    "site",
+    "vercel.json",
+)
+_STAGE_FILES = {"results/leaderboard.json", "results/leaderboard.md", "vercel.json"}
+_STAGE_DIRS = ("results/runs/", "results/charts/", "results/v1-archive/", "site/")
 PUBLIC_URLS = tuple(suite.url for suite in SUITES.values())
 
 
@@ -99,7 +111,8 @@ def publish_run(run_file: Path, *, repo_root: Path = REPO_ROOT, out: Callable[[s
         check_public_examples(runs)
     except SiteError as exc:
         raise PublishError(str(exc)) from None
-    write_leaderboard(runs_dir, results)
+    # v2 board only. The archived v1 runs are not read or rewritten here.
+    write_leaderboard(runs_dir, results, methodology=V2)
     try:
         build_site(results, repo_root / "site", repo_root=repo_root)
     except SiteError as exc:

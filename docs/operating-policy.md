@@ -42,10 +42,14 @@ Instead of halving item counts (which would push per-language/L1 CIs past ±10pp
 
 ## 4. Transition from v1 to v2 results
 
-v1 runs (7 tests, 3 epochs, default reasoning) and v2 runs (4 core tests, 1 epoch, low reasoning, cleaned Tonada tutor) are **not directly comparable**.
+v1 runs (7 tests, 3 epochs, default reasoning, 2,260 items) and v2 runs (4 core tests, 1 epoch, low reasoning, cleaned Tonada tutor, 1,260 items) are **not directly comparable**. Neither set voids the other.
 
-- Leave the nine v1 results in `results/runs/` and `site/` live until ready for a full v2 refresh.
-- Before publishing the first v2 model, archive the v1 JSON files out of `results/runs/` (e.g. into `results/v1-archive/`) and re-run only the top 5–6 benchmark models plus any new flagship on v2 (~$10–$12 total with `--batch`).
+- The nine published v1 runs live in `results/v1-archive/runs/` (JSON and the Markdown report beside each file). They are stamped `methodology: "v1"`. Their scores are unchanged; the field is a label, not a rescore. `results/v1-archive/leaderboard.json`, `leaderboard.md` and `charts/` are that board.
+- `results/runs/` is the v2 board only. `teanga-bench leaderboard` and `teanga-bench publish` rebuild `results/leaderboard.json` from that directory and do not rewrite the archive. A new run refuses to overwrite a v1 file or to write into the archive.
+- The research sites serve v2 at the existing board URLs (`/`, `/models`, `/findings`, `/tests`, `/methodology`). v1 is the **v1 (archived)** board under `/v1/` on both hosts, including model pages and `v1/data/leaderboard.json`. Every page names its protocol, says the two are not comparable, and links to the other board.
+- A model that exists only in v1 keeps `https://research.blasapp.com/models/<slug>` and the Tonada counterpart as a redirect to `/v1/models/<slug>`, so a cited v1 score is not silently replaced. Once that model also has a v2 run, `/models/<slug>` is the v2 page and links to the archive page, which stays the v1 score.
+- The Zenodo deposit [10.5281/zenodo.24305705](https://doi.org/10.5281/zenodo.24305705) remains the citation for Teanga Bench and records the v1 result set. Do not retarget that DOI at v2 scores.
+- Re-run the models worth publishing on v2 (~$10–$12 for the top 5–6 plus a new flagship, with `--batch`). Publish those into `results/runs/`. The archive stays put.
 
 ## 5. PR #1 review triage (`2b78ee1`)
 

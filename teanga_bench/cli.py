@@ -19,6 +19,7 @@ from pathlib import Path
 
 from teanga_bench import BENCHMARK_NAME, __version__
 from teanga_bench.paths import LOGS, REPO_ROOT, RESULTS, RUNS, safe_name
+from teanga_bench.protocol import V1, V2, archive_runs_dir, resolve_reexport_source, result_candidates
 
 EXIT_OK = 0
 EXIT_INCOMPLETE = 1
@@ -124,9 +125,19 @@ def _validate(args: argparse.Namespace) -> int:
 def _leaderboard(args: argparse.Namespace) -> int:
     from teanga_bench.leaderboard import write_leaderboard
 
-    board = write_leaderboard(args.runs_dir, args.out_dir, include_mock=args.include_mock)
+    # The default command rebuilds the v2 board from results/runs. When the
+    # archive is present it also rebuilds that board, in its own directory.
+    methodology = V2 if args.runs_dir.resolve() == RUNS.resolve() else None
+    board = write_leaderboard(
+        args.runs_dir, args.out_dir, include_mock=args.include_mock, methodology=methodology
+    )
     ranked = sum(1 for entry in board["models"] if entry["ranked"])
     print(f"Wrote leaderboard in {args.out_dir} ({ranked} ranked, {len(board['models'])} runs)")
+    archive = archive_runs_dir(args.out_dir if args.runs_dir.resolve() == RUNS.resolve() else args.runs_dir.parent)
+    if args.runs_dir.resolve() == RUNS.resolve() and archive.is_dir():
+        archived = write_leaderboard(archive, archive.parent, methodology=V1)
+        archived_ranked = sum(1 for entry in archived["models"] if entry["ranked"])
+        print(f"Wrote v1 archive leaderboard in {archive.parent} ({archived_ranked} ranked)")
     return EXIT_OK
 
 
@@ -183,13 +194,15 @@ def _reexport(args: argparse.Namespace) -> int:
     from teanga_bench.resume import ResumeError, load_previous_run, reexport_document
 
     name = f"{safe_name(args.model)}.json"
-    candidates = [args.results_dir / "runs" / name, args.results_dir / "mock" / name, args.results_dir / name]
-    results = next((path for path in candidates if path.is_file()), candidates[0])
     try:
+        results = resolve_reexport_source(args.results_dir, name, args.output)
         previous = load_previous_run(results, args.model, [args.log_dir])
         datasets = select(discover(args.data_root), list(previous.config["tests"]))
         document = reexport_document(previous, datasets)
         output = args.output or results
+        from teanga_bench.protocol import assert_compatible_destination
+
+        assert_compatible_destination(document, results, output)
         write_results(document, output)
     except (ResumeError, KeyError, RuntimeError, ValueError, OSError) as exc:
         print(f"error: {exc.args[0] if exc.args else exc}", file=sys.stderr)
@@ -205,7 +218,7 @@ def _resume_plan(args: argparse.Namespace) -> int:
     from teanga_bench.runner import is_mock
 
     name = f"{safe_name(args.model)}.json"
-    candidates = [args.results_dir / "runs" / name, args.results_dir / "mock" / name, args.results_dir / name]
+    candidates = result_candidates(args.results_dir, name)
     results = next((path for path in candidates if path.is_file()), candidates[0])
     try:
         previous = load_previous_run(results, args.model, [args.log_dir])

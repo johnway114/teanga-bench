@@ -8,6 +8,7 @@ one cost guard, so ``--max-cost`` is a hard stop for the whole run. With
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -51,6 +52,7 @@ from teanga_bench.export import (
 from teanga_bench.models_config import JudgeChoice, configured_default_tests, configured_judges, family_of
 from teanga_bench.paths import LOGS, REPO_ROOT, RESULTS, RUNS, safe_name
 from teanga_bench.pricing import MODELS_URL, Catalog, Pricing, fetch_catalog
+from teanga_bench.protocol import V1, methodology_of, path_methodology
 from teanga_bench.resume import (
     PreviousRun,
     ResumeError,
@@ -117,6 +119,30 @@ class RunResult:
 
 def is_mock(model: str) -> bool:
     return model.startswith(MOCK_PREFIX)
+
+
+def refuse_protocol_overwrite(output: Path, *, resume: bool) -> None:
+    """A new v2 run must not replace a v1 file or land in the v1 archive.
+
+    Resuming the file that was loaded writes back to that same path.
+    """
+    if resume:
+        return
+    if path_methodology(output) == V1:
+        raise RunError(
+            f"{output} is in the v1 archive. New runs go to results/runs/; v2 must not overwrite v1."
+        )
+    if not output.is_file() or output.parent.name != "runs":
+        return
+    try:
+        document = json.loads(output.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if isinstance(document, dict) and methodology_of(document) == V1:
+        raise RunError(
+            f"{output} is a v1 result. Move it to results/v1-archive/runs/ before a v2 run; "
+            "v2 must not overwrite v1."
+        )
 
 
 def default_output(model: str, *, sample_only: bool = False) -> Path:
@@ -347,6 +373,7 @@ def run_benchmark(
     if output is None:
         sample_only = any(dataset.kind != "full" for dataset in datasets)
         output = default_output(options.model, sample_only=sample_only)
+    refuse_protocol_overwrite(output, resume=previous is not None)
     dataset_check: str | None = None
     if previous is not None:
         try:
@@ -594,6 +621,8 @@ def run_benchmark(
         resumed["attempts"][-1]["generated_at"] = document["generated_at"]
         if "corrections" in previous.document:  # notes on hand edits stay with the file
             document["corrections"] = previous.document["corrections"]
+        # A resume continues the protocol it started under. build_document stamps new runs as v2.
+        document["methodology"] = methodology_of(previous.document)
     return RunResult(document=document, output=output, status=status, outcomes=outcomes)
 
 

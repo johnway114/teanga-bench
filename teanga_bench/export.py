@@ -19,6 +19,7 @@ from teanga_bench import BENCHMARK, BENCHMARK_NAME, __version__
 from teanga_bench.context import TRUNCATED_KEY, stopped_at_limit
 from teanga_bench.cost import CostGuard
 from teanga_bench.datasets import DatasetFile
+from teanga_bench.protocol import V2
 from teanga_bench.stats import ItemResult, breakdown, group_stats, phenomenon_breakdown, pooled
 
 SCHEMA_VERSION = "2.2.0"
@@ -356,6 +357,7 @@ def build_document(
     judge = guard.total(role="judge")
     document = {
         "schema_version": SCHEMA_VERSION,
+        "methodology": V2,
         "benchmark": BENCHMARK,
         "benchmark_name": BENCHMARK_NAME,
         "benchmark_version": __version__,

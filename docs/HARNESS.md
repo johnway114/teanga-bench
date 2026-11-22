@@ -78,9 +78,12 @@ This is suitable for adding new derived breakdowns to existing results:
 teanga-bench reexport --model openai/gpt-6-luna --output /tmp/luna-reexport.json
 ```
 
-`teanga-bench leaderboard` reads every `results/runs/*.json` and writes
+`teanga-bench leaderboard` reads every `results/runs/*.json` and writes the v2
 `results/leaderboard.json`, `results/leaderboard.md`, and SVG charts in
-`results/charts/`. `run` calls it for you.
+`results/charts/`. When `results/v1-archive/runs/` is present it also rebuilds
+that board beside the archive. `run` rebuilds the v2 board only. A directory
+that contains both protocols writes two boards, and one version's charts do
+not replace the other's.
 
 `teanga-bench validate` checks every dataset file: unique ids, required
 metadata, non-empty `accept` and `references`, tutor edits that rebuild the gold
@@ -352,8 +355,9 @@ samples/                  Public samples, 20 items per test
 scripts/build_*.py        Dataset builders
 teanga_bench/             Harness
 tests/                    Offline tests; tiny fixtures in tests/fixtures/
-results/runs/             One results JSON and report per model
-results/leaderboard.*     Leaderboard and charts/
+results/runs/             One v2 results JSON and report per model
+results/leaderboard.*     v2 leaderboard and charts/
+results/v1-archive/       Nine archived v1 runs, plus that board and its charts
 site/                     Static research site, built by teanga-bench site
 vercel.json               Serves site/ on the two research domains
 docs/results-schema.md    Contract for the research pages
@@ -391,9 +395,10 @@ site/<suite>/findings.html             Ties, CEFR levels, topics, directions, tu
 site/<suite>/languages.html            Blas: scores by language
 site/<suite>/learners.html             Tonada: scores by the learner's first language
 site/<suite>/models.html               Every ranked model as a card, score against cost
-site/<suite>/models/<model-slug>.html  One page per ranked model
+site/<suite>/models/<model-slug>.html  One page per ranked v2 model, or a redirect to the v1 archive when that model has no v2 run
 site/<suite>/methodology.html          docs/methodology.md plus a table from data/build-reports/
-site/<suite>/data/leaderboard.json     The suite's slice of the leaderboard
+site/<suite>/data/leaderboard.json     The suite's slice of the v2 leaderboard
+site/<suite>/v1/                       v1 (archived) leaderboard, model pages, charts and data JSON
 ```
 
 Only live runs with status `complete` are ranked and get a model page. The build
@@ -415,9 +420,11 @@ shadow the host rewrites. On any other host, such as a `*.vercel.app` preview,
    outside `results/runs/`.
 2. It rebuilds the leaderboard and the site.
 3. It stages only `results/runs`, `results/leaderboard.json`,
-   `results/leaderboard.md`, `results/charts` and `site`. If
-   `git diff --cached --name-only` then shows any other path, or anything under
-   `data/private/`, it unstages everything and stops.
+   `results/leaderboard.md`, `results/charts`, `results/v1-archive`, `site`
+   and `vercel.json` (the legacy model-page redirects). It rebuilds the v2
+   leaderboard from `results/runs` and does not modify archived run files.
+   If `git diff --cached --name-only` then shows any other path, or anything
+   under `data/private/`, it unstages everything and stops.
 4. It commits `Publish results: <model id>`, runs `git pull --rebase
    --autostash` from the branch's upstream, and pushes to it. It never force
    pushes. When nothing changed it says so and exits 0.

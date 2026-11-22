@@ -44,7 +44,8 @@ from teanga_bench import BENCHMARK, BENCHMARK_NAME, __version__
 from teanga_bench.export import EXPLANATION_SCORED, SCHEMA_VERSION
 from teanga_bench.leaderboard import BLAS_LANGUAGES, load_runs
 from teanga_bench.markdown_lite import markdown_to_html
-from teanga_bench.models_config import configured_judges
+from teanga_bench.models_config import configured_default_tests, configured_judges
+from teanga_bench.protocol import V1, V2, ZENODO_DOI, ZENODO_URL, methodology_of
 from teanga_bench.og_cards import CARD_HEIGHT, CARD_WIDTH, CardSpec, card_rows_from_entries, render_card_png
 from teanga_bench.paths import REPO_ROOT
 from teanga_bench.site_charts import (
@@ -140,6 +141,15 @@ MONTHS = (
 
 class SiteError(RuntimeError):
     """The site cannot be built safely from these results."""
+
+
+@dataclass(frozen=True)
+class BoardView:
+    """Which protocol a site tree is rendering, and where its sibling tree lives."""
+
+    methodology: str
+    prefix: str
+    runs_tree: str
 
 
 @dataclass(frozen=True)
@@ -945,6 +955,8 @@ def _dataset_json_ld(
     description: str,
     canonical_url: str,
     updated: str | None,
+    data_url: str | None = None,
+    identifier: str | None = None,
 ) -> str:
     base = suite.url.rstrip("/")
     payload: dict[str, Any] = {
@@ -953,7 +965,7 @@ def _dataset_json_ld(
         "name": name,
         "description": description,
         "url": canonical_url,
-        "identifier": f"{BENCHMARK}:{suite.key}",
+        "identifier": identifier or f"{BENCHMARK}:{suite.key}",
         "version": __version__,
         "license": APACHE_LICENSE_URL,
         "isAccessibleForFree": True,
@@ -973,7 +985,7 @@ def _dataset_json_ld(
             {
                 "@type": "DataDownload",
                 "encodingFormat": "application/json",
-                "contentUrl": f"{base}/data/leaderboard.json",
+                "contentUrl": data_url or f"{base}/data/leaderboard.json",
             },
             {
                 "@type": "DataDownload",
@@ -984,6 +996,25 @@ def _dataset_json_ld(
     if updated:
         payload["dateModified"] = updated
     return _json_ld_script(payload)
+
+
+def _version_banner(view: BoardView, home: str) -> str:
+    """A protocol label and a link to the other board. Links stay relative to this page."""
+    if view.methodology == V2:
+        other_href = f"{home}v1/"
+        other_label = "v1 (archived) leaderboard"
+        kicker = "v2"
+        detail = "4 core tests, 1 epoch, low reasoning. These scores are not comparable with v1. "
+    else:
+        other_href = "../" if home in ("./", "") else f"{home}../"
+        other_label = "v2 leaderboard"
+        kicker = "v1 (archived)"
+        detail = "7 tests, 3 epochs, provider-default reasoning. These scores are not comparable with v2. "
+    return (
+        f'<aside class="version-banner"><p><span class="version-kicker">{kicker}.</span> {detail}'
+        f'<a href="{other_href}">{other_label}</a>. '
+        f'The <a href="{ZENODO_URL}">Zenodo deposit {ZENODO_DOI}</a> records the v1 result set.</p></aside>'
+    )
 
 
 def _page(
@@ -997,17 +1028,23 @@ def _page(
     updated: str | None,
     relative: str = "",
     json_ld: str = "",
+    home_depth: int | None = None,
+    view: BoardView | None = None,
+    og_image_url: str | None = None,
 ) -> str:
     root = "../" * depth
-    home = "./" if depth == 1 else "../" * (depth - 1)
+    ups = (depth - 1) if home_depth is None else home_depth
+    home = "./" if ups == 0 else "../" * ups
+    prefix = view.prefix if view else ""
     canonical_url = _canonical_url(suite, relative)
     social_tags = _social_head_tags(
         title=title,
         description=description,
         canonical_url=canonical_url,
-        og_image_url=_og_image_url(suite),
+        og_image_url=og_image_url or _og_image_url(suite),
         og_image_alt=_og_image_alt(suite),
     )
+    banner = _version_banner(view, home) if view else ""
     json_ld_block = f"\n{json_ld}" if json_ld else ""
     nav = []
     for key, label, href in (
@@ -1032,8 +1069,12 @@ def _page(
         if other.key == suite.key:
             switch.append(f'<a {attrs} href="{home}" aria-current="true">{e(other.short)}</a>')
         else:
-            switch.append(f'<a {attrs} href="{e(other.url)}" data-local="{root}{other.key}/">{e(other.short)}</a>')
+            public = other.url if not prefix else other.url.rstrip("/") + "/" + prefix
+            switch.append(
+                f'<a {attrs} href="{e(public)}" data-local="{root}{other.key}/{prefix}">{e(other.short)}</a>'
+            )
     other = SUITES["tonada" if suite.key == "blas" else "blas"]
+    other_public = other.url if not prefix else other.url.rstrip("/") + "/" + prefix
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1054,12 +1095,12 @@ def _page(
 <nav class="switcher" aria-label="Suite">{"".join(switch)}</nav>
 </div></header>
 <main id="main" class="wrap">
-{body}
+{banner}{body}
 </main>
 <footer class="site-foot"><div class="wrap">
 <p>{BENCHMARK_NAME} is open source under Apache-2.0. Code, the public samples and every results file are on <a href="{REPO_URL}">GitHub</a>.</p>
 <p>Gold answers come from the sources named in the <a href="{home}methodology.html">methodology</a>; they have not been reviewed by native speakers.</p>
-<p>{f"Results as of {e(_date(updated))}. " if updated else ""}Also see the <a href="{e(other.url)}" data-local="{root}{other.key}/">{e(other.name)}: {e(other.description)}</a>.</p>
+<p>{f"Results as of {e(_date(updated))}. " if updated else ""}Also see the <a href="{e(other_public)}" data-local="{root}{other.key}/{prefix}">{e(other.name)}: {e(other.description)}</a>.</p>
 </div></footer>
 <script>
 {SITE_JS}</script>
@@ -1268,7 +1309,16 @@ def _unranked_notice(unranked: list[Entry]) -> str:
     )
 
 
-def _home(suite: SuiteInfo, entries: list[Entry], tests: list[str], reports: dict[str, dict[str, Any]], updated: str | None) -> str:
+def _home(
+    suite: SuiteInfo,
+    entries: list[Entry],
+    tests: list[str],
+    reports: dict[str, dict[str, Any]],
+    updated: str | None,
+    *,
+    runs_tree: str = "results/runs",
+    empty_html: str | None = None,
+) -> str:
     ranked = [entry for entry in entries if entry.ranked]
     unranked = [entry for entry in entries if not entry.ranked]
     meta = [f"Results as of <strong>{e(_date(updated))}</strong>" if updated else "No results yet"]
@@ -1284,16 +1334,26 @@ def _home(suite: SuiteInfo, entries: list[Entry], tests: list[str], reports: dic
         )
     ]
     if not ranked:
-        parts.append(
-            '<div class="notice"><strong>First results will appear here after the first run.</strong> '
-            "Each run asks one model every item in every test and publishes its scores, ranges and cost.</div>"
-        )
-        parts.append('<h2 id="what">What is measured</h2>')
-        parts.append(
-            '<p class="section-intro">Each test has a few hundred items. Answers are marked by fixed rules '
-            "(an accepted-answer list, or chrF++ for translation), so no model grades another model's "
-            "headline score. Every item is asked several times, and every score comes with a 95% range.</p>"
-        )
+        if empty_html is not None:
+            parts.append(empty_html)
+            parts.append('<h2 id="what">What v2 measures</h2>')
+            parts.append(
+                '<p class="section-intro">Four core tests. Each item is asked once, with low reasoning. '
+                "Answers are marked by fixed rules (an accepted-answer list, or chrF++ for translation), "
+                "so no model grades another model's headline score. Every score comes with a 95% range. "
+                "The retired v1 tests are not on this board.</p>"
+            )
+        else:
+            parts.append(
+                '<div class="notice"><strong>First results will appear here after the first run.</strong> '
+                "Each run asks one model every item in every test and publishes its scores, ranges and cost.</div>"
+            )
+            parts.append('<h2 id="what">What is measured</h2>')
+            parts.append(
+                '<p class="section-intro">Each test has a few hundred items. Answers are marked by fixed rules '
+                "(an accepted-answer list, or chrF++ for translation), so no model grades another model's "
+                "headline score. Every item is asked several times, and every score comes with a 95% range.</p>"
+            )
         parts.append(_tests_summary(suite, tests, reports))
         parts.append(_howto("./"))
         return "\n".join(parts)
@@ -1306,7 +1366,7 @@ def _home(suite: SuiteInfo, entries: list[Entry], tests: list[str], reports: dic
     parts.append(_howto("./"))
     parts.append(
         '<p class="data-links">Data: <a href="data/leaderboard.json">this leaderboard as JSON</a> · '
-        f'<a href="{REPO_URL}/tree/main/results/runs">every results file on GitHub</a></p>'
+        f'<a href="{REPO_URL}/tree/main/{runs_tree}">every results file on GitHub</a></p>'
     )
     return "\n".join(p for p in parts if p)
 
@@ -2740,7 +2800,7 @@ def _radar_grid(suite: SuiteInfo, ranked: list[Entry], tests: list[str]) -> str:
     )
 
 
-def _models_page(suite: SuiteInfo, entries: list[Entry]) -> str:
+def _models_page(suite: SuiteInfo, entries: list[Entry], *, runs_tree: str = "results/runs") -> str:
     ranked = [entry for entry in entries if entry.ranked]
     unranked = [entry for entry in entries if not entry.ranked]
     lede = (
@@ -2776,7 +2836,7 @@ def _models_page(suite: SuiteInfo, entries: list[Entry]) -> str:
         parts.append('<p class="more-link"><a href="findings.html#cost">Cost per correct answer, every model</a></p>')
         parts.append(
             '<p class="data-links">Data: <a href="data/leaderboard.json">this leaderboard as JSON</a> · '
-            f'<a href="{REPO_URL}/tree/main/results/runs">every results file on GitHub</a></p>'
+            f'<a href="{REPO_URL}/tree/main/{runs_tree}">every results file on GitHub</a></p>'
         )
     return "\n".join(p for p in parts if p)
 
@@ -3223,7 +3283,14 @@ def _methodology(suite: SuiteInfo, tests: list[str], reports: dict[str, dict[str
 # Leaderboard slice and preview index
 
 
-def _slice(suite: SuiteInfo, entries: list[Entry], updated: str | None) -> dict[str, Any]:
+def _slice(
+    suite: SuiteInfo,
+    entries: list[Entry],
+    updated: str | None,
+    *,
+    methodology: str | None = None,
+    archived_leaderboard: str | None = None,
+) -> dict[str, Any]:
     models = []
     for entry in entries:
         models.append(
@@ -3252,7 +3319,7 @@ def _slice(suite: SuiteInfo, entries: list[Entry], updated: str | None) -> dict[
                 },
             }
         )
-    return {
+    result = {
         "schema_version": SCHEMA_VERSION,
         "benchmark": BENCHMARK,
         "benchmark_name": BENCHMARK_NAME,
@@ -3266,6 +3333,11 @@ def _slice(suite: SuiteInfo, entries: list[Entry], updated: str | None) -> dict[
         ),
         "models": models,
     }
+    if methodology:
+        result["methodology"] = methodology
+    if archived_leaderboard:
+        result["archived_leaderboard"] = archived_leaderboard
+    return result
 
 
 def _robots_txt(suite: SuiteInfo) -> str:
@@ -3340,18 +3412,159 @@ def _write_bytes(path: Path, data: bytes) -> None:
     path.write_bytes(data)
 
 
+def _core_test_names(suite_key: str) -> set[str]:
+    prefix = f"{suite_key}/"
+    return {name.split("/", 1)[1] for name in configured_default_tests() if name.startswith(prefix)}
+
+
+def _live_runs(runs_dir: Path) -> list[dict[str, Any]]:
+    if not runs_dir.is_dir():
+        return []
+    loaded, _skipped = load_runs(runs_dir)
+    return [run for run in loaded if run.get("run_kind") == "live"]
+
+
+def _partition_runs(runs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    v1_runs: list[dict[str, Any]] = []
+    v2_runs: list[dict[str, Any]] = []
+    for run in runs:
+        if methodology_of(run) == V1:
+            v1_runs.append(run)
+        else:
+            v2_runs.append(run)
+    return v1_runs, v2_runs
+
+
+def _merge_v1(*groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Archive copies win over a v1 file still sitting in results/runs."""
+    by_model: dict[str, dict[str, Any]] = {}
+    for group in groups:
+        for run in group:
+            by_model[run["model"]["id"]] = run
+    return [by_model[key] for key in sorted(by_model)]
+
+
+def _protocol_note(view: BoardView) -> str:
+    if view.methodology == V1:
+        return (
+            '<p class="notice">The numbers on this archived v1 site used 7 tests, 3 epochs and '
+            'provider-default reasoning. They are not comparable with the <a href="../">v2 leaderboard</a>. '
+            f'The <a href="{ZENODO_URL}">Zenodo deposit {ZENODO_DOI}</a> records this result set.</p>'
+        )
+    return (
+        '<p class="notice">The v2 leaderboard uses 4 core tests, 1 epoch and low reasoning. '
+        'The <a href="v1/">v1 (archived) leaderboard</a> used a different protocol; do not compare the scores. '
+        f'The <a href="{ZENODO_URL}">Zenodo deposit {ZENODO_DOI}</a> records the v1 result set.</p>'
+    )
+
+
+def _other_model_note(view: BoardView | None, slug: str, other_slugs: set[str]) -> str:
+    if view is None or slug not in other_slugs:
+        return ""
+    if view.methodology == V2:
+        href, label, here = f"../v1/models/{slug}.html", "v1 (archived) result", "v2"
+    else:
+        href, label, here = f"../../models/{slug}.html", "v2 result", "v1 (archived)"
+    return (
+        f'<p class="notice">This page is the {here} score. <a href="{href}">{label} for this model</a>. '
+        "v1 and v2 scores are not comparable.</p>"
+    )
+
+
+def _v2_empty_html() -> str:
+    return (
+        '<div class="notice"><strong>v2 leaderboard.</strong> No v2 run is published yet. '
+        "v2 asks the four core tests once each, with low reasoning. "
+        'The nine v1 runs stay on the <a href="v1/">v1 (archived) leaderboard</a>. '
+        "v1 and v2 scores are not comparable.</div>"
+    )
+
+
+def _legacy_model_redirect(suite: SuiteInfo, slug: str) -> str:
+    """Keep a cited v1 model URL on the v1 score until that model has a v2 run."""
+    target = f"../v1/models/{slug}.html"
+    canonical = _canonical_url(suite, f"v1/models/{slug}.html")
+    return (
+        "<!doctype html>\n<html lang=\"en\">\n<head>\n"
+        '<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        f"<title>Redirecting to the v1 archive · {e(suite.short)}</title>\n"
+        f'<link rel="canonical" href="{e(canonical)}">\n'
+        f'<meta http-equiv="refresh" content="0; url={target}">\n'
+        f'<script>location.replace("{target}")</script>\n'
+        "</head>\n<body>\n"
+        f'<p>This model\'s published result is the <a href="{target}">v1 (archived)</a> run. '
+        "v1 and v2 scores are not comparable.</p>\n"
+        "</body>\n</html>\n"
+    )
+
+
+def legacy_model_redirects(slugs_by_suite: dict[str, list[str]]) -> list[dict[str, Any]]:
+    """301s for v1-only model pages. A model with a v2 run is not listed."""
+    hosts = {"blas": "research.blasapp.com", "tonada": "research.tonadaapp.com"}
+    rules: list[dict[str, Any]] = []
+    for suite_key in ("blas", "tonada"):
+        host = hosts[suite_key]
+        for slug in slugs_by_suite.get(suite_key, []):
+            rules.append(
+                {
+                    "source": f"/models/{slug}",
+                    "has": [{"type": "host", "value": host}],
+                    "destination": f"/v1/models/{slug}",
+                    "permanent": True,
+                }
+            )
+            rules.append(
+                {
+                    "source": f"/{suite_key}/models/{slug}",
+                    "missing": [
+                        {"type": "host", "value": "research.blasapp.com"},
+                        {"type": "host", "value": "research.tonadaapp.com"},
+                    ],
+                    "destination": f"/{suite_key}/v1/models/{slug}",
+                    "permanent": True,
+                }
+            )
+    return rules
+
+
+def sync_vercel_redirects(repo_root: Path, rules: list[dict[str, Any]]) -> None:
+    path = repo_root / "vercel.json"
+    if not path.is_file():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["redirects"] = rules
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
 def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root: Path | str = REPO_ROOT) -> dict[str, Any]:
-    """Build the static site. Returns a summary: ranked models per suite and files written."""
+    """Build the static site. Returns a summary: ranked models per suite and files written.
+
+    ``results/runs`` is the v2 board. When ``results/v1-archive/runs`` holds the
+    archived v1 runs, those pages are written under ``<suite>/v1/`` and the main
+    pages link to them. A v1-only model keeps its old ``/models/<slug>`` URL as
+    a redirect to the archive page, so a cited v1 score is not replaced by a v2 score.
+    """
     global _SITE_NOTICE
     results_dir, out_dir, repo_root = Path(results_dir), Path(out_dir), Path(repo_root)
     notice_file = results_dir / "notice.txt"
     _SITE_NOTICE = " ".join(notice_file.read_text(encoding="utf-8").split()) if notice_file.is_file() else ""
-    runs_dir = results_dir / "runs"
-    runs, _skipped = load_runs(runs_dir) if runs_dir.is_dir() else ([], [])
-    runs = [run for run in runs if run.get("run_kind") == "live"]
-    check_public_examples(runs)
-    updated = max((run.get("generated_at") or "" for run in runs), default="") or None
+    runs = _live_runs(results_dir / "runs")
+    archive_runs = _live_runs(results_dir / "v1-archive" / "runs")
+    inline_v1, v2_runs = _partition_runs(runs)
+    show_archive = bool(archive_runs) or bool(inline_v1 and v2_runs)
+    if show_archive:
+        main_runs = v2_runs
+        archived_runs = _merge_v1(inline_v1, archive_runs)
+    else:
+        main_runs = runs
+        archived_runs = []
+    check_public_examples([*main_runs, *archived_runs])
+    updated = max((run.get("generated_at") or "" for run in main_runs), default="") or None
     current_pair = {judge.id for judge in configured_judges()}
+    v1_tree = "results/v1-archive/runs" if archive_runs else "results/runs"
+    v2_view = BoardView(methodology=V2, prefix="", runs_tree="results/runs") if show_archive else None
+    v1_view = BoardView(methodology=V1, prefix="v1/", runs_tree=v1_tree) if show_archive else None
 
     out_dir.mkdir(parents=True, exist_ok=True)
     for name in GENERATED_DIRS:
@@ -3371,123 +3584,209 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
 
     put("assets/site.css", SITE_CSS)
     put("suites.html", _preview_index(updated))
-    summary: dict[str, Any] = {"updated": updated, "suites": {}, "files": written}
-    for suite in SUITES.values():
-        entries = _entries(runs, suite.key)
-        ranked = [entry for entry in entries if entry.ranked]
-        reports = _reports(repo_root, suite.key)
-        tests = _test_order(suite.key, set(reports) | {t for entry in ranked for t in entry.tests})
-        sitemap_urls: list[tuple[str, str | None]] = []
+    summary: dict[str, Any] = {"updated": updated, "suites": {}, "archive": {}, "files": written}
+    legacy_slugs: dict[str, list[str]] = {}
 
-        def page(
-            relative: str,
-            title: str,
-            description: str,
-            body: str,
-            current: str,
-            depth: int = 1,
-            *,
-            lastmod: str | None = updated,
-        ) -> None:
-            canonical_url = _canonical_url(suite, relative)
-            json_ld = ""
-            if relative in DATASET_PAGES:
-                dataset_desc = description if relative == "index.html" else f"{description} {suite.measured}"
-                json_ld = _dataset_json_ld(
-                    suite,
-                    name=title,
-                    description=dataset_desc,
-                    canonical_url=canonical_url,
-                    updated=updated,
+    for suite in SUITES.values():
+        reports = _reports(repo_root, suite.key)
+        sitemap_urls: list[tuple[str, str | None]] = []
+        main_entries = _entries(main_runs, suite.key)
+        arch_entries = _entries(archived_runs, suite.key) if show_archive else []
+        main_slugs = {entry.slug for entry in main_entries if entry.ranked}
+        arch_slugs = {entry.slug for entry in arch_entries if entry.ranked}
+
+        def emit(
+            entries: list[Entry],
+            view: BoardView | None,
+            board_updated: str | None,
+            other_slugs: set[str],
+        ) -> tuple[list[Entry], list[Entry]]:
+            ranked = [entry for entry in entries if entry.ranked]
+            from_runs = {test for entry in ranked for test in entry.tests}
+            if view is not None and view.methodology == V2:
+                names = _core_test_names(suite.key) | from_runs
+            else:
+                names = set(reports) | from_runs
+            tests = _test_order(suite.key, names)
+            prefix = view.prefix if view else ""
+            extra = 1 if prefix else 0
+            base = suite.url.rstrip("/")
+            og_url = f"{base}/{prefix}og-image.png" if prefix else _og_image_url(suite)
+            data_url = f"{base}/{prefix}data/leaderboard.json"
+            runs_tree = view.runs_tree if view else "results/runs"
+
+            def page(
+                relative: str,
+                title: str,
+                description: str,
+                body: str,
+                current: str,
+                depth: int = 1,
+                *,
+                lastmod: str | None = board_updated,
+            ) -> None:
+                stored = f"{prefix}{relative}" if prefix else relative
+                if view is not None and view.methodology == V1 and "v1 (archived)" not in title:
+                    title = f"{title} · v1 (archived)"
+                canonical_url = _canonical_url(suite, stored)
+                json_ld = ""
+                if relative in DATASET_PAGES:
+                    dataset_desc = description if relative == "index.html" else f"{description} {suite.measured}"
+                    json_ld = _dataset_json_ld(
+                        suite,
+                        name=title,
+                        description=dataset_desc,
+                        canonical_url=canonical_url,
+                        updated=board_updated,
+                        data_url=data_url,
+                        identifier=(
+                            f"{BENCHMARK}:{suite.key}:v1" if view is not None and view.methodology == V1 else None
+                        ),
+                    )
+                put(
+                    f"{suite.key}/{stored}",
+                    _page(
+                        title=title,
+                        description=description,
+                        body=body,
+                        suite=suite,
+                        depth=depth + extra,
+                        home_depth=None if view is None else depth - 1,
+                        current=current,
+                        updated=board_updated,
+                        relative=stored,
+                        json_ld=json_ld,
+                        view=view,
+                        og_image_url=og_url if view is not None else None,
+                    ),
                 )
+                sitemap_urls.append((canonical_url, lastmod))
+
+            suffix = f"{BENCHMARK_NAME}, {suite.name}"
+            index_description = suite.statement
+            if view is not None and view.methodology == V2:
+                index_description = (
+                    f"Teanga Bench v2 measures how well large language models handle {suite.description}. "
+                    "Each model answers the four core tests once, with low reasoning. "
+                    "These scores are not comparable with the archived v1 results "
+                    "(7 tests, 3 epochs, provider-default reasoning)."
+                )
+            empty_html = _v2_empty_html() if view is not None and view.methodology == V2 else None
+            page(
+                "index.html",
+                f"{BENCHMARK_NAME}: {suite.description}",
+                index_description,
+                _home(suite, entries, tests, reports, board_updated, runs_tree=runs_tree, empty_html=empty_html),
+                "home",
+            )
+            page(
+                "tests.html",
+                f"Tests: {suffix}",
+                f"Every test in the {BENCHMARK_NAME} {suite.name}, with each model's score.",
+                _tests_page(suite, ranked, tests, reports, current_pair, repo_root),
+                "tests",
+            )
+            page(
+                "findings.html",
+                f"Findings: {suffix}",
+                f"What the {BENCHMARK_NAME} {suite.name} results show: every model on every test, ties, difficulty by "
+                "level, topics, evidence and cost.",
+                _findings_page(suite, ranked, tests, current_pair),
+                "findings",
+            )
+            page(
+                f"{suite.group_page}.html",
+                f"{suite.group_title}: {suffix}",
+                f"{suite.group_title} in the {BENCHMARK_NAME} {suite.name}.",
+                _groups_page(suite, ranked, tests),
+                "groups",
+            )
+            models_body = _models_page(suite, entries, runs_tree=runs_tree)
+            if view is not None and view.methodology == V2 and not ranked:
+                models_body = (
+                    '<p class="notice">No v2 model is published yet. '
+                    '<a href="v1/models.html">The v1 (archived) models</a> are unchanged.</p>' + models_body
+                )
+            page(
+                "models.html",
+                f"Models: {suffix}",
+                f"Every model ranked on the {BENCHMARK_NAME} {suite.name}.",
+                models_body,
+                "models",
+            )
+            method_title, method_body = _methodology(suite, tests, reports, repo_root)
+            if view is not None:
+                method_body = _protocol_note(view) + method_body
+            page(
+                "methodology.html",
+                f"{method_title}: {suffix}",
+                f"How {BENCHMARK_NAME} builds and scores the {suite.name}.",
+                method_body,
+                "methodology",
+            )
+            for entry in ranked:
+                page(
+                    f"models/{entry.slug}.html",
+                    f"{entry.display} ({entry.model}): {suffix}",
+                    f"{entry.model} on the {BENCHMARK_NAME} {suite.name}: {pct(entry.score)} overall.",
+                    _other_model_note(view, entry.slug, other_slugs) + _model_page(suite, entry, tests, ranked, current_pair),
+                    "model",
+                    depth=2,
+                    lastmod=entry.generated_at or board_updated,
+                )
+            archived_href = "v1/data/leaderboard.json" if view is not None and view.methodology == V2 else None
             put(
-                f"{suite.key}/{relative}",
-                _page(
-                    title=title,
-                    description=description,
-                    body=body,
-                    suite=suite,
-                    depth=depth,
-                    current=current,
-                    updated=updated,
-                    relative=relative,
-                    json_ld=json_ld,
+                f"{suite.key}/{prefix}data/leaderboard.json",
+                json.dumps(
+                    _slice(
+                        suite,
+                        entries,
+                        board_updated,
+                        methodology=view.methodology if view else None,
+                        archived_leaderboard=archived_href,
+                    ),
+                    indent=2,
+                    ensure_ascii=False,
+                )
+                + "\n",
+            )
+            put_bytes(
+                f"{suite.key}/{prefix}og-image.png",
+                render_card_png(
+                    CardSpec(
+                        suite_key=suite.key,
+                        suite_name=suite.name,
+                        headline=suite.headline,
+                        description=suite.description,
+                        domain=suite.url.removeprefix("https://").rstrip("/"),
+                        n_tests=len(tests),
+                        total_ranked=len(ranked),
+                        rows=card_rows_from_entries(ranked),
+                        updated_label=_date(board_updated) if board_updated else None,
+                    )
                 ),
             )
-            sitemap_urls.append((canonical_url, lastmod))
+            return entries, ranked
 
-        suffix = f"{BENCHMARK_NAME}, {suite.name}"
-        page("index.html", f"{BENCHMARK_NAME}: {suite.description}", suite.statement, _home(suite, entries, tests, reports, updated), "home")
-        page(
-            "tests.html",
-            f"Tests: {suffix}",
-            f"Every test in the {BENCHMARK_NAME} {suite.name}, with each model's score.",
-            _tests_page(suite, ranked, tests, reports, current_pair, repo_root),
-            "tests",
-        )
-        page(
-            "findings.html",
-            f"Findings: {suffix}",
-            f"What the {BENCHMARK_NAME} {suite.name} results show: every model on every test, ties, difficulty by "
-            "level, topics, evidence and cost.",
-            _findings_page(suite, ranked, tests, current_pair),
-            "findings",
-        )
-        page(
-            f"{suite.group_page}.html",
-            f"{suite.group_title}: {suffix}",
-            f"{suite.group_title} in the {BENCHMARK_NAME} {suite.name}.",
-            _groups_page(suite, ranked, tests),
-            "groups",
-        )
-        page(
-            "models.html",
-            f"Models: {suffix}",
-            f"Every model ranked on the {BENCHMARK_NAME} {suite.name}.",
-            _models_page(suite, entries),
-            "models",
-        )
-        method_title, method_body = _methodology(suite, tests, reports, repo_root)
-        page(
-            "methodology.html",
-            f"{method_title}: {suffix}",
-            f"How {BENCHMARK_NAME} builds and scores the {suite.name}.",
-            method_body,
-            "methodology",
-        )
-        for entry in ranked:
-            page(
-                f"models/{entry.slug}.html",
-                f"{entry.display} ({entry.model}): {suffix}",
-                f"{entry.model} on the {BENCHMARK_NAME} {suite.name}: {pct(entry.score)} overall.",
-                _model_page(suite, entry, tests, ranked, current_pair),
-                "model",
-                depth=2,
-                lastmod=entry.generated_at or updated,
-            )
-        put(
-            f"{suite.key}/data/leaderboard.json",
-            json.dumps(_slice(suite, entries, updated), indent=2, ensure_ascii=False) + "\n",
-        )
-        put_bytes(
-            f"{suite.key}/og-image.png",
-            render_card_png(
-                CardSpec(
-                    suite_key=suite.key,
-                    suite_name=suite.name,
-                    headline=suite.headline,
-                    description=suite.description,
-                    domain=suite.url.removeprefix("https://").rstrip("/"),
-                    n_tests=len(tests),
-                    total_ranked=len(ranked),
-                    rows=card_rows_from_entries(ranked),
-                    updated_label=_date(updated) if updated else None,
-                )
-            ),
-        )
+        main_updated = updated
+        emit(main_entries, v2_view, main_updated, arch_slugs)
+        archive_ranked = 0
+        if show_archive:
+            archive_updated = max((run.get("generated_at") or "" for run in archived_runs), default="") or None
+            _arch_entries, arch_ranked = emit(arch_entries, v1_view, archive_updated, main_slugs)
+            archive_ranked = len(arch_ranked)
+            legacy = sorted(arch_slugs - main_slugs)
+            legacy_slugs[suite.key] = legacy
+            for slug in legacy:
+                put(f"{suite.key}/models/{slug}.html", _legacy_model_redirect(suite, slug))
         put(f"{suite.key}/robots.txt", _robots_txt(suite))
         put(f"{suite.key}/sitemap.xml", _sitemap_xml(sitemap_urls))
-        summary["suites"][suite.key] = {"ranked": len(ranked), "runs": len(entries)}
+        summary["suites"][suite.key] = {
+            "ranked": sum(1 for entry in main_entries if entry.ranked),
+            "runs": len(main_entries),
+        }
+        summary["archive"][suite.key] = {"ranked": archive_ranked, "runs": len(arch_entries)}
+
+    if out_dir.resolve() == (repo_root / "site").resolve():
+        sync_vercel_redirects(repo_root, legacy_model_redirects(legacy_slugs))
     return summary
-
-

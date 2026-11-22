@@ -1,8 +1,10 @@
 # Teanga Bench results JSON
 
-Version `2.2.0`. One file per run, written by `teanga-bench run` to
-`results/runs/<model id with / as __>.json`. `teanga-bench leaderboard` reads
-these files and writes `results/leaderboard.json`.
+Version `2.2.0`. One file per v2 run, written by `teanga-bench run` to
+`results/runs/<model id with / as __>.json`. The nine v1 runs live in
+`results/v1-archive/runs/`. `teanga-bench leaderboard` reads `results/runs/`
+and writes the v2 board to `results/leaderboard.json`. The v1 board is
+`results/v1-archive/leaderboard.json`.
 
 The benchmark name is **Teanga Bench** (`benchmark: "teanga-bench"`). Suite keys
 are `blas` and `tonada` because those sites read the file.
@@ -19,6 +21,7 @@ when `status` is not `"complete"`.
 | Field | Type | Meaning |
 | --- | --- | --- |
 | `schema_version` | string | `"2.2.0"`. `2.2.0` adds language/L1-by-phenomenon cells and optional `reexported` provenance. `2.1.0` added truncation fields; older files are `"2.0.0"` |
+| `methodology` | string | `"v1"` or `"v2"`. The evaluation protocol, not a schema version. New runs write `"v2"`. The nine archived runs are stamped `"v1"`. Absent on older files: readers treat a file as v1 only when it has the historical shape (7 tests, including `blas/lesson_exercises`, `blas/round_trip` and `tonada/exercises`, `epochs` 3, and no `reasoning_effort`). Anything else without the field is v2. v1 and v2 scores are not comparable and are not ranked on one board |
 | `benchmark`, `benchmark_name`, `benchmark_version` | string | Name and the package version that wrote the file |
 | `started_at`, `generated_at` | string | UTC ISO-8601 |
 | `run_kind` | string | `"live"`, `"mock"`, or `"smoke"` (a run with `--limit`, never ranked or published) |
@@ -198,11 +201,17 @@ Only items whose id is in the public `samples/` file for that test appear here.
 
 ## Leaderboard file
 
-`results/leaderboard.json` has `schema_version`, `generated_at`, `note`,
+There are two boards. `results/leaderboard.json` is the **v2** board, built only
+from `results/runs/*.json`. `results/v1-archive/leaderboard.json` is the **v1
+(archived)** board, built only from `results/v1-archive/runs/*.json`. Neither
+file ranks the other protocol. When `methodology` is present it is `"v1"` or
+`"v2"`, and `note` says the two are not comparable.
+
+Each board has `schema_version`, `generated_at`, `note`,
 `current_judges` (the pair in the current config), `skipped` (files not read), and
 `models`. Each entry has `model`, `family`, `run_file`, `run_kind`, `status`,
 `ranked`, `rank`, `generated_at`, `data` (`full`, `public_sample`, or `mixed`),
-`epochs`, `overall`, `cost_usd`, `suites`, `languages`, `tests`, `judges` (the pair
+`epochs`, `methodology`, `overall`, `cost_usd`, `suites`, `languages`, `tests`, `judges` (the pair
 the run used), `explanation_status`, `explanation`, `truncated_share`, and
 `truncation_rerun`.
 

@@ -8,31 +8,527 @@
   "rewrites": [
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "research.blasapp.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
       "destination": "/blas/"
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "research.blasapp.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
       "destination": "/blas/:path*"
     },
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "research.tonadaapp.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
       "destination": "/tonada/"
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "research.tonadaapp.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
       "destination": "/tonada/:path*"
     },
     {
       "source": "/",
       "missing": [
-        { "type": "host", "value": "research.blasapp.com" },
-        { "type": "host", "value": "research.tonadaapp.com" }
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
       ],
       "destination": "/suites"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/models/anthropic-claude-fable-5-2",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/anthropic-claude-fable-5-2",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/anthropic-claude-fable-5-2",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/anthropic-claude-fable-5-2",
+      "permanent": true
+    },
+    {
+      "source": "/models/anthropic-claude-haiku-5-5",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/anthropic-claude-haiku-5-5",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/anthropic-claude-haiku-5-5",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/anthropic-claude-haiku-5-5",
+      "permanent": true
+    },
+    {
+      "source": "/models/deepseek-deepseek-v4-1-flash-1017",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/deepseek-deepseek-v4-1-flash-1017",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/deepseek-deepseek-v4-1-flash-1017",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/deepseek-deepseek-v4-1-flash-1017",
+      "permanent": true
+    },
+    {
+      "source": "/models/google-gemini-4-argon",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/google-gemini-4-argon",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/google-gemini-4-argon",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/google-gemini-4-argon",
+      "permanent": true
+    },
+    {
+      "source": "/models/google-gemini-4-hydrogen",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/google-gemini-4-hydrogen",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/google-gemini-4-hydrogen",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/google-gemini-4-hydrogen",
+      "permanent": true
+    },
+    {
+      "source": "/models/moonshotai-kimi-k3-1-pro",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/moonshotai-kimi-k3-1-pro",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/moonshotai-kimi-k3-1-pro",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/moonshotai-kimi-k3-1-pro",
+      "permanent": true
+    },
+    {
+      "source": "/models/openai-gpt-6-astra",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/openai-gpt-6-astra",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/openai-gpt-6-astra",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/openai-gpt-6-astra",
+      "permanent": true
+    },
+    {
+      "source": "/models/openai-gpt-6-luna",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/openai-gpt-6-luna",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/openai-gpt-6-luna",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/openai-gpt-6-luna",
+      "permanent": true
+    },
+    {
+      "source": "/models/qwen-qwen3-8-flash",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        }
+      ],
+      "destination": "/v1/models/qwen-qwen3-8-flash",
+      "permanent": true
+    },
+    {
+      "source": "/blas/models/qwen-qwen3-8-flash",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/blas/v1/models/qwen-qwen3-8-flash",
+      "permanent": true
+    },
+    {
+      "source": "/models/anthropic-claude-fable-5-2",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/anthropic-claude-fable-5-2",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/anthropic-claude-fable-5-2",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/anthropic-claude-fable-5-2",
+      "permanent": true
+    },
+    {
+      "source": "/models/anthropic-claude-haiku-5-5",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/anthropic-claude-haiku-5-5",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/anthropic-claude-haiku-5-5",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/anthropic-claude-haiku-5-5",
+      "permanent": true
+    },
+    {
+      "source": "/models/deepseek-deepseek-v4-1-flash-1017",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/deepseek-deepseek-v4-1-flash-1017",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/deepseek-deepseek-v4-1-flash-1017",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/deepseek-deepseek-v4-1-flash-1017",
+      "permanent": true
+    },
+    {
+      "source": "/models/google-gemini-4-argon",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/google-gemini-4-argon",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/google-gemini-4-argon",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/google-gemini-4-argon",
+      "permanent": true
+    },
+    {
+      "source": "/models/google-gemini-4-hydrogen",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/google-gemini-4-hydrogen",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/google-gemini-4-hydrogen",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/google-gemini-4-hydrogen",
+      "permanent": true
+    },
+    {
+      "source": "/models/moonshotai-kimi-k3-1-pro",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/moonshotai-kimi-k3-1-pro",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/moonshotai-kimi-k3-1-pro",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/moonshotai-kimi-k3-1-pro",
+      "permanent": true
+    },
+    {
+      "source": "/models/openai-gpt-6-astra",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/openai-gpt-6-astra",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/openai-gpt-6-astra",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/openai-gpt-6-astra",
+      "permanent": true
+    },
+    {
+      "source": "/models/openai-gpt-6-luna",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/openai-gpt-6-luna",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/openai-gpt-6-luna",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/openai-gpt-6-luna",
+      "permanent": true
+    },
+    {
+      "source": "/models/qwen-qwen3-8-flash",
+      "has": [
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/v1/models/qwen-qwen3-8-flash",
+      "permanent": true
+    },
+    {
+      "source": "/tonada/models/qwen-qwen3-8-flash",
+      "missing": [
+        {
+          "type": "host",
+          "value": "research.blasapp.com"
+        },
+        {
+          "type": "host",
+          "value": "research.tonadaapp.com"
+        }
+      ],
+      "destination": "/tonada/v1/models/qwen-qwen3-8-flash",
+      "permanent": true
     }
   ]
 }

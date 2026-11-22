@@ -14,6 +14,7 @@ from teanga_bench import BENCHMARK, BENCHMARK_NAME, __version__
 from teanga_bench.charts import Bar, Point, bar_chart, scatter_chart
 from teanga_bench.export import EXPLANATION_SCORED, SCHEMA_VERSION, now_iso
 from teanga_bench.models_config import configured_judges
+from teanga_bench.protocol import V1, V2, VERSION_NOTES, methodology_of
 from teanga_bench.report import interval_text, pct, usd
 
 BLAS_LANGUAGES = ("irish", "welsh", "scots-gaelic", "manx", "breton", "cornish")
@@ -132,6 +133,7 @@ def summarise_run(
         "generated_at": document["generated_at"],
         "data": data,
         "epochs": config.get("epochs"),
+        "methodology": methodology_of(document),
         "reasoning_effort": config.get("reasoning_effort"),
         "batch": bool(config.get("batch")),
         "overall": _stat(overall),
@@ -154,12 +156,21 @@ def _rank_key(entry: dict[str, Any]) -> tuple:
     return (not entry["ranked"], -score, entry["cost_usd"], entry["model"])
 
 
+_BOARD_NOTE = (
+    "Only complete runs on full datasets are ranked. Scores are means over items with a "
+    "95% bootstrap interval. Runs on public samples are never ranked and are not comparable "
+    "with full-set runs. Explanation scores are judge-marked, "
+    "not human-validated, and shown only for runs that used the current judge pair."
+)
+
+
 def build_leaderboard(
     runs: list[dict[str, Any]],
     skipped: list[str],
     judge_pair: list[str] | None = None,
     *,
     allow_sample: bool = False,
+    methodology: str | None = None,
 ) -> dict[str, Any]:
     current = list(judge_pair) if judge_pair is not None else [j.id for j in configured_judges()]
     entries = sorted(
@@ -172,22 +183,23 @@ def build_leaderboard(
             entry["rank"] = rank
         else:
             entry["rank"] = None
-    return {
+    note = _BOARD_NOTE
+    if methodology in VERSION_NOTES:
+        note = f"{note} {VERSION_NOTES[methodology]}"
+    board = {
         "schema_version": SCHEMA_VERSION,
         "benchmark": BENCHMARK,
         "benchmark_name": BENCHMARK_NAME,
         "benchmark_version": __version__,
         "generated_at": now_iso(),
-        "note": (
-            "Only complete runs on full datasets are ranked. Scores are means over items with a "
-            "95% bootstrap interval. Runs on public samples are never ranked and are not comparable "
-            "with full-set runs. Explanation scores are judge-marked, "
-            "not human-validated, and shown only for runs that used the current judge pair."
-        ),
+        "note": note,
         "current_judges": current,
         "models": entries,
         "skipped": skipped,
     }
+    if methodology in VERSION_NOTES:
+        board["methodology"] = methodology
+    return board
 
 
 def _ranked(board: dict[str, Any]) -> list[dict[str, Any]]:
@@ -298,11 +310,32 @@ def render_markdown(board: dict[str, Any], chart_names: list[str]) -> str:
     return "\n".join(lines)
 
 
-def write_leaderboard(
-    runs_dir: Path, out_dir: Path, include_mock: bool = False, judge_pair: list[str] | None = None
+def _label_for(runs: list[dict[str, Any]], methodology: str | None) -> str | None:
+    if methodology in VERSION_NOTES:
+        return methodology
+    if not runs:
+        return None
+    labels = {methodology_of(run) for run in runs}
+    if labels == {V1} and all(run.get("methodology") == V1 for run in runs):
+        return V1
+    if labels == {V2} and any(run.get("methodology") == V2 for run in runs):
+        return V2
+    return None
+
+
+def _write_board(
+    runs: list[dict[str, Any]],
+    skipped: list[str],
+    out_dir: Path,
+    judge_pair: list[str] | None,
+    *,
+    allow_sample: bool,
+    methodology: str | None,
 ) -> dict[str, Any]:
-    runs, skipped = load_runs(runs_dir, include_mock=include_mock)
-    board = build_leaderboard(runs, skipped, judge_pair, allow_sample=include_mock)
+    """Write one board. Chart files are replaced only inside ``out_dir/charts``."""
+    board = build_leaderboard(
+        runs, skipped, judge_pair, allow_sample=allow_sample, methodology=methodology
+    )
     charts = build_charts(board)
     chart_dir = out_dir / "charts"
     chart_dir.mkdir(parents=True, exist_ok=True)
@@ -316,3 +349,51 @@ def write_leaderboard(
     )
     (out_dir / "leaderboard.md").write_text(render_markdown(board, sorted(charts)), encoding="utf-8")
     return board
+
+
+def write_leaderboard(
+    runs_dir: Path,
+    out_dir: Path,
+    include_mock: bool = False,
+    judge_pair: list[str] | None = None,
+    *,
+    methodology: str | None = None,
+) -> dict[str, Any]:
+    """Write the leaderboard for ``runs_dir``.
+
+    When that directory holds both protocols, the v2 board is written to
+    ``out_dir`` and the v1 board to ``out_dir/v1-split``. Each chart directory
+    is wiped on its own, so one version's charts do not replace the other's.
+    The split directory is not ``results/v1-archive``: a mixed ``results/runs``
+    must not rewrite the archived board. A directory that contains only one
+    protocol keeps the previous single-board layout.
+    """
+    runs, skipped = load_runs(runs_dir, include_mock=include_mock)
+    v1_runs = [run for run in runs if methodology_of(run) == V1]
+    v2_runs = [run for run in runs if methodology_of(run) != V1]
+    if v1_runs and v2_runs:
+        _write_board(
+            v1_runs,
+            [],
+            out_dir / "v1-split",
+            judge_pair,
+            allow_sample=include_mock,
+            methodology=V1,
+        )
+        return _write_board(
+            v2_runs,
+            skipped,
+            out_dir,
+            judge_pair,
+            allow_sample=include_mock,
+            methodology=V2,
+        )
+    present = v1_runs or v2_runs
+    return _write_board(
+        present,
+        skipped,
+        out_dir,
+        judge_pair,
+        allow_sample=include_mock,
+        methodology=_label_for(present, methodology),
+    )

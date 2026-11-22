@@ -776,6 +776,50 @@ def test_reexport_refuses_dataset_changes(data_root, tmp_path, judges, monkeypat
     assert not output.exists()
 
 
+def test_reexport_updates_archived_v1_and_refuses_to_cover_v2(data_root, tmp_path, judges, monkeypatch, capsys):
+    first = _reexport_source(_run(data_root, tmp_path, "reexport-archive", Candidate()))
+    results = first.output.parent
+    archive = results / "v1-archive" / "runs"
+    archive.mkdir(parents=True)
+    archived = archive / first.output.name
+    document = json.loads(first.output.read_text(encoding="utf-8"))
+    document["methodology"] = "v1"
+    original_overall = document["overall"]
+    archived.write_text(json.dumps(document), encoding="utf-8")
+    first.output.unlink()
+    runs_path = results / "runs" / first.output.name
+    forbidden = _forbid_reexport_calls(monkeypatch)
+    args = [
+        "reexport", "--model", "mockllm/model",
+        "--results-dir", str(results),
+        "--log-dir", str(results),
+        "--data-root", str(data_root),
+    ]
+    assert cli.main(args) == cli.EXIT_OK
+    forbidden.assert_not_called()
+    assert not runs_path.exists()
+    rebuilt = json.loads(archived.read_text(encoding="utf-8"))
+    assert rebuilt["methodology"] == "v1"
+    assert rebuilt["overall"] == original_overall
+
+    runs_path.parent.mkdir(parents=True)
+    v2 = json.loads(json.dumps(rebuilt))
+    v2["methodology"] = "v2"
+    v2_bytes = json.dumps(v2).encode("utf-8")
+    runs_path.write_bytes(v2_bytes)
+    archive_bytes = archived.read_bytes()
+    assert cli.main(args) == cli.EXIT_INCOMPLETE
+    assert "pass --output" in capsys.readouterr().err
+    assert runs_path.read_bytes() == v2_bytes
+    assert archived.read_bytes() == archive_bytes
+
+    runs_path.unlink()
+    assert cli.main(args + ["--output", str(runs_path)]) == cli.EXIT_INCOMPLETE
+    assert "refusing to write a v1 reexport" in capsys.readouterr().err
+    assert not runs_path.exists()
+    assert archived.read_bytes() == archive_bytes
+
+
 def test_reexport_refuses_an_incomplete_run(data_root, tmp_path, judges, monkeypatch, capsys):
     first = _reexport_source(_run(data_root, tmp_path, "run", Candidate(flaky=FLAKY)))
     forbidden = _forbid_reexport_calls(monkeypatch)

@@ -166,6 +166,13 @@ unscored. It is not counted as wrong.
 
 ## Runs, intervals and cost
 
+v1 and v2 are published as separate leaderboards. The nine v1 runs (7 tests,
+3 epochs, provider-default reasoning, 2,260 items) stay in
+`results/v1-archive/` and on each research site under `/v1/`. The main
+leaderboard is v2. Do not compare a v1 score with a v2 score. The Zenodo
+deposit [10.5281/zenodo.24305705](https://doi.org/10.5281/zenodo.24305705)
+records the v1 result set and remains the citation for Teanga Bench.
+
 - **Core suite (v2).** New runs default to the four high-signal, non-saturated
   tests (`blas/morphology`, `blas/translation`, `blas/tutor_accuracy`,
   `tonada/tutor_accuracy`; 1,260 items). Three v1 tests remain on disk via
