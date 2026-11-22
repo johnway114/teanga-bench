@@ -30,6 +30,9 @@ build-backend = "setuptools.build_meta"
 where = ["."]
 include = ["teanga_bench*"]
 
+[tool.setuptools.package-data]
+teanga_bench = ["lab_assets/*.css", "lab_assets/*.js"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

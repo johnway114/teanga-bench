@@ -32,6 +32,8 @@ NAV = re.compile(r'<nav class="site-nav" aria-label="Main">(.*?)</nav>', re.S)
 SUITE_PAGES = ("index.html", "tests.html", "findings.html", "models.html", "methodology.html")
 VIZ = re.compile(r'<figure class="viz[^"]*">(.*?)</figure>', re.S)
 CHART_SVG = re.compile(r'<svg class="(?:dtrack|lines|scatter|radar)"')
+LAB_PAGES = ("lab", "speech", "transcribe", "write", "benchmarks", "arena", "developers")
+LAB_NAV = re.compile(r'<nav class="lab-nav" aria-label="Open Lab">(.*?)</nav>', re.S)
 
 
 def _results(tmp_path: Path, documents: dict[str, dict]) -> Path:
@@ -115,6 +117,16 @@ def test_site_builds_every_page_from_two_complete_runs(tmp_path):
     method = _read(out / "blas" / "methodology.html")
     assert "Word forms" in method and "blas-app+bunamo 11" in method and "counting" not in method
     assert "In one minute" in method
+    for slug in LAB_PAGES:
+        assert (out / "blas" / f"{slug}.html").is_file()
+        assert not (out / "tonada" / f"{slug}.html").exists()
+    arena = _read(out / "blas" / "arena.html")
+    assert "There is no public listening round." in arena
+    assert "<audio" not in arena and "arena.js" not in arena
+    speech = _read(out / "blas" / "speech.html")
+    assert "No clips or synthesis are cleared" in speech and "<audio" not in speech
+    developers = _read(out / "blas" / "developers.html")
+    assert 'id="developer-lookup"' in developers and "assets/developers.js" in developers
 
 
 def test_every_link_resolves_and_nav_is_shared(tmp_path):
@@ -132,25 +144,38 @@ def test_every_link_resolves_and_nav_is_shared(tmp_path):
                 resolved = resolved / "index.html"
             assert resolved.exists(), f"{page.relative_to(out)} links to missing {target}"
 
-    labels = {}
+    assert 'href="lab.html"' in _read(out / "blas" / "index.html")
+    assert 'href="lab.html"' not in _read(out / "tonada" / "index.html")
+    assert '<a href="./">Explore the Teanga leaderboard</a>' in _read(out / "blas" / "benchmarks.html")
     for suite in ("blas", "tonada"):
         for page in sorted((out / suite).rglob("*.html")):
             text = _read(page)
             nav = NAV.search(text).group(1)
-            labels[suite] = re.findall(r">([A-Za-z]+)<", nav)
+            labels = re.findall(r">([A-Za-z]+)<", nav)
             current = re.findall(r'href="([^"]+)" aria-current="page"', nav)
-            if page.parent.name == "models":
+            lab = LAB_NAV.search(text)
+            if suite == "blas" and page.parent == out / suite and page.stem in LAB_PAGES:
+                assert labels == ["Leaderboard", "GitHub"]
+                assert current == ["lab.html"] and 'href="lab.html" aria-current="page">Open Lab</a>' in nav
+                assert 'href="./">Leaderboard</a>' in nav
+                assert lab is not None
+                assert LINK.findall(lab.group(1)) == [f"{slug}.html" for slug in LAB_PAGES]
+                assert re.findall(r'href="([^"]+)" aria-current="page"', lab.group(1)) == [page.name]
+            elif page.parent.name == "models":
                 assert current == [] and 'href="../models.html" aria-current="true"' in nav
                 assert 'href="../models.html">Models</a>' in text  # breadcrumb back to the index
             else:
                 expected = "./" if page.name == "index.html" else f"./{page.name}"
                 assert current == [expected], f"{page.relative_to(out)} marks {current}"
+            if lab is None:
+                assert labels == [
+                    "Leaderboard", "Tests", "Findings", SUITES[suite].group_nav, "Models", "Methodology", "GitHub",
+                ]
             for other in SUITES.values():
                 assert other.short in text  # the suite switcher names both suites
             other = SUITES["tonada" if suite == "blas" else "blas"]
             assert f'href="{other.url}"' in text
-    assert labels["blas"] == ["Leaderboard", "Tests", "Findings", "Languages", "Models", "Methodology", "GitHub"]
-    assert labels["tonada"] == ["Leaderboard", "Tests", "Findings", "Learners", "Models", "Methodology", "GitHub"]
+            assert bool(lab) == (suite == "blas" and page.parent == out / suite and page.stem in LAB_PAGES)
 
 
 def test_honesty_note_on_every_page_with_scores(tmp_path):
