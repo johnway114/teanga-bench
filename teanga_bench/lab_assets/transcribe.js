@@ -8,6 +8,8 @@
   const FILE_SECONDS = 120;
   const FILE_BYTES = 100 * 1024 * 1024;
   const CHUNK_SECONDS = 20;
+  const PREVIEW_WAIT_MS = 6_000;
+  const DECODE_WAIT_MS = 12_000;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   const OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const root = $('transcription');
@@ -23,6 +25,9 @@
   const recordLevel = $('record-level');
   const fileInput = $('media-file');
   const fileStatus = $('file-status');
+  const previewStatus = $('preview-status');
+  const previewButton = $('preview-file');
+  const cancelFile = $('cancel-file');
   const drop = $('drop-zone');
   const preview = $('media-preview');
   const playingCue = $('playing-cue');
@@ -37,13 +42,14 @@
   let recordingSent = false;
   let recordingURL = '';
   let fileJob = null;
-  let fileURL = '';
+  let endPreview = null;
   let extractedURL = '';
   let player = null;
   let turnstileLoader = null;
   let microphonePending = false;
   let closing = false;
   let requestController = null;
+  let remoteRequest = false;
 
   function updateControls() {
     const recordingActive = Boolean(recording || microphonePending);
@@ -53,6 +59,7 @@
     $('send-file').disabled = !maySend || !fileJob || !fileJob.eligible || fileJob.done;
     $('extract-audio').disabled = busy || !OfflineAudioContext || !fileJob?.eligible || Boolean(extractedURL);
     $('clear-file').disabled = busy || !fileJob;
+    previewButton.disabled = !fileJob;
     recordButton.disabled = !window.MediaRecorder || !navigator.mediaDevices?.getUserMedia || busy || microphonePending || Boolean(recording && recording.recorder.state === 'inactive');
     fileInput.disabled = busy;
     for (const button of downloads) button.disabled = !cues.some((cue) => cue.text.trim());
@@ -104,7 +111,7 @@
   }
 
   async function verify(signal) {
-    const turnstile = await loadTurnstile();
+    const turnstile = await abortable(loadTurnstile(), signal);
     if (signal.aborted) throw new Error('Transcription was cancelled.');
     return new Promise((resolve, reject) => {
       let widget;
@@ -151,23 +158,69 @@
     });
   }
 
-  // Decode at the target sample rate, then downmix using the browser's Web Audio channel rules.
-  async function decode(blob, maxSeconds, limitMessage) {
-    let buffer;
+  function readBytes(blob, signal) {
+    return new Promise((resolve, reject) => {
+      if (signal.aborted) return reject(signal.reason);
+      const reader = new FileReader();
+      const cancel = () => reader.abort();
+      const finish = (value) => {
+        signal.removeEventListener('abort', cancel);
+        if (value instanceof ArrayBuffer) resolve(value);
+        else reject(value);
+      };
+      reader.onload = () => finish(reader.result);
+      reader.onerror = () => finish(reader.error);
+      reader.onabort = () => finish(signal.reason);
+      signal.addEventListener('abort', cancel, { once: true });
+      reader.readAsArrayBuffer(blob);
+    });
+  }
+
+  // Web Audio cannot abort native decode. Stop waiting and ignore its late result.
+  function abortable(work, signal) {
+    return new Promise((resolve, reject) => {
+      const finish = (callback, value) => {
+        signal.removeEventListener('abort', cancel);
+        callback(value);
+      };
+      const cancel = () => finish(reject, signal.reason);
+      signal.addEventListener('abort', cancel, { once: true });
+      work.then((value) => finish(resolve, value), (error) => finish(reject, error));
+      if (signal.aborted) cancel();
+    });
+  }
+
+  async function decode(blob, maxSeconds, limitMessage, signal) {
+    const guard = new AbortController();
+    const cancel = () => guard.abort(new Error('Audio processing cancelled. Your local edits are kept.'));
+    if (signal.aborted) cancel();
+    signal.addEventListener('abort', cancel, { once: true });
+    const timer = setTimeout(() => guard.abort(new Error(
+      'Audio extraction took too long. Try a shorter file or convert the audio to WAV or MP3.',
+    )), DECODE_WAIT_MS);
     try {
-      const decoder = new OfflineAudioContext(1, 1, SAMPLE_RATE);
-      buffer = await decoder.decodeAudioData(await blob.arrayBuffer());
-    } catch {
-      throw new Error('This browser could not extract audio from the file. Try WAV or MP3, or add subtitle cues manually.');
+      let buffer;
+      try {
+        const bytes = await readBytes(blob, guard.signal);
+        const decoder = new OfflineAudioContext(1, 1, SAMPLE_RATE);
+        buffer = await abortable(decoder.decodeAudioData(bytes), guard.signal);
+      } catch {
+        throw new Error('This browser could not decode the audio codec. Try WAV or MP3, or add subtitle cues manually.');
+      }
+      if (buffer.duration > maxSeconds) throw new Error(limitMessage);
+      if (buffer.numberOfChannels === 1) return buffer.getChannelData(0);
+      const mixer = new OfflineAudioContext(1, buffer.length, SAMPLE_RATE);
+      const source = mixer.createBufferSource();
+      source.buffer = buffer;
+      source.connect(mixer.destination);
+      source.start();
+      return (await abortable(mixer.startRendering(), guard.signal)).getChannelData(0);
+    } catch (error) {
+      throw guard.signal.aborted ? guard.signal.reason : error;
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', cancel);
     }
-    if (buffer.duration > maxSeconds) throw new Error(limitMessage);
-    if (buffer.numberOfChannels === 1) return buffer.getChannelData(0);
-    const mixer = new OfflineAudioContext(1, buffer.length, SAMPLE_RATE);
-    const source = mixer.createBufferSource();
-    source.buffer = buffer;
-    source.connect(mixer.destination);
-    source.start();
-    return (await mixer.startRendering()).getChannelData(0);
   }
 
   function wav(samples) {
@@ -278,9 +331,10 @@
       return { text: output.transcription.trim(), confidence: output.confidence };
     } catch (error) {
       if (controller.signal.aborted) {
-        throw new Error(signal.aborted ? 'Transcription was cancelled.' : 'The request timed out; your local edits are still available.');
+        const reason = signal.aborted ? 'Transcription was cancelled.' : 'The request timed out.';
+        throw new Error(`${reason} No result received; your local edits are preserved.`);
       }
-      if (error instanceof TypeError) throw new Error('Could not reach the transcription service. Your media and edits are still local.');
+      if (error instanceof TypeError) throw new Error('No result received; your local edits are preserved.');
       throw error;
     } finally {
       clearTimeout(timer);
@@ -409,24 +463,14 @@
   }
 
   function closeMedia() {
-    if (player) {
-      player.pause();
-      player.removeAttribute('src');
-      player.load();
-      player = null;
-    }
-    if (fileURL) URL.revokeObjectURL(fileURL);
+    endPreview?.('');
     if (extractedURL) URL.revokeObjectURL(extractedURL);
-    fileURL = '';
     extractedURL = '';
     fileJob = null;
     $('save-audio').removeAttribute('href');
     $('save-audio').hidden = true;
     $('file-name').textContent = '';
-    preview.replaceChildren();
-    preview.hidden = true;
-    previewCaption();
-    for (const button of list.querySelectorAll('[data-seek]')) button.disabled = true;
+    previewStatus.textContent = '';
   }
 
   function loadFile(file) {
@@ -441,35 +485,85 @@
       return;
     }
     closeMedia();
-    fileURL = URL.createObjectURL(file);
-    fileJob = { file, eligible: true, done: false, cursor: 0, added: 0, pcm: null, segments: [] };
+    const video = file.type.startsWith('video/') || ['mp4', 'mov'].includes(ext);
+    fileJob = { file, video, eligible: true, done: false, cursor: 0, added: 0, pcm: null, segments: [] };
     $('send-file').textContent = 'Generate subtitle cues';
     $('file-name').textContent = file.name;
-    fileStatus.textContent = 'File opened locally. Existing cues are kept.';
-    const media = element(file.type.startsWith('video/') || ['mp4', 'mov'].includes(ext) ? 'video' : 'audio');
+    fileStatus.textContent = 'File selected locally. Preview or extract its audio when ready. Existing cues are kept.';
+    updateControls();
+  }
+
+  function openPreview() {
+    if (!fileJob || player) return;
+    const job = fileJob;
+    const media = element(job.video ? 'video' : 'audio');
     player = media;
+    const url = URL.createObjectURL(job.file);
+    const events = new AbortController();
+    const on = (name, callback) => media.addEventListener(name, callback, { signal: events.signal });
+    let metadata = false;
+    let timer;
+    const setWait = (message) => {
+      if (timer !== undefined) return;
+      timer = setTimeout(() => endPreview?.(message), PREVIEW_WAIT_MS);
+    };
+    const clearWait = () => {
+      clearTimeout(timer);
+      timer = undefined;
+    };
+    endPreview = (message) => {
+      clearWait();
+      events.abort();
+      endPreview = null;
+      player = null;
+      preview.replaceChildren();
+      preview.hidden = true;
+      media.pause();
+      media.removeAttribute('src');
+      media.load();
+      URL.revokeObjectURL(url);
+      previewStatus.textContent = message;
+      previewButton.textContent = 'Preview media';
+      previewButton.setAttribute('aria-expanded', 'false');
+      for (const button of list.querySelectorAll('[data-seek]')) button.disabled = true;
+      previewCaption();
+    };
+    previewButton.textContent = 'Cancel preview';
+    previewButton.setAttribute('aria-expanded', 'true');
+    previewStatus.textContent = 'Preparing local media preview…';
     media.controls = true;
     media.playsInline = true;
     media.preload = 'metadata';
     media.setAttribute('aria-label', 'Local media preview');
-    media.addEventListener('loadedmetadata', () => {
-      if (player !== media) return;
+    on('loadedmetadata', () => {
+      clearWait();
+      metadata = true;
+      previewButton.textContent = 'Close preview';
+      previewStatus.textContent = 'Media preview is ready.';
       if (media.duration > FILE_SECONDS && Number.isFinite(media.duration)) {
-        fileJob.eligible = false;
-        fileStatus.textContent = 'This file exceeds the two-minute audio processing limit. Preview and manual cues still work.';
+        job.eligible = false;
+        previewStatus.textContent = 'This file exceeds the two-minute audio processing limit. Preview and manual cues still work.';
       }
+      for (const button of list.querySelectorAll('[data-seek]')) button.disabled = false;
+      previewCaption();
       updateControls();
+      waiting();
     });
-    media.addEventListener('error', () => {
-      if (player === media) fileStatus.textContent = 'This browser cannot preview the file. Try another format or edit cues manually.';
-    });
-    for (const event of ['timeupdate', 'seeked', 'loadedmetadata']) media.addEventListener(event, previewCaption);
-    media.src = fileURL;
+    on('error', () => endPreview?.(
+      'This browser could not play this media codec. Try extracting the audio or using a different format.',
+    ));
+    const waiting = () => {
+      if (metadata && !media.paused) {
+        setWait('Local playback stalled. Try extracting the audio or using a different format.');
+      }
+    };
+    for (const name of ['play', 'waiting', 'stalled']) on(name, waiting);
+    for (const name of ['playing', 'pause', 'ended']) on(name, () => { if (metadata) clearWait(); });
+    for (const name of ['timeupdate', 'seeked']) on(name, previewCaption);
+    setWait('The browser did not load the preview in time. Try extracting the audio or using a different format.');
     preview.replaceChildren(media);
     preview.hidden = false;
-    previewCaption();
-    for (const button of list.querySelectorAll('[data-seek]')) button.disabled = false;
-    updateControls();
+    media.src = url;
   }
 
   function glosses(details, cue) {
@@ -556,7 +650,7 @@
     const seek = actions.appendChild(element('button', 'Go to cue'));
     seek.type = 'button';
     seek.dataset.seek = '';
-    seek.disabled = !player;
+    seek.disabled = !player || player.readyState === 0;
     seek.addEventListener('click', () => {
       if (!player || !(cue.start >= 0) || player.readyState === 0) return;
       player.currentTime = cue.start;
@@ -632,12 +726,16 @@
     cueStatus.textContent = `${format.toUpperCase()} download requested.`;
   }
 
-  async function withRequest(status, work) {
-    if (busy || !available || !consent.checked) return;
+  async function withProcessing(status, work, remote = true) {
+    if (busy || (remote && (!available || !consent.checked))) return;
     busy = true;
+    remoteRequest = remote;
     requestController = new AbortController();
-    // Keep verification next to the action that triggered it rather than shifting the page.
-    status.before(challenge);
+    if (remote) status.before(challenge);
+    if (status === fileStatus) {
+      cancelFile.disabled = false;
+      cancelFile.hidden = false;
+    }
     updateControls();
     try {
       await work(requestController.signal);
@@ -645,6 +743,8 @@
       status.textContent = error.message || 'Transcription could not complete.';
     } finally {
       busy = false;
+      remoteRequest = false;
+      cancelFile.hidden = true;
       requestController = null;
       updateControls();
     }
@@ -652,10 +752,10 @@
 
   async function sendRecording() {
     if (!recordedBlob) return;
-    await withRequest(recordStatus, async (signal) => {
+    await withProcessing(recordStatus, async (signal) => {
       recordStatus.textContent = 'Preparing recording locally…';
       // Encoders can pad the tail by a few samples. Never send more than thirty seconds.
-      const pcm = await decode(recordedBlob, RECORD_LIMIT + 1, 'This recording ran over thirty seconds. Please record a shorter clip.');
+      const pcm = await decode(recordedBlob, RECORD_LIMIT + 1, 'This recording ran over thirty seconds. Please record a shorter clip.', signal);
       const clip = pcm.subarray(0, RECORD_LIMIT * SAMPLE_RATE);
       if (!segments(clip).length) throw new Error('No speech-like audio was detected. Record another clip.');
       recordStatus.textContent = 'Verifying and transcribing recording…';
@@ -672,40 +772,33 @@
     });
   }
 
-  function decodeFile(job) {
-    return decode(job.file, FILE_SECONDS, 'This file exceeds the two-minute audio processing limit. You can still add cues manually.');
+  function decodeFile(job, signal) {
+    return decode(job.file, FILE_SECONDS, 'This file exceeds the two-minute audio processing limit. You can still add cues manually.', signal);
   }
 
   async function extractAudio() {
-    if (busy || !fileJob?.eligible) return;
-    busy = true;
-    updateControls();
-    const job = fileJob;
-    fileStatus.textContent = 'Extracting the audio in your browser…';
-    try {
-      const pcm = job.pcm ?? await decodeFile(job);
-      if (closing) return;
+    if (!fileJob?.eligible) return;
+    await withProcessing(fileStatus, async (signal) => {
+      const job = fileJob;
+      fileStatus.textContent = 'Extracting the audio in your browser…';
+      const pcm = job.pcm ?? await decodeFile(job, signal);
+      if (closing || signal.aborted) return;
       if (!job.done) job.pcm = pcm;
       extractedURL = URL.createObjectURL(new Blob([wav(pcm)], { type: 'audio/wav' }));
       const link = $('save-audio');
       link.href = extractedURL;
       link.hidden = false;
-      fileStatus.textContent = 'Extracted 16 kHz mono WAV. Nothing was sent.';
-    } catch (error) {
-      fileStatus.textContent = error.message || 'Audio extraction failed.';
-    } finally {
-      busy = false;
-      updateControls();
-    }
+      fileStatus.textContent = 'Extracted 16 kHz mono WAV on this device.';
+    }, false);
   }
 
   async function sendFile() {
     if (!fileJob?.eligible || fileJob.done) return;
-    await withRequest(fileStatus, async (signal) => {
+    await withProcessing(fileStatus, async (signal) => {
       const job = fileJob;
       if (!job.segments.length) {
         fileStatus.textContent = 'Preparing the audio in your browser…';
-        job.pcm ??= await decodeFile(job);
+        job.pcm ??= await decodeFile(job, signal);
         job.segments = segments(job.pcm);
         if (!job.segments.length) {
           job.done = true;
@@ -740,7 +833,7 @@
   }
   for (const section of root.querySelectorAll('[data-js]')) section.hidden = false;
   consent.addEventListener('change', () => {
-    if (!consent.checked) requestController?.abort();
+    if (!consent.checked && remoteRequest) requestController?.abort();
     updateControls();
   });
   dictation.addEventListener('input', updateControls);
@@ -754,6 +847,14 @@
   $('send-recording').addEventListener('click', sendRecording);
   $('send-file').addEventListener('click', sendFile);
   $('extract-audio').addEventListener('click', extractAudio);
+  previewButton.addEventListener('click', () => {
+    if (endPreview) endPreview('Preview closed. Your local file and cues are kept.');
+    else openPreview();
+  });
+  cancelFile.addEventListener('click', () => {
+    cancelFile.disabled = true;
+    requestController?.abort(new Error('Processing cancelled. Your local edits are kept.'));
+  });
   $('clear-file').addEventListener('click', () => {
     closeMedia();
     fileStatus.textContent = 'Local media closed. Subtitle cues are kept.';
@@ -799,12 +900,12 @@
   window.addEventListener('pagehide', (event) => {
     closing = !event.persisted;
     requestController?.abort();
+    endPreview?.('');
     if (recording) {
       if (closing) releaseRecording(recording);
       else stopRecording();
     }
     if (closing) {
-      if (fileURL) URL.revokeObjectURL(fileURL);
       if (extractedURL) URL.revokeObjectURL(extractedURL);
       if (recordingURL) URL.revokeObjectURL(recordingURL);
     }

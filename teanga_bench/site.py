@@ -1081,7 +1081,7 @@ def _page(
             )
     other = SUITES["tonada" if suite.key == "blas" else "blas"]
     other_public = other.url if not prefix else other.url.rstrip("/") + "/" + prefix
-    lab_tag = f'<script src="{root}assets/{lab_script}" defer></script>' if lab_script else ""
+    lab_tag = f'\n<script src="{root}assets/{lab_script}" defer></script>' if lab_script else ""
     lab_style = f'\n<link rel="stylesheet" href="{root}assets/lab.css">' if lab_page else ""
     lab_home = "../" + home if prefix else home
     if lab_page:
@@ -1096,9 +1096,9 @@ def _page(
         updated_note = f"Results as of {e(_date(updated))}. " if updated else ""
         footer = (
             f'<p>{BENCHMARK_NAME} is open source under Apache-2.0. Code, the public samples and every results file '
-            f'are on <a href="{REPO_URL}">GitHub</a>{lab_link}.</p>'
+            f'are on <a href="{REPO_URL}">GitHub</a>{lab_link}.</p>\n'
             f'<p>Gold answers come from the sources named in the <a href="{home}methodology.html">methodology</a>; '
-            'they have not been reviewed by native speakers.</p>'
+            'they have not been reviewed by native speakers.</p>\n'
             f'<p>{updated_note}Also see the <a href="{e(other_public)}" data-local="{root}{other.key}/{prefix}">'
             f'{e(other.name)}: {e(other.description)}</a>.</p>'
         )
@@ -1128,8 +1128,7 @@ def _page(
 {footer}
 </div></footer>
 <script>
-{SITE_JS}</script>
-{lab_tag}
+{SITE_JS}</script>{lab_tag}
 </body>
 </html>
 """

@@ -172,7 +172,7 @@ def _transcribe(turnstile_site_key: str) -> str:
     </div>
   </section>
   <section id="subtitler" class="card lab-workspace" aria-labelledby="subtitler-heading" data-js hidden>
-    <div class="lab-tool-head"><div><p class="eyebrow">Audio or video · 2 minutes for transcription</p>
+    <div class="lab-tool-head"><div><p class="eyebrow">Audio or video · 2 minutes for extraction</p>
       <h2 id="subtitler-heading">Tras-scríobh subtitler</h2></div></div>
     <div class="lab-editor-grid">
       <div>
@@ -181,11 +181,14 @@ def _transcribe(turnstile_site_key: str) -> str:
           <input type="file" id="media-file" accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov">
         </label>
         <p id="file-name" class="lab-note"></p>
+        <div class="lab-actions"><button type="button" id="preview-file" disabled aria-controls="media-preview" aria-expanded="false">Preview media</button></div>
+        <p id="preview-status" class="lab-note" role="status"></p>
         <div id="media-preview" class="lab-preview" hidden></div>
         <p id="playing-cue" class="lab-caption" lang="ga" hidden></p>
         <div class="lab-actions"><button type="button" class="lab-primary" id="send-file" disabled>Generate subtitle cues</button>
           <button type="button" id="extract-audio" disabled>Extract audio locally</button>
-          <button type="button" id="clear-file" disabled>Close media</button></div>
+          <button type="button" id="clear-file" disabled>Close media</button>
+          <button type="button" id="cancel-file" hidden>Cancel processing</button></div>
         <a id="save-audio" class="lab-button" hidden download="extracted-irish-audio.wav">Save extracted WAV</a>
         <p class="lab-note" id="file-status" role="status">Only the audio is extracted, in your browser. Codec support varies by browser.</p>
       </div>
