@@ -121,8 +121,46 @@ def test_run_publish_refuses_mock_before_running(capsys):
     assert "refuses mock" in capsys.readouterr().err
 
 
+def test_publish_v2_does_not_touch_the_v1_archive(repo):
+    from test_cutover import _historical, _v2, _write
+
+    archive = _write(
+        repo / "results" / "v1-archive" / "runs",
+        "google/gemini-4-hydrogen",
+        _historical("google/gemini-4-hydrogen", 0.8647533673882336),
+    )
+    archive.with_suffix(".md").write_text("# v1\n", encoding="utf-8")
+    chart = repo / "results" / "v1-archive" / "charts" / "suite-blas.svg"
+    chart.parent.mkdir(parents=True)
+    chart.write_text("<svg>v1</svg>\n", encoding="utf-8")
+    before = {path: path.read_bytes() for path in (repo / "results" / "v1-archive").rglob("*") if path.is_file()}
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "archive v1")
+    run = _write(repo / "results" / "runs", "thinkingmachines/inkling-2-mini", _v2())
+    assert publish_run(run, repo_root=repo, out=lambda _line: None) == 0
+    after = {path: path.read_bytes() for path in (repo / "results" / "v1-archive").rglob("*") if path.is_file()}
+    assert after == before
+    committed = _git(repo, "show", "--name-only", "--format=", "HEAD").split()
+    assert "results/runs/thinkingmachines__inkling-2-mini.json" in committed
+    assert "results/v1-archive/runs/google__gemini-4-hydrogen.json" not in committed
+    assert all(not path.startswith("data/private/") for path in committed)
+    board = json.loads((repo / "results" / "leaderboard.json").read_text(encoding="utf-8"))
+    assert [entry["model"] for entry in board["models"]] == ["thinkingmachines/inkling-2-mini"]
+    v2_home = (repo / "site" / "blas" / "index.html").read_text(encoding="utf-8")
+    assert "Inkling 2 Mini" in v2_home and "gemini-4-hydrogen" not in v2_home
+    archived = (repo / "site" / "blas" / "v1" / "models" / "google-gemini-4-hydrogen.html").read_text(encoding="utf-8")
+    legacy = (repo / "site" / "blas" / "models" / "google-gemini-4-hydrogen.html").read_text(encoding="utf-8")
+    assert "86.5%" in archived and "86.5%" not in legacy
+    assert "../v1/models/google-gemini-4-hydrogen.html" in legacy
+
+
 def test_allowed_paths():
     assert allowed_path("site/blas/index.html")
+    assert allowed_path("site/blas/v1/models/google-gemini-4-hydrogen.html")
     assert allowed_path("results/runs/a__b.json") and allowed_path("results/charts/x.svg")
+    assert allowed_path("results/v1-archive/runs/google__gemini-4-hydrogen.json")
+    assert allowed_path("results/v1-archive/leaderboard.json")
+    assert allowed_path("results/v1-archive/charts/suite-blas.svg")
+    assert allowed_path("vercel.json")
     assert not allowed_path("data/private/blas/x.jsonl")
     assert not allowed_path("results/mock/x.json") and not allowed_path("teanga_bench/cli.py")

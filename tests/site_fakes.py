@@ -174,6 +174,10 @@ def fake_document(
     return {
         "schema_version": "2.0.0", "benchmark": "teanga-bench", "benchmark_name": "Teanga Bench",
         "benchmark_version": "0.2.0", "started_at": generated_at, "generated_at": generated_at,
+        # These fixtures reuse the seven-test list. Stamp them as the current board so
+        # the historical v1 shape (no field, 7 tests, 3 epochs, no reasoning_effort) stays
+        # reserved for the archived runs.
+        "methodology": "v2",
         "run_kind": run_kind, "status": status,
         "model": {"id": model, "family": model.split("/")[0], "inspect_id": f"openrouter/{model}", "pricing": pricing},
         "config": {"epochs": epochs, "limit": None, "max_cost_usd": 5.0},
