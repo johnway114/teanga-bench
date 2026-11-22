@@ -2,21 +2,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://research.tonadaapp.com/</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
   </url>
   <url>
     <loc>https://research.tonadaapp.com/tests</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
   </url>
   <url>
     <loc>https://research.tonadaapp.com/findings</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
   </url>
   <url>
     <loc>https://research.tonadaapp.com/learners</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
   </url>
   <url>
     <loc>https://research.tonadaapp.com/models</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
   </url>
   <url>
     <loc>https://research.tonadaapp.com/methodology</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
+  </url>
+  <url>
+    <loc>https://research.tonadaapp.com/models/thinkingmachines-inkling-2-mini</loc>
+    <lastmod>2026-11-21T19:48:36+00:00</lastmod>
   </url>
   <url>
     <loc>https://research.tonadaapp.com/v1/</loc>

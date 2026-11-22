@@ -4,9 +4,56 @@
   "benchmark_name": "Teanga Bench",
   "benchmark_version": "0.2.0",
   "suite": "tonada",
-  "generated_at": null,
+  "generated_at": "2026-11-21T19:48:36+00:00",
   "note": "Only live runs with status complete are ranked. Scores are means over items with a 95% bootstrap interval; the suite score weights every test equally. cost_usd is the spend on this suite's tests. by_l1 gives the mean of per-test scores.",
-  "models": [],
+  "models": [
+    {
+      "rank": 1,
+      "ranked": true,
+      "model": "thinkingmachines/inkling-2-mini",
+      "family": "thinkingmachines",
+      "page": "models/thinkingmachines-inkling-2-mini.html",
+      "run_file": "thinkingmachines__inkling-2-mini.json",
+      "run_kind": "live",
+      "status": "complete",
+      "generated_at": "2026-11-21T19:48:36+00:00",
+      "data": "full",
+      "epochs": 1,
+      "overall": {
+        "score": 0.7305555555555555,
+        "ci95": [
+          0.6805555555555556,
+          0.7777777777777778
+        ],
+        "n_tests": 1,
+        "n_items": 360
+      },
+      "cost_usd": 0.271534208,
+      "cost_per_correct_usd": 0.0010324494600760456,
+      "by_l1": {
+        "japanese": 0.7777777777777778,
+        "portuguese": 0.6777777777777778,
+        "spanish": 0.7777777777777778,
+        "vietnamese": 0.6888888888888889
+      },
+      "tests": {
+        "tutor_accuracy": {
+          "score": 0.7305555555555555,
+          "ci95": [
+            0.6805555555555556,
+            0.7777777777777778
+          ],
+          "n_items": 360,
+          "epochs": 1,
+          "consistency": null,
+          "status": "complete",
+          "dataset": "full",
+          "cost_usd": 0.271534208,
+          "cost_per_correct_usd": 0.0010324494600760456
+        }
+      }
+    }
+  ],
   "methodology": "v2",
   "archived_leaderboard": "v1/data/leaderboard.json"
 }
