@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Irish dictation &amp; subtitles · Blas Open Lab</title>
+<meta name="description" content="Record Irish speech or open a local media file, then edit and export subtitles.">
+<link rel="canonical" href="https://research.blasapp.com/transcribe">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Teanga Bench">
+<meta property="og:title" content="Irish dictation &amp; subtitles · Blas Open Lab">
+<meta property="og:description" content="Record Irish speech or open a local media file, then edit and export subtitles.">
+<meta property="og:url" content="https://research.blasapp.com/transcribe">
+<meta property="og:image" content="https://research.blasapp.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Teanga Bench Blas suite: How well do AI models handle the Celtic languages? (Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish).">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Irish dictation &amp; subtitles · Blas Open Lab">
+<meta name="twitter:description" content="Record Irish speech or open a local media file, then edit and export subtitles.">
+<meta name="twitter:image" content="https://research.blasapp.com/og-image.png">
+<meta name="twitter:image:alt" content="Teanga Bench Blas suite: How well do AI models handle the Celtic languages? (Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish).">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/lab.css">
+<script>document.documentElement.className += " js";</script>
+</head>
+<body class="suite-blas lab-page">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="wrap head-row">
+<a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span>Teanga Bench</a>
+<nav class="site-nav" aria-label="Main"><ul><li><a href="lab.html" aria-current="page">Open Lab</a></li><li><a href="./">Leaderboard</a></li><li><a class="ext" href="https://github.com/johnway114/teanga-bench">GitHub<span class="sr-only"> (code and data)</span></a></li></ul></nav>
+<nav class="switcher" aria-label="Suite"><a class="sw sw-blas" title="Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish" href="./" aria-current="true">Blas</a><a class="sw sw-tonada" title="Tonada suite: English tutoring for Portuguese, Spanish, Vietnamese and Japanese speakers" href="https://research.tonadaapp.com/" data-local="../tonada/">Tonada</a></nav>
+</div></header>
+<main id="main" class="wrap">
+<nav class="lab-nav" aria-label="Open Lab"><ul><li><a href="lab.html">Overview</a></li><li><a href="speech.html">Speech studio</a></li><li><a href="transcribe.html" aria-current="page">Transcribe</a></li><li><a href="write.html">Proofing</a></li><li><a href="benchmarks.html">Benchmarks</a></li><li><a href="arena.html">Blind listening</a></li><li><a href="developers.html">Developers</a></li></ul></nav><div class="page-head"><p class="eyebrow">Blas research</p><h1>Irish dictation &amp; subtitles</h1><p class="lede">Record Irish speech or open a local media file, then edit and export subtitles.</p></div>
+<div id="transcription" data-site-key="">
+  <nav class="lab-mode" aria-label="Transcription tools">
+    <a class="lab-button" href="#dictation">Microphone dictation</a>
+    <a class="lab-button" href="#subtitler">File subtitler</a>
+  </nav>
+  <noscript><p class="notice">Dictation and the local subtitle editor require JavaScript.</p></noscript>
+  <section class="card lab-service" aria-label="Audio processing consent" data-js hidden>
+    <p id="asr-state" role="status">Automatic transcription is unavailable. You can still preview media, edit cues and export locally.</p>
+    <label id="upload-consent" class="lab-check" hidden><input type="checkbox" id="consent">
+      <span>I agree to send short audio clips to Blas for transcription. The original media file is never uploaded.</span>
+    </label>
+    <div id="verification" class="lab-verification"></div>
+    <details class="lab-privacy"><summary>Audio and quota privacy</summary>
+      <p>Blas does not keep audio or transcripts or use them for training. Cloudflare Turnstile receives your IP address and challenge token for verification.</p>
+      <p>To enforce the daily limit, the isolated service stores a keyed hash of your IP, the UTC date and seconds used, plus a daily total. It does not store your raw IP. Old quota entries are removed when the service next accepts a request on a later UTC day, so they can remain longer if the service is idle.</p>
+    </details>
+  </section>
+  <section id="dictation" class="card lab-workspace" aria-labelledby="dictation-heading" data-js hidden>
+    <div class="lab-tool-head"><div><p class="eyebrow">Microphone · 30 seconds</p><h2 id="dictation-heading">Éist dictation</h2></div>
+      <a href="https://blasapp.com/research/dictate">Blas Dictation for Mac</a>
+    </div>
+    <div class="lab-editor-grid">
+      <div class="lab-well">
+        <div class="lab-record-time"><span id="record-time">0:00</span> <span class="muted">/ 0:30</span></div>
+        <meter id="record-level" min="0" max="1" value="0" aria-label="Microphone level"></meter>
+        <div class="lab-actions"><button type="button" class="lab-primary" id="record">Record</button>
+          <button type="button" id="clear-recording" disabled>Discard recording</button></div>
+        <audio id="recording" controls hidden aria-label="Recorded audio"></audio>
+        <div class="lab-actions"><button type="button" id="send-recording" disabled>Transcribe recording</button></div>
+        <p class="lab-note" id="record-status" role="status">You can listen back before sending.</p>
+      </div>
+      <div>
+        <label for="dictation-text">Transcript</label>
+        <textarea lang="ga" id="dictation-text" rows="5" placeholder="Speak Irish or enter text to edit here."></textarea>
+        <div class="lab-actions"><button type="button" id="copy-dictation" disabled>Copy transcript</button>
+          <button type="button" id="download-dictation" disabled>Download TXT</button></div>
+        <p id="dictation-status" class="lab-note" role="status"></p>
+      </div>
+    </div>
+  </section>
+  <section id="subtitler" class="card lab-workspace" aria-labelledby="subtitler-heading" data-js hidden>
+    <div class="lab-tool-head"><div><p class="eyebrow">Audio or video · 2 minutes for extraction</p>
+      <h2 id="subtitler-heading">Tras-scríobh subtitler</h2></div></div>
+    <div class="lab-editor-grid">
+      <div>
+        <label class="lab-drop" id="drop-zone" for="media-file">
+          <strong>Choose or drop a media file</strong><span>WAV, MP3, M4A, MP4 or MOV · up to 100 MiB</span>
+          <input type="file" id="media-file" accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4,.mov">
+        </label>
+        <p id="file-name" class="lab-note"></p>
+        <div class="lab-actions"><button type="button" id="preview-file" disabled aria-controls="media-preview" aria-expanded="false">Preview media</button></div>
+        <p id="preview-status" class="lab-note" role="status"></p>
+        <div id="media-preview" class="lab-preview" hidden></div>
+        <p id="playing-cue" class="lab-caption" lang="ga" hidden></p>
+        <div class="lab-actions"><button type="button" class="lab-primary" id="send-file" disabled>Generate subtitle cues</button>
+          <button type="button" id="extract-audio" disabled>Extract audio locally</button>
+          <button type="button" id="clear-file" disabled>Close media</button>
+          <button type="button" id="cancel-file" hidden>Cancel processing</button></div>
+        <a id="save-audio" class="lab-button" hidden download="extracted-irish-audio.wav">Save extracted WAV</a>
+        <p class="lab-note" id="file-status" role="status">Only the audio is extracted, in your browser. Codec support varies by browser.</p>
+      </div>
+      <div>
+        <h3>Subtitle cues</h3>
+        <p class="lab-note">Edit times (in seconds) and text. Open a cue’s dictionary tools to look up a word.</p>
+        <ol id="cues" class="lab-cues"></ol>
+        <div class="lab-actions"><button type="button" id="add-cue">Add cue</button></div>
+        <div class="lab-actions lab-export" aria-label="Download subtitles">
+          <button type="button" data-export="srt" disabled>Download SRT</button>
+          <button type="button" data-export="vtt" disabled>Download VTT</button>
+          <button type="button" data-export="txt" disabled>Download TXT</button>
+        </div>
+        <p class="lab-note" id="cue-status" role="status"></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+</main>
+<footer class="site-foot"><div class="wrap">
+<p>Blas Open Lab is a project by <a href="https://blasapp.com">Blas</a>, alongside <a href="./">Teanga Bench</a>.</p><p><a href="https://blasapp.com/privacy">Blas privacy policy</a> · <a href="https://github.com/johnway114/teanga-bench">Site source on GitHub</a></p>
+</div></footer>
+<script>
+(function () {
+  var d = document;
+  function each(sel, fn, root) { Array.prototype.forEach.call((root || d).querySelectorAll(sel), fn); }
+  if (!/^research\.(blasapp|tonadaapp)\.com$/.test(location.hostname)) {
+    each("a[data-local]", function (a) { a.setAttribute("href", a.getAttribute("data-local")); });
+  }
+  var nav = d.querySelector(".site-nav"), here = nav && nav.querySelector("[aria-current]");
+  if (here && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = here.offsetLeft - 16;
+  function target() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id ? d.getElementById(id) : null;
+    for (var p = el; p; p = p.parentElement) { if (p.tagName === "DETAILS") p.open = true; }
+    return el;
+  }
+  each("[data-collapsible]", function (box) {
+    var btn = box.querySelector("[data-show-all]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var open = box.classList.toggle("expanded");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = btn.getAttribute(open ? "data-less" : "data-more");
+    });
+  });
+  each("table[data-sortable]", function (table) {
+    var body = table.tBodies[0], top = parseInt(table.getAttribute("data-top") || "0", 10);
+    each("th[data-sort]", function (th) {
+      var col = th.cellIndex, first = th.getAttribute("data-sort");
+      var b = d.createElement("button");
+      b.type = "button";
+      b.className = "sort";
+      while (th.firstChild) b.appendChild(th.firstChild);
+      th.appendChild(b);
+      b.addEventListener("click", function () {
+        var now = th.getAttribute("aria-sort");
+        var asc = now ? now !== "ascending" : first === "asc";
+        var rows = Array.prototype.slice.call(body.rows);
+        rows.sort(function (x, y) {
+          var a = x.cells[col].getAttribute("data-v"), c = y.cells[col].getAttribute("data-v");
+          var na = parseFloat(a), nc = parseFloat(c);
+          var r = isNaN(na) || isNaN(nc) ? a.localeCompare(c) : na - nc;
+          return asc ? r : -r;
+        });
+        rows.forEach(function (r, i) { body.appendChild(r); if (top) r.classList.toggle("more", i >= top); });
+        each("th[aria-sort]", function (h) { h.removeAttribute("aria-sort"); }, table);
+        th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+      });
+    }, table);
+  });
+  var tabSets = [];
+  each("[data-tabs]", function (box) {
+    var links = box.querySelectorAll("[data-tablist] a"), panels = [];
+    box.querySelector("[data-tablist]").setAttribute("role", "tablist");
+    function show(i) {
+      panels.forEach(function (p, j) {
+        p.hidden = j !== i;
+        links[j].setAttribute("aria-selected", j === i ? "true" : "false");
+        links[j].tabIndex = j === i ? 0 : -1;
+      });
+    }
+    Array.prototype.forEach.call(links, function (a, i) {
+      var panel = d.getElementById(a.getAttribute("href").slice(1));
+      panels.push(panel);
+      a.id = "tab-" + panel.id;
+      a.setAttribute("role", "tab");
+      a.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", a.id);
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        show(i);
+        history.replaceState(null, "", "#" + panel.id);
+      });
+      a.addEventListener("keydown", function (ev) {
+        var k = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+        if (!k) return;
+        ev.preventDefault();
+        var j = (i + k + links.length) % links.length;
+        show(j);
+        links[j].focus();
+        history.replaceState(null, "", "#" + panels[j].id);
+      });
+    });
+    function sync() {
+      var el = target(), at = 0;
+      panels.forEach(function (p, j) { if (el && p.contains(el)) at = j; });
+      show(at);
+    }
+    sync();
+    box.classList.add("tabs-ready");
+    tabSets.push(sync);
+  });
+  target();
+  window.addEventListener("hashchange", function () { target(); tabSets.forEach(function (f) { f(); }); });
+  each("a.copy-link", function (a) {
+    a.addEventListener("click", function (ev) {
+      if (!navigator.clipboard) return;
+      ev.preventDefault();
+      navigator.clipboard.writeText(location.href.split("#")[0] + a.getAttribute("href")).then(function () {
+        a.classList.add("copied");
+        a.setAttribute("aria-label", "Link copied");
+        setTimeout(function () { a.classList.remove("copied"); a.setAttribute("aria-label", "Link to this section"); }, 1600);
+      });
+    });
+  });
+})();
+</script>
+<script src="../assets/transcribe.js" defer></script>
+</body>
+</html>

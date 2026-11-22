@@ -53,6 +53,29 @@ Other commands: `teanga-bench validate` checks the dataset files,
 `teanga-bench leaderboard` rebuilds the leaderboard, `teanga-bench site`
 rebuilds the site, and `teanga-bench publish` publishes existing results.
 
+The Blas Open Lab is built into `site/blas/` alongside the leaderboard. To
+preview without changing tracked output, run `teanga-bench site --out-dir /tmp/teanga-preview`,
+then `python -m http.server --directory /tmp/teanga-preview` and open `/blas/lab.html`.
+Local preview supports microphone recording, file extraction in supported codecs,
+cue editing, and export. It does not send audio to Blas.
+
+Set `NEXT_PUBLIC_LAB_TURNSTILE_SITE_KEY` **when generating the static site** for
+automatic transcription on `https://research.blasapp.com`. It is a public site
+key, not the Turnstile secret. The widget must allow that hostname and match the
+server configuration on `blasapp.com`. Without an enabled isolated Blas ASR
+service and durable quota, transcription is unavailable; the local editor still
+works. The BlasBench table reads a pinned upstream release and links to its run
+files; it does not copy scores into this repository. No synthesis samples or
+blind voting are exposed without a public rights clearance.
+
+The optional, reviewed `data/public-lab/arena.json` must explicitly set
+`public_playback_approved: true`, declare `language: "ga"` and an attested
+common `text` with a `text_source_url`, and list exactly two `clips` with distinct `voice` labels and
+HTTPS `audio_url` / `rights_url` pairs. Only add this file after confirming
+public playback and attribution for both exact clips. Missing or invalid
+evidence leaves both surfaces without audio. The private comparison does not
+collect votes; do not use it as a benchmark result.
+
 ## What is public and what is private
 
 Public, in this repository: the code, the scoring rules, the dataset build

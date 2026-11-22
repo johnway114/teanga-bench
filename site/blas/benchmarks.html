@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Celtic language benchmarks · Blas Open Lab</title>
+<meta name="description" content="Trace language-model and speech-recognition results to published evidence.">
+<link rel="canonical" href="https://research.blasapp.com/benchmarks">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Teanga Bench">
+<meta property="og:title" content="Celtic language benchmarks · Blas Open Lab">
+<meta property="og:description" content="Trace language-model and speech-recognition results to published evidence.">
+<meta property="og:url" content="https://research.blasapp.com/benchmarks">
+<meta property="og:image" content="https://research.blasapp.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Teanga Bench Blas suite: How well do AI models handle the Celtic languages? (Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish).">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Celtic language benchmarks · Blas Open Lab">
+<meta name="twitter:description" content="Trace language-model and speech-recognition results to published evidence.">
+<meta name="twitter:image" content="https://research.blasapp.com/og-image.png">
+<meta name="twitter:image:alt" content="Teanga Bench Blas suite: How well do AI models handle the Celtic languages? (Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish).">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/lab.css">
+<script>document.documentElement.className += " js";</script>
+</head>
+<body class="suite-blas lab-page">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="wrap head-row">
+<a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span>Teanga Bench</a>
+<nav class="site-nav" aria-label="Main"><ul><li><a href="lab.html" aria-current="page">Open Lab</a></li><li><a href="./">Leaderboard</a></li><li><a class="ext" href="https://github.com/johnway114/teanga-bench">GitHub<span class="sr-only"> (code and data)</span></a></li></ul></nav>
+<nav class="switcher" aria-label="Suite"><a class="sw sw-blas" title="Blas suite: Irish, Welsh, Scottish Gaelic, Manx, Breton and Cornish" href="./" aria-current="true">Blas</a><a class="sw sw-tonada" title="Tonada suite: English tutoring for Portuguese, Spanish, Vietnamese and Japanese speakers" href="https://research.tonadaapp.com/" data-local="../tonada/">Tonada</a></nav>
+</div></header>
+<main id="main" class="wrap">
+<nav class="lab-nav" aria-label="Open Lab"><ul><li><a href="lab.html">Overview</a></li><li><a href="speech.html">Speech studio</a></li><li><a href="transcribe.html">Transcribe</a></li><li><a href="write.html">Proofing</a></li><li><a href="benchmarks.html" aria-current="page">Benchmarks</a></li><li><a href="arena.html">Blind listening</a></li><li><a href="developers.html">Developers</a></li></ul></nav><div class="page-head"><p class="eyebrow">Blas research</p><h1>Celtic language benchmarks</h1><p class="lede">Trace language-model and speech-recognition results to published evidence.</p></div>
+<div class="cards lab-cards">
+  <article class="card"><h2>Teanga Bench</h2><p>Language-model performance across six Celtic languages, with published scores and uncertainty.</p>
+    <p class="card-foot"><a href="./">Explore the Teanga leaderboard</a></p>
+    <p class="lab-note"><a href="methodology.html">Methodology</a> · <a href="data/leaderboard.json">Leaderboard JSON</a></p>
+  </article>
+  <article class="card"><h2>Dialect TTS ruler</h2><p>No cleared dialect or connected-speech evaluation artifact is available in this Lab. Error rates and phonetic contrasts would not replace fluent listening.</p>
+    <p class="card-foot"><a href="arena.html">See the blind listening protocol</a></p>
+  </article>
+</div>
+<section class="card lab-workspace" id="blasbench" data-revision="560e0220da07bff0d884ab519b2dbc11c8462b30" aria-labelledby="blasbench-heading">
+  <div class="lab-tool-head"><div><p class="eyebrow">Irish speech recognition</p><h2 id="blasbench-heading">BlasBench v0.1.0</h2></div>
+    <a href="https://github.com/jyoutir/blasbench/tree/560e0220da07bff0d884ab519b2dbc11c8462b30">Source and methodology</a></div>
+  <p>Compare published Common Voice and FLEURS runs on word error rate (WER) or character error rate (CER). Lower is better; insertions can push rates over 100%.</p>
+  <div class="lab-actions"><button type="button" class="lab-primary" id="load-blasbench" hidden>Load published results</button>
+    <a href="https://github.com/jyoutir/blasbench/blob/560e0220da07bff0d884ab519b2dbc11c8462b30/results/summary.csv">Release CSV</a>
+    <a href="https://huggingface.co/jyoutir/blas-m3-lm">Blas-IE model card &amp; results</a></div>
+  <p id="blasbench-status" class="lab-note" role="status"></p>
+  <div id="blasbench-results" hidden>
+    <div class="lab-actions lab-filters">
+      <label for="blasbench-dataset">Dataset <select id="blasbench-dataset"><option value="cv-corpus-25.0-ga-IE">Common Voice 25.0 · ga-IE</option><option value="google/fleurs">FLEURS · ga-IE</option></select></label>
+      <label for="blasbench-metric">Rank by <select id="blasbench-metric"><option value="wer">Word error rate</option><option value="cer">Character error rate</option></select></label>
+    </div>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="BlasBench release results">
+      <table class="lab-bench-table"><caption class="sr-only">Published Irish speech-recognition results</caption>
+        <thead><tr><th scope="col">Model</th><th scope="col">WER</th><th scope="col">CER</th><th scope="col">Utterances</th><th scope="col">Evidence</th></tr></thead>
+        <tbody id="blasbench-rows"></tbody>
+      </table>
+    </div>
+    <p class="lab-note">Open a run’s details for source intervals. This table reflects the pinned release, not a comparison of current service configurations. No sample audio is republished.</p>
+  </div>
+</section>
+
+</main>
+<footer class="site-foot"><div class="wrap">
+<p>Blas Open Lab is a project by <a href="https://blasapp.com">Blas</a>, alongside <a href="./">Teanga Bench</a>.</p><p><a href="https://blasapp.com/privacy">Blas privacy policy</a> · <a href="https://github.com/johnway114/teanga-bench">Site source on GitHub</a></p>
+</div></footer>
+<script>
+(function () {
+  var d = document;
+  function each(sel, fn, root) { Array.prototype.forEach.call((root || d).querySelectorAll(sel), fn); }
+  if (!/^research\.(blasapp|tonadaapp)\.com$/.test(location.hostname)) {
+    each("a[data-local]", function (a) { a.setAttribute("href", a.getAttribute("data-local")); });
+  }
+  var nav = d.querySelector(".site-nav"), here = nav && nav.querySelector("[aria-current]");
+  if (here && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = here.offsetLeft - 16;
+  function target() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var el = id ? d.getElementById(id) : null;
+    for (var p = el; p; p = p.parentElement) { if (p.tagName === "DETAILS") p.open = true; }
+    return el;
+  }
+  each("[data-collapsible]", function (box) {
+    var btn = box.querySelector("[data-show-all]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var open = box.classList.toggle("expanded");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = btn.getAttribute(open ? "data-less" : "data-more");
+    });
+  });
+  each("table[data-sortable]", function (table) {
+    var body = table.tBodies[0], top = parseInt(table.getAttribute("data-top") || "0", 10);
+    each("th[data-sort]", function (th) {
+      var col = th.cellIndex, first = th.getAttribute("data-sort");
+      var b = d.createElement("button");
+      b.type = "button";
+      b.className = "sort";
+      while (th.firstChild) b.appendChild(th.firstChild);
+      th.appendChild(b);
+      b.addEventListener("click", function () {
+        var now = th.getAttribute("aria-sort");
+        var asc = now ? now !== "ascending" : first === "asc";
+        var rows = Array.prototype.slice.call(body.rows);
+        rows.sort(function (x, y) {
+          var a = x.cells[col].getAttribute("data-v"), c = y.cells[col].getAttribute("data-v");
+          var na = parseFloat(a), nc = parseFloat(c);
+          var r = isNaN(na) || isNaN(nc) ? a.localeCompare(c) : na - nc;
+          return asc ? r : -r;
+        });
+        rows.forEach(function (r, i) { body.appendChild(r); if (top) r.classList.toggle("more", i >= top); });
+        each("th[aria-sort]", function (h) { h.removeAttribute("aria-sort"); }, table);
+        th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+      });
+    }, table);
+  });
+  var tabSets = [];
+  each("[data-tabs]", function (box) {
+    var links = box.querySelectorAll("[data-tablist] a"), panels = [];
+    box.querySelector("[data-tablist]").setAttribute("role", "tablist");
+    function show(i) {
+      panels.forEach(function (p, j) {
+        p.hidden = j !== i;
+        links[j].setAttribute("aria-selected", j === i ? "true" : "false");
+        links[j].tabIndex = j === i ? 0 : -1;
+      });
+    }
+    Array.prototype.forEach.call(links, function (a, i) {
+      var panel = d.getElementById(a.getAttribute("href").slice(1));
+      panels.push(panel);
+      a.id = "tab-" + panel.id;
+      a.setAttribute("role", "tab");
+      a.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", a.id);
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        show(i);
+        history.replaceState(null, "", "#" + panel.id);
+      });
+      a.addEventListener("keydown", function (ev) {
+        var k = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+        if (!k) return;
+        ev.preventDefault();
+        var j = (i + k + links.length) % links.length;
+        show(j);
+        links[j].focus();
+        history.replaceState(null, "", "#" + panels[j].id);
+      });
+    });
+    function sync() {
+      var el = target(), at = 0;
+      panels.forEach(function (p, j) { if (el && p.contains(el)) at = j; });
+      show(at);
+    }
+    sync();
+    box.classList.add("tabs-ready");
+    tabSets.push(sync);
+  });
+  target();
+  window.addEventListener("hashchange", function () { target(); tabSets.forEach(function (f) { f(); }); });
+  each("a.copy-link", function (a) {
+    a.addEventListener("click", function (ev) {
+      if (!navigator.clipboard) return;
+      ev.preventDefault();
+      navigator.clipboard.writeText(location.href.split("#")[0] + a.getAttribute("href")).then(function () {
+        a.classList.add("copied");
+        a.setAttribute("aria-label", "Link copied");
+        setTimeout(function () { a.classList.remove("copied"); a.setAttribute("aria-label", "Link to this section"); }, 1600);
+      });
+    });
+  });
+})();
+</script>
+<script src="../assets/benchmarks.js" defer></script>
+</body>
+</html>

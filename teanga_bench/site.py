@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import shutil
 import statistics
@@ -73,6 +74,7 @@ from teanga_bench.site_charts import (
     swatch,
 )
 from teanga_bench.site_css import SITE_CSS
+from teanga_bench.site_lab import LAB_TITLE, lab_pages
 from teanga_bench.site_findings import (
     MIN_ITEMS,
     Est,
@@ -1031,6 +1033,7 @@ def _page(
     home_depth: int | None = None,
     view: BoardView | None = None,
     og_image_url: str | None = None,
+    lab_script: str = "",
 ) -> str:
     root = "../" * depth
     ups = (depth - 1) if home_depth is None else home_depth
@@ -1046,15 +1049,18 @@ def _page(
     )
     banner = _version_banner(view, home) if view else ""
     json_ld_block = f"\n{json_ld}" if json_ld else ""
-    nav = []
-    for key, label, href in (
-        ("home", "Leaderboard", home),
-        ("tests", "Tests", f"{home}tests.html"),
-        ("findings", "Findings", f"{home}findings.html"),
-        ("groups", suite.group_nav, f"{home}{suite.group_page}.html"),
-        ("models", "Models", f"{home}models.html"),
-        ("methodology", "Methodology", f"{home}methodology.html"),
-    ):
+    lab_page = current == "lab"
+    nav = ['<li><a href="lab.html" aria-current="page">Open Lab</a></li>'] if lab_page else []
+    nav_items = [("home", "Leaderboard", home)]
+    if not lab_page:
+        nav_items.extend((
+            ("tests", "Tests", f"{home}tests.html"),
+            ("findings", "Findings", f"{home}findings.html"),
+            ("groups", suite.group_nav, f"{home}{suite.group_page}.html"),
+            ("models", "Models", f"{home}models.html"),
+            ("methodology", "Methodology", f"{home}methodology.html"),
+        ))
+    for key, label, href in nav_items:
         if key == current:
             attr = ' aria-current="page"'
         elif key == "models" and current == "model":
@@ -1075,6 +1081,27 @@ def _page(
             )
     other = SUITES["tonada" if suite.key == "blas" else "blas"]
     other_public = other.url if not prefix else other.url.rstrip("/") + "/" + prefix
+    lab_tag = f'\n<script src="{root}assets/{lab_script}" defer></script>' if lab_script else ""
+    lab_style = f'\n<link rel="stylesheet" href="{root}assets/lab.css">' if lab_page else ""
+    lab_home = "../" + home if prefix else home
+    if lab_page:
+        footer = (
+            '<p>Blas Open Lab is a project by <a href="https://blasapp.com">Blas</a>, '
+            'alongside <a href="./">Teanga Bench</a>.</p>'
+            '<p><a href="https://blasapp.com/privacy">Blas privacy policy</a> · '
+            f'<a href="{REPO_URL}">Site source on GitHub</a></p>'
+        )
+    else:
+        lab_link = f' · <a href="{lab_home}lab.html">{LAB_TITLE}</a>' if suite.key == "blas" else ""
+        updated_note = f"Results as of {e(_date(updated))}. " if updated else ""
+        footer = (
+            f'<p>{BENCHMARK_NAME} is open source under Apache-2.0. Code, the public samples and every results file '
+            f'are on <a href="{REPO_URL}">GitHub</a>{lab_link}.</p>\n'
+            f'<p>Gold answers come from the sources named in the <a href="{home}methodology.html">methodology</a>; '
+            'they have not been reviewed by native speakers.</p>\n'
+            f'<p>{updated_note}Also see the <a href="{e(other_public)}" data-local="{root}{other.key}/{prefix}">'
+            f'{e(other.name)}: {e(other.description)}</a>.</p>'
+        )
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1084,10 +1111,10 @@ def _page(
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
 {social_tags}{json_ld_block}
-<link rel="stylesheet" href="{root}assets/site.css">
+<link rel="stylesheet" href="{root}assets/site.css">{lab_style}
 <script>document.documentElement.className += " js";</script>
 </head>
-<body class="suite-{suite.key}">
+<body class="suite-{suite.key}{' lab-page' if lab_page else ''}">
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head"><div class="wrap head-row">
 <a class="brand" href="{home}"><span class="brand-mark" aria-hidden="true"></span>{BENCHMARK_NAME}</a>
@@ -1098,12 +1125,10 @@ def _page(
 {banner}{body}
 </main>
 <footer class="site-foot"><div class="wrap">
-<p>{BENCHMARK_NAME} is open source under Apache-2.0. Code, the public samples and every results file are on <a href="{REPO_URL}">GitHub</a>.</p>
-<p>Gold answers come from the sources named in the <a href="{home}methodology.html">methodology</a>; they have not been reviewed by native speakers.</p>
-<p>{f"Results as of {e(_date(updated))}. " if updated else ""}Also see the <a href="{e(other_public)}" data-local="{root}{other.key}/{prefix}">{e(other.name)}: {e(other.description)}</a>.</p>
+{footer}
 </div></footer>
 <script>
-{SITE_JS}</script>
+{SITE_JS}</script>{lab_tag}
 </body>
 </html>
 """
@@ -1318,6 +1343,7 @@ def _home(
     *,
     runs_tree: str = "results/runs",
     empty_html: str | None = None,
+    show_lab: bool = False,
 ) -> str:
     ranked = [entry for entry in entries if entry.ranked]
     unranked = [entry for entry in entries if not entry.ranked]
@@ -1333,6 +1359,11 @@ def _home(
             eyebrow=f"{BENCHMARK_NAME} · {e(suite.name)}",
         )
     ]
+    if show_lab:
+        parts.append(
+            f'<p class="notice"><a href="lab.html"><strong>{LAB_TITLE}</strong></a> · '
+            'Explore speech, dictation, subtitle editing and the evidence behind the benchmarks.</p>'
+        )
     if not ranked:
         if empty_html is not None:
             parts.append(empty_html)
@@ -3583,6 +3614,8 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
         written.append(relative)
 
     put("assets/site.css", SITE_CSS)
+    assets_dir = Path(__file__).with_name("lab_assets")
+    put("assets/lab.css", (assets_dir / "lab.css").read_text(encoding="utf-8"))
     put("suites.html", _preview_index(updated))
     summary: dict[str, Any] = {"updated": updated, "suites": {}, "archive": {}, "files": written}
     legacy_slugs: dict[str, list[str]] = {}
@@ -3676,7 +3709,10 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
                 "index.html",
                 f"{BENCHMARK_NAME}: {suite.description}",
                 index_description,
-                _home(suite, entries, tests, reports, board_updated, runs_tree=runs_tree, empty_html=empty_html),
+                _home(
+                    suite, entries, tests, reports, board_updated, runs_tree=runs_tree, empty_html=empty_html,
+                    show_lab=suite.key == "blas" and not prefix,
+                ),
                 "home",
             )
             page(
@@ -3779,6 +3815,27 @@ def build_site(results_dir: Path | str, out_dir: Path | str = SITE, *, repo_root
             legacy_slugs[suite.key] = legacy
             for slug in legacy:
                 put(f"{suite.key}/models/{slug}.html", _legacy_model_redirect(suite, slug))
+        if suite.key == "blas":
+            site_key = os.environ.get("NEXT_PUBLIC_LAB_TURNSTILE_SITE_KEY", "").strip()
+            for page in lab_pages(site_key, repo_root / "data" / "public-lab" / "arena.json"):
+                relative = f"{page.slug}.html"
+                if page.script:
+                    put(f"assets/{page.script}", (assets_dir / page.script).read_text(encoding="utf-8"))
+                put(
+                    f"blas/{relative}",
+                    _page(
+                        title=f"{page.title} · {LAB_TITLE}" if page.slug != "lab" else LAB_TITLE,
+                        description=page.description,
+                        body=page.body,
+                        suite=suite,
+                        depth=1,
+                        current="lab",
+                        updated=None,
+                        relative=relative,
+                        lab_script=page.script,
+                    ),
+                )
+                sitemap_urls.append((_canonical_url(suite, relative), None))
         put(f"{suite.key}/robots.txt", _robots_txt(suite))
         put(f"{suite.key}/sitemap.xml", _sitemap_xml(sitemap_urls))
         summary["suites"][suite.key] = {
